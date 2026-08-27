@@ -1,0 +1,243 @@
+import React, { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import {
+  CheckSquare,
+  Plus,
+  Search,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  User,
+  Building2,
+  Calendar,
+  Filter,
+  MessageSquare
+} from 'lucide-react';
+import { formatDate, getStatusBadgeClass } from '../utils/formatters';
+
+export const TasksView = ({ onOpenTaskModal }) => {
+  const { tasks, updateTask, currentRole, currentUser } = useApp();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
+  const [assigneeFilter, setAssigneeFilter] = useState('ALL');
+
+  // Unique assignees
+  const assignees = Array.from(new Set(tasks.map((t) => t.assignedPerson).filter(Boolean)));
+
+  // Filter tasks
+  const filteredTasks = tasks.filter((t) => {
+    const matchesSearch =
+      t.taskName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.assignedPerson.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = statusFilter === 'ALL' || t.status === statusFilter;
+    const matchesPriority = priorityFilter === 'ALL' || t.priority === priorityFilter;
+    const matchesAssignee = assigneeFilter === 'ALL' || t.assignedPerson === assigneeFilter;
+
+    return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+  });
+
+  const todoCount = tasks.filter((t) => t.status === 'To Do').length;
+  const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
+  const completedCount = tasks.filter((t) => t.status === 'Completed').length;
+  const urgentCount = tasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed').length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Header */}
+      <div className="flex-between">
+        <div>
+          <h2>Task Delegation & Team Execution</h2>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Admin task assignments, field technician progress tracking, and client service deliveries.
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={onOpenTaskModal}>
+          <Plus size={16} /> Assign New Task
+        </button>
+      </div>
+
+      {/* Metric Cards */}
+      <div className="grid-4">
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--primary-600)' }}>
+          <div className="stat-header">
+            <span className="stat-title">To Do Backlog</span>
+            <CheckSquare size={18} style={{ color: 'var(--primary-600)' }} />
+          </div>
+          <div className="stat-value">{todoCount}</div>
+          <div className="stat-subtext">Queued for execution</div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: '4px solid #f59e0b' }}>
+          <div className="stat-header">
+            <span className="stat-title">In Progress</span>
+            <Clock size={18} style={{ color: '#f59e0b' }} />
+          </div>
+          <div className="stat-value">{inProgressCount}</div>
+          <div className="stat-subtext">Actively being worked on</div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>
+          <div className="stat-header">
+            <span className="stat-title">Completed Tasks</span>
+            <CheckCircle2 size={18} style={{ color: '#10b981' }} />
+          </div>
+          <div className="stat-value">{completedCount}</div>
+          <div className="stat-subtext">Successfully fulfilled</div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: `4px solid ${urgentCount > 0 ? 'var(--danger-text)' : 'var(--success-text)'}` }}>
+          <div className="stat-header">
+            <span className="stat-title">Urgent Priority</span>
+            <AlertTriangle size={18} style={{ color: urgentCount > 0 ? 'var(--danger-text)' : 'var(--success-text)' }} />
+          </div>
+          <div className="stat-value" style={{ color: urgentCount > 0 ? 'var(--danger-text)' : 'inherit' }}>
+            {urgentCount}
+          </div>
+          <div className="stat-subtext">Critical SLA & logistics items</div>
+        </div>
+      </div>
+
+      {/* Filter & Search */}
+      <div className="card" style={{ padding: '14px 18px' }}>
+        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Search task name, client, team member..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '36px' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Status:</span>
+            <select
+              className="form-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ width: '140px' }}
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Priority:</span>
+            <select
+              className="form-select"
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              style={{ width: '130px' }}
+            >
+              <option value="ALL">All Priorities</option>
+              <option value="Urgent">Urgent</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Assignee:</span>
+            <select
+              className="form-select"
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              style={{ width: '160px' }}
+            >
+              <option value="ALL">All Team Members</option>
+              {assignees.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Tasks Table */}
+      <div className="table-container">
+        <table className="custom-table">
+          <thead>
+            <tr>
+              <th>Task Name & Details</th>
+              <th>Client / Account</th>
+              <th>Assigned Person</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Created By</th>
+              <th>Update Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTasks.map((t) => (
+              <tr key={t.id}>
+                <td>
+                  <div>
+                    <strong style={{ fontSize: '0.9rem' }}>{t.taskName}</strong>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px', maxWidth: '340px' }}>
+                      {t.description}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="badge badge-neutral" style={{ fontSize: '0.75rem' }}>
+                    {t.client}
+                  </span>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary-600)', color: '#fff', fontSize: '0.68rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                      {t.assignedPerson.charAt(0)}
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{t.assignedPerson}</span>
+                  </div>
+                </td>
+                <td>
+                  <span className={`badge ${t.priority === 'Urgent' || t.priority === 'High' ? 'badge-danger' : (t.priority === 'Medium' ? 'badge-warning' : 'badge-neutral')}`}>
+                    {t.priority}
+                  </span>
+                </td>
+                <td style={{ fontSize: '0.82rem' }}>
+                  {formatDate(t.dueDate)}
+                </td>
+                <td>
+                  <span className={`badge ${getStatusBadgeClass(t.status)}`}>
+                    {t.status}
+                  </span>
+                </td>
+                <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  {t.createdBy}
+                </td>
+                <td>
+                  <select
+                    className="form-select"
+                    value={t.status}
+                    onChange={(e) => updateTask(t.id, { status: e.target.value })}
+                    style={{ width: '130px', padding: '4px 6px', fontSize: '0.78rem' }}
+                  >
+                    <option value="To Do">To Do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Overdue">Overdue</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
