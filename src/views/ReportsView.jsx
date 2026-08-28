@@ -77,6 +77,23 @@ export const ReportsView = () => {
       scopedInvoices.forEach(i => {
         csvContent += `"${i.invoiceNumber}","${i.clientName}",${i.totalAmount},${i.amountPaid},${i.balance},"${i.paymentDueDate}","${i.paymentStatus}"\n`;
       });
+    } else if (selectedReport === 'clients') {
+      csvContent += 'Client ID,Company Name,Contact Person,Phone,Email,City,State,Type,Total Orders,Total Business Value,Pending AR,Status\n';
+      scopedClients.forEach(c => {
+        csvContent += `"${c.id}","${c.companyName}","${c.contactPerson}","${c.phone}","${c.email}","${c.city}","${c.state}","${c.clientType}",${c.totalOrders || 0},${c.totalBusinessValue || 0},${c.pendingAmount || 0},"${c.clientStatus}"\n`;
+      });
+    } else if (selectedReport === 'tasks') {
+      csvContent += 'Task ID,Task Name,Assigned Rep,Client / Account,Priority,Due Date,Status,Created At\n';
+      scopedTasks.forEach(t => {
+        csvContent += `"${t.id}","${t.taskName}","${t.assignedPerson}","${t.client}","${t.priority}","${t.dueDate}","${t.status}","${t.createdAt || ''}"\n`;
+      });
+    } else if (selectedReport === 'statewise') {
+      csvContent += 'State Name,Region,Total Clients,Total Revenue,Dominant Brand,Market Share\n';
+      indiaStateData.forEach(st => {
+        const matchingClients = scopedClients.filter(c => c.state === st.state);
+        const stateRevenue = matchingClients.reduce((acc, c) => acc + Number(c.totalBusinessValue || 0), 0);
+        csvContent += `"${st.state}","${st.region}",${matchingClients.length},${stateRevenue},"${st.dominantBrand}","${st.marketShare}%"\n`;
+      });
     } else {
       csvContent += 'ID,Name,Details,Value,Status\n';
       scopedClients.forEach(c => {

@@ -40,7 +40,7 @@ export const LoginView = () => {
     },
     {
       user: users.find(u => u.role === 'Accounts') || users[3],
-      role: 'Accounts Account',
+      role: 'Accounts & Finance',
       tag: 'Billing, Invoices & Collections',
       icon: CreditCard,
       color: '#f59e0b',
@@ -48,7 +48,7 @@ export const LoginView = () => {
     },
     {
       user: users.find(u => u.role === 'Services') || users[4],
-      role: 'Services Account',
+      role: 'Services & Operations',
       tag: 'Field Delivery & Tasks',
       icon: Wrench,
       color: '#8b5cf6',

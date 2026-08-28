@@ -221,19 +221,22 @@ export const FollowUpsView = () => {
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    {flw.phone ? (
-                      <a
-                        href={getWhatsAppUrl(flw.phone, `Hello ${flw.clientName}, following up on our scheduled discussion.`)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="badge badge-whatsapp"
-                        title="Open WhatsApp Chat"
-                      >
-                        <MessageSquare size={12} /> WhatsApp
-                      </a>
-                    ) : (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>—</span>
-                    )}
+                    {(() => {
+                      const resolvedPhone = flw.phone || clients.find(c => c.companyName === flw.clientName || c.clientName === flw.clientName)?.phone || leads.find(l => l.company === flw.clientName || l.client === flw.clientName)?.phone;
+                      return resolvedPhone ? (
+                        <a
+                          href={getWhatsAppUrl(resolvedPhone, `Hello ${flw.clientName}, following up from ${flw.brand === 'AIWA' ? 'Aiwa India' : 'Auco Automation'} on our scheduled discussion.`)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="badge badge-whatsapp"
+                          title="Open WhatsApp Chat"
+                        >
+                          <MessageSquare size={12} /> WhatsApp
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>—</span>
+                      );
+                    })()}
                     <button
                       className="btn btn-ghost btn-sm"
                       onClick={() => handleDeleteFollowUp(flw)}
