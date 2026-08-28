@@ -4,9 +4,6 @@ import {
   Users,
   Plus,
   Search,
-  Kanban,
-  List,
-  ArrowRight,
   CheckCircle2,
   XCircle,
   MessageSquare,
@@ -17,7 +14,9 @@ import {
   ChevronRight,
   Zap,
   Trash2,
-  Edit2
+  Edit2,
+  Filter,
+  ArrowRight
 } from 'lucide-react';
 import { formatCurrency, formatDate, getStatusBadgeClass, getWhatsAppUrl } from '../utils/formatters';
 
@@ -33,9 +32,9 @@ const PIPELINE_STAGES = [
 
 export const LeadsView = ({ onOpenLeadModal }) => {
   const { leads, updateLead, deleteLead, convertLeadToClient, selectedCompany, companyBrands, matchesCompany } = useApp();
-  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState('ALL');
+  const [stageFilter, setStageFilter] = useState('ALL');
   const [selectedLead, setSelectedLead] = useState(null);
   const [editingLead, setEditingLead] = useState(null);
   const [editFormData, setEditFormData] = useState({});
@@ -52,7 +51,8 @@ export const LeadsView = ({ onOpenLeadModal }) => {
       lead.assignedSalesperson.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesSource = sourceFilter === 'ALL' || lead.leadSource === sourceFilter;
-    return matchesSearch && matchesSource;
+    const matchesStage = stageFilter === 'ALL' || lead.stage === stageFilter;
+    return matchesSearch && matchesSource && matchesStage;
   });
 
   const totalExpectedValue = filteredLeads
@@ -115,45 +115,26 @@ export const LeadsView = ({ onOpenLeadModal }) => {
       {/* Header */}
       <div className="flex-between">
         <div>
-          <h2>Sales Pipeline & Lead Management</h2>
+          <h2>Sales Pipeline & Leads Directory</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
             Track sales stages, log WhatsApp inquiries, and convert prospect leads into active clients.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <div style={{ display: 'flex', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', padding: '3px' }}>
-            <button
-              className={`btn btn-sm ${viewMode === 'kanban' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setViewMode('kanban')}
-              style={{ padding: '4px 10px' }}
-            >
-              <Kanban size={15} /> Board
-            </button>
-            <button
-              className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setViewMode('list')}
-              style={{ padding: '4px 10px' }}
-            >
-              <List size={15} /> Table
-            </button>
-          </div>
-
-          <button className="btn btn-primary" onClick={onOpenLeadModal}>
-            <Plus size={16} /> Add Lead
-          </button>
-        </div>
+        <button className="btn btn-primary" onClick={onOpenLeadModal} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={16} /> Add New Lead
+        </button>
       </div>
 
-      {/* Pipeline Summary Bar */}
+      {/* Filter & Summary Controls */}
       <div className="card" style={{ padding: '14px 20px' }}>
-        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', minWidth: '240px' }}>
               <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
                 type="text"
                 className="form-input"
-                placeholder="Search leads..."
+                placeholder="Search by company, client, city..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ paddingLeft: '32px' }}
@@ -161,7 +142,22 @@ export const LeadsView = ({ onOpenLeadModal }) => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Source:</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Stage:</span>
+              <select
+                className="form-select"
+                value={stageFilter}
+                onChange={(e) => setStageFilter(e.target.value)}
+                style={{ width: '140px' }}
+              >
+                <option value="ALL">All Stages</option>
+                {PIPELINE_STAGES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Source:</span>
               <select
                 className="form-select"
                 value={sourceFilter}
@@ -186,9 +182,9 @@ export const LeadsView = ({ onOpenLeadModal }) => {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>ACTIVE LEADS</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>LEADS SHOWN</div>
               <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>
-                {filteredLeads.filter(l => l.stage !== 'Lost' && l.stage !== 'Won').length} Leads
+                {filteredLeads.length} Leads
               </div>
             </div>
           </div>
@@ -196,193 +192,129 @@ export const LeadsView = ({ onOpenLeadModal }) => {
       </div>
 
       {/* =========================================================================
-          KANBAN BOARD VIEW
+          LEADS DIRECTORY TABLE VIEW
           ========================================================================= */}
-      {viewMode === 'kanban' && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, minmax(240px, 1fr))',
-            gap: '14px',
-            overflowX: 'auto',
-            paddingBottom: '16px'
-          }}
-        >
-          {PIPELINE_STAGES.map((stage) => {
-            const stageLeads = filteredLeads.filter((l) => l.stage === stage);
-            const stageValue = stageLeads.reduce((acc, l) => acc + Number(l.expectedValue || 0), 0);
-
-            return (
-              <div
-                key={stage}
-                style={{
-                  background: 'var(--bg-subtle)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  maxHeight: 'calc(100vh - 240px)',
-                  border: '1px solid var(--border-default)'
-                }}
-              >
-                {/* Column Header */}
-                <div style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid var(--border-default)' }}>
-                  <div className="flex-between">
-                    <strong style={{ fontSize: '0.85rem' }}>{stage}</strong>
-                    <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>{stageLeads.length}</span>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {formatCurrency(stageValue)}
-                  </div>
-                </div>
-
-                {/* Lead Cards List */}
-                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {stageLeads.map((lead) => (
-                    <div
-                      key={lead.id}
-                      className="card card-hover"
-                      style={{
-                        padding: '12px',
-                        cursor: 'pointer',
-                        background: 'var(--bg-surface)'
-                      }}
-                      onClick={() => setSelectedLead(lead)}
+      <div className="table-container">
+        <table className="custom-table">
+          <thead>
+            <tr>
+              <th>Company / Prospect</th>
+              <th>Contact Person</th>
+              <th>Source</th>
+              <th>Sales Rep</th>
+              <th>Expected Value</th>
+              <th>Pipeline Stage</th>
+              <th>Next Action</th>
+              <th>Follow Up</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredLeads.map((lead) => (
+              <tr key={lead.id} onClick={() => setSelectedLead(lead)} style={{ cursor: 'pointer' }}>
+                <td>
+                  <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{lead.company}</div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lead.city}, {lead.state}</div>
+                </td>
+                <td>
+                  <div style={{ fontWeight: 600 }}>{lead.client}</div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lead.phone}</div>
+                </td>
+                <td>
+                  <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
+                    {lead.leadSource}
+                  </span>
+                </td>
+                <td style={{ fontSize: '0.82rem' }}>{lead.assignedSalesperson}</td>
+                <td>
+                  <strong style={{ color: 'var(--primary-600)', fontSize: '0.88rem' }}>
+                    {formatCurrency(lead.expectedValue)}
+                  </strong>
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <select
+                    className="form-select"
+                    style={{
+                      width: '125px',
+                      fontSize: '0.74rem',
+                      padding: '3px 6px',
+                      height: '28px',
+                      fontWeight: 600,
+                      borderColor: lead.stage === 'Won' ? '#10b981' : (lead.stage === 'Lost' ? '#ef4444' : 'var(--border-default)')
+                    }}
+                    value={lead.stage}
+                    onChange={(e) => handleMoveStage(lead.id, e.target.value)}
+                  >
+                    {PIPELINE_STAGES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </td>
+                <td style={{ maxWidth: '200px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                  {lead.nextAction || '—'}
+                </td>
+                <td style={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                  {formatDate(lead.followUpDate)}
+                </td>
+                <td onClick={(e) => e.stopPropagation()} style={{ textAlign: 'right' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <a
+                      href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="badge badge-whatsapp"
+                      style={{ fontSize: '0.7rem', textDecoration: 'none', padding: '4px 8px' }}
+                      title="Open WhatsApp Chat"
                     >
-                      <div className="flex-between">
-                        <span className="badge badge-purple" style={{ fontSize: '0.68rem' }}>{lead.leadSource}</span>
-                        <strong style={{ fontSize: '0.85rem', color: 'var(--primary-600)' }}>
-                          {formatCurrency(lead.expectedValue)}
-                        </strong>
-                      </div>
+                      <MessageSquare size={12} />
+                    </a>
 
-                      <h4 style={{ fontSize: '0.9rem', margin: '6px 0 2px 0' }}>{lead.company}</h4>
-                      <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                        {lead.client} • {lead.city}
-                      </div>
-
-                      {/* Next action note */}
-                      {lead.nextAction && (
-                        <div
-                          style={{
-                            background: 'var(--bg-subtle)',
-                            padding: '6px 8px',
-                            borderRadius: 'var(--radius-sm)',
-                            fontSize: '0.72rem',
-                            color: 'var(--text-secondary)',
-                            marginTop: '8px',
-                            borderLeft: '2px solid var(--primary-600)'
-                          }}
-                        >
-                          <strong>Next:</strong> {lead.nextAction}
-                        </div>
-                      )}
-
-                      {/* Footer Actions */}
-                      <div className="flex-between" style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
-                        <a
-                          href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="badge badge-whatsapp"
-                          style={{ fontSize: '0.7rem' }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MessageSquare size={11} /> WhatsApp
-                        </a>
-
-                        {/* Move Stage Select */}
-                        <select
-                          className="form-select"
-                          style={{ width: '100px', fontSize: '0.7rem', padding: '2px 4px', height: '24px' }}
-                          value={lead.stage}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => handleMoveStage(lead.id, e.target.value)}
-                        >
-                          {PIPELINE_STAGES.map((s) => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  ))}
-
-                  {stageLeads.length === 0 && (
-                    <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                      No leads
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* =========================================================================
-          LIST / TABLE VIEW
-          ========================================================================= */}
-      {viewMode === 'list' && (
-        <div className="table-container">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>Company / Prospect</th>
-                <th>Contact</th>
-                <th>Source</th>
-                <th>Sales Rep</th>
-                <th>Expected Value</th>
-                <th>Stage</th>
-                <th>Next Action</th>
-                <th>Follow Up</th>
-                <th>Convert</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLeads.map((lead) => (
-                <tr key={lead.id} onClick={() => setSelectedLead(lead)} style={{ cursor: 'pointer' }}>
-                  <td>
-                    <strong>{lead.company}</strong>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lead.city}, {lead.state}</div>
-                  </td>
-                  <td>
-                    <div>{lead.client}</div>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lead.phone}</div>
-                  </td>
-                  <td><span className="badge badge-neutral">{lead.leadSource}</span></td>
-                  <td>{lead.assignedSalesperson}</td>
-                  <td><strong>{formatCurrency(lead.expectedValue)}</strong></td>
-                  <td><span className={`badge ${getStatusBadgeClass(lead.stage)}`}>{lead.stage}</span></td>
-                  <td style={{ maxWidth: '220px', fontSize: '0.78rem' }}>{lead.nextAction}</td>
-                  <td style={{ fontSize: '0.78rem' }}>{formatDate(lead.followUpDate)}</td>
-                  <td onClick={(e) => e.stopPropagation()}>
                     {lead.stage !== 'Won' ? (
                       <button
                         className="btn btn-success btn-sm"
-                        style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                        style={{ padding: '3px 8px', fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         onClick={() => convertLeadToClient(lead.id)}
+                        title="Convert Lead to Active Client Directory"
                       >
                         <Zap size={12} /> Convert
                       </button>
                     ) : (
-                      <span className="badge badge-success">Converted</span>
+                      <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
+                        Converted
+                      </span>
                     )}
-                  </td>
-                </tr>
-              ))}
-              {filteredLeads.length === 0 && (
-                <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
-                    <Users size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No leads found</div>
-                    <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, stage, or rep filter.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+
+                    <button
+                      className="btn btn-ghost btn-sm btn-icon"
+                      onClick={() => handleStartEdit(lead)}
+                      title="Edit Lead"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-sm btn-icon"
+                      style={{ color: 'var(--danger-text)' }}
+                      onClick={() => handleDeleteLead(lead)}
+                      title="Delete Lead"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filteredLeads.length === 0 && (
+              <tr>
+                <td colSpan="9" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                  <Users size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No leads found</div>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, stage, or rep filter.</p>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* =========================================================================
           LEAD DETAIL MODAL
@@ -405,7 +337,7 @@ export const LeadsView = ({ onOpenLeadModal }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.85rem' }}>
                 <div><span style={{ color: 'var(--text-muted)' }}>Contact Person:</span> <strong>{selectedLead.client}</strong></div>
                 <div><span style={{ color: 'var(--text-muted)' }}>Phone:</span> <strong>{selectedLead.phone}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Email:</span> <strong>{selectedLead.email}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Email:</span> <strong>{selectedLead.email || '—'}</strong></div>
                 <div><span style={{ color: 'var(--text-muted)' }}>Location:</span> <strong>{selectedLead.city}, {selectedLead.state}</strong></div>
                 <div><span style={{ color: 'var(--text-muted)' }}>Expected Value:</span> <strong style={{ color: 'var(--primary-600)' }}>{formatCurrency(selectedLead.expectedValue)}</strong></div>
                 <div><span style={{ color: 'var(--text-muted)' }}>Sales Rep:</span> <strong>{selectedLead.assignedSalesperson}</strong></div>
@@ -415,7 +347,7 @@ export const LeadsView = ({ onOpenLeadModal }) => {
 
               <div className="card" style={{ background: 'var(--bg-subtle)' }}>
                 <h4 style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Next Action Strategy</h4>
-                <p style={{ fontSize: '0.82rem', margin: 0 }}>{selectedLead.nextAction}</p>
+                <p style={{ fontSize: '0.82rem', margin: 0 }}>{selectedLead.nextAction || 'None specified'}</p>
               </div>
 
               {selectedLead.notes && (
@@ -449,7 +381,11 @@ export const LeadsView = ({ onOpenLeadModal }) => {
               )}
               <button
                 className="btn btn-secondary btn-sm"
-                onClick={() => handleStartEdit(selectedLead)}
+                onClick={() => {
+                  const leadToEdit = selectedLead;
+                  setSelectedLead(null);
+                  handleStartEdit(leadToEdit);
+                }}
               >
                 <Edit2 size={13} /> Edit Lead
               </button>

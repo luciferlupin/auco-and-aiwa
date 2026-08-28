@@ -59,7 +59,7 @@ export const SettingsView = () => {
       permissions: [
         'Manage leads and prospects',
         'Manage active client accounts',
-        'Track lead stages in Kanban pipeline',
+        'Track lead stages & sales pipeline progression',
         'Track lead conversion percentage',
         'Manage follow-ups (WhatsApp, Call, Meeting)',
         'View client order history & create orders',
