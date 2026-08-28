@@ -656,7 +656,7 @@ export const AppProvider = ({ children }) => {
     addToast('Order Updated', `Order ${orderId} updated.`, 'info');
   };
 
-  // AUTOMATION 2B: Dispatch Order & Generate Delivery Challan & Assign Delivery Task
+  // AUTOMATION 2B: Dispatch Order & Assign Delivery Task
   const dispatchOrder = async (orderId, dispatchPayload) => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) {
@@ -730,7 +730,7 @@ export const AppProvider = ({ children }) => {
       id: generateId('TSK'),
       brand: newDispatch.brand || 'AUCO',
       taskName: `Deliver Order ${order.id} (${newDispatch.courierCarrier} AWB #${newDispatch.trackingNumber})`,
-      description: `Track shipment & coordinate receipt with ${order.clientName}. Delivery Challan: ${newDispatch.challanNumber}.`,
+      description: `Track shipment & coordinate receipt with ${order.clientName}. Dispatch Ref: ${newDispatch.challanNumber}.`,
       assignedPerson: dispatchPayload.dispatchedBy || currentUser.name,
       client: order.clientName,
       priority: 'High',
@@ -774,7 +774,7 @@ export const AppProvider = ({ children }) => {
       }).eq('id', orderId);
     } catch (e) {}
 
-    addToast('Order Dispatched', `Order ${orderId} dispatched via ${newDispatch.courierCarrier} (${newDispatch.trackingNumber}). Delivery Challan ${newDispatch.challanNumber} ready.`, 'success');
+    addToast('Order Dispatched', `Order ${orderId} dispatched via ${newDispatch.courierCarrier} (${newDispatch.trackingNumber}). Dispatch ref #${newDispatch.challanNumber} ready.`, 'success');
     return newDispatch;
   };
 
@@ -1612,7 +1612,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('dispatches').delete().or(`id.eq.${dispatchId},challan_number.eq.${dispatchId}`);
     } catch (e) {}
-    addToast('Dispatch Deleted', `Delivery Challan ${dispatchId} removed.`, 'info');
+    addToast('Dispatch Deleted', `Dispatch record ${dispatchId} removed.`, 'info');
   };
 
   // Reset Demo Data

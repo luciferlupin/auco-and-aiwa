@@ -884,7 +884,7 @@ export const initialDispatches = [
     vehicleNumber: 'GJ-01-TX-8874',
     dispatchedBy: 'Sneha Kulkarni',
     dispatchStatus: 'Delivered',
-    notes: 'Direct factory delivery. Signed challan uploaded.'
+    notes: 'Direct factory delivery. Carrier POD verified.'
   }
 ];
 
@@ -967,7 +967,7 @@ export const initialInvoices = [
     issueDate: '2026-08-22',
     paymentDueDate: '2026-09-21',
     paymentTerms: 'Net 30',
-    notes: 'Invoice generated and dispatched alongside delivery challan.'
+    notes: 'Invoice generated and dispatched alongside shipment.'
   },
   {
     id: 'INV-2026-004',

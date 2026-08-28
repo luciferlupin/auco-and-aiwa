@@ -120,7 +120,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
       setSelectedChallanDispatch(syntheticDispatch);
       setIsChallanModalOpen(true);
     } else {
-      addToast('No Dispatch Record', `Order ${order.id} has not been dispatched yet. Click "Dispatch Order" to generate Challan.`, 'info');
+      addToast('No Dispatch Record', `Order ${order.id} has not been dispatched yet. Click "Dispatch" to create shipping record.`, 'info');
     }
   };
 
@@ -137,7 +137,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
   };
 
   const handleDeleteDispatch = (disp) => {
-    if (window.confirm(`Are you sure you want to delete Delivery Challan "${disp.challanNumber}" (${disp.courierCarrier} AWB #${disp.trackingNumber})?`)) {
+    if (window.confirm(`Are you sure you want to delete Dispatch record "${disp.challanNumber || disp.id}" (${disp.courierCarrier} AWB #${disp.trackingNumber})?`)) {
       deleteDispatch(disp.id);
     }
   };
@@ -147,7 +147,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
     if (dispatch.orderId) {
       updateOrderStatus(dispatch.orderId, 'Delivered');
     }
-    addToast('Shipment Delivered', `Delivery confirmed for Challan ${dispatch.challanNumber}.`, 'success');
+    addToast('Shipment Delivered', `Delivery confirmed for Dispatch #${dispatch.challanNumber || dispatch.id}.`, 'success');
   };
 
   const handleCopyText = (text, label) => {
@@ -167,12 +167,12 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
         <div>
           <h2>Client Orders, Fulfillment & Dispatches</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Track client equipment bookings, generate government-compliant Delivery Challans, and track shipments in real time.
+            Track client equipment bookings, coordinate carrier logistics, and track shipments in real time.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('dispatches')}>
-            <Truck size={14} /> View All Challans
+            <Truck size={14} /> View All Shipments
           </button>
           <button className="btn btn-primary btn-sm" onClick={onOpenOrderModal}>
             <Plus size={14} /> New Order
@@ -215,7 +215,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
             <CheckCircle2 size={18} style={{ color: '#8b5cf6' }} />
           </div>
           <div className="stat-value">{deliveredOrdersCount} Delivered</div>
-          <div className="stat-subtext">{deliveredDispatchesCount} signed delivery challans</div>
+          <div className="stat-subtext">{deliveredDispatchesCount} completed shipments</div>
         </div>
       </div>
 
@@ -260,7 +260,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
           }}
         >
           <Truck size={16} />
-          Dispatches & Delivery Challans ({scopedDispatches.length})
+          Shipments & Dispatches ({scopedDispatches.length})
           {activeDispatchesCount > 0 && (
             <span
               style={{
@@ -286,7 +286,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
             <input
               type="text"
               className="form-input"
-              placeholder={activeTab === 'orders' ? "Search order ID, client name, product code, AWB #, challan #..." : "Search Challan #, AWB tracking, courier, client name, order ID..."}
+              placeholder={activeTab === 'orders' ? "Search order ID, client name, product code, AWB #..." : "Search Dispatch Ref, AWB tracking, courier, client name, order ID..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ paddingLeft: '36px' }}
@@ -363,7 +363,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
                       <div style={{ fontWeight: 600 }}>{order.clientName}</div>
                       {order.dispatchDetails?.challanNumber && (
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                          Challan: <span style={{ fontWeight: 600 }}>{order.dispatchDetails.challanNumber}</span>
+                          Dispatch: <span style={{ fontWeight: 600 }}>{order.dispatchDetails.challanNumber}</span>
                         </div>
                       )}
                     </td>
@@ -427,21 +427,21 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                        {/* Dispatch or Challan Action */}
+                        {/* Dispatch or Tracking Action */}
                         {hasDispatch ? (
                           <button
                             className="btn btn-secondary btn-sm"
                             onClick={() => handleOpenChallanForOrder(order)}
-                            title="View Delivery Challan & Tracking"
+                            title="View Shipment Details & Tracking"
                             style={{ padding: '4px 8px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
                           >
-                            <Truck size={13} style={{ color: 'var(--primary-600)' }} /> Challan
+                            <Truck size={13} style={{ color: 'var(--primary-600)' }} /> Track
                           </button>
                         ) : (
                           <button
                             className="btn btn-primary btn-sm"
                             onClick={() => handleOpenDispatchForOrder(order.id)}
-                            title="Dispatch Order & Generate Challan"
+                            title="Dispatch Shipment"
                             style={{ padding: '4px 8px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
                           >
                             <Truck size={13} /> Dispatch
@@ -484,14 +484,14 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
         </div>
       )}
 
-      {/* TAB 2: DISPATCHES & DELIVERY CHALLANS */}
+      {/* TAB 2: SHIPMENTS & DISPATCHES */}
       {activeTab === 'dispatches' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="table-container">
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Challan #</th>
+                  <th>Dispatch Ref</th>
                   <th>Order Ref</th>
                   <th>Consignee / Client</th>
                   <th>Transporter & AWB</th>
@@ -603,7 +603,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
                   <tr>
                     <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
                       <Truck size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No delivery challans found</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No shipment dispatches found</div>
                       <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, status, or carrier filter.</p>
                     </td>
                   </tr>

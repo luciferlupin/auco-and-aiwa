@@ -306,7 +306,7 @@ export const Navbar = ({
                 style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--primary-600)', fontWeight: 600 }}
                 onClick={() => { setShowQuickMenu(false); if (onOpenDispatchModal) onOpenDispatchModal(); }}
               >
-                🚀 Dispatch Order (Challan)
+                🚀 Dispatch Shipment
               </button>
               <button
                 className="btn btn-ghost btn-sm"

@@ -43,7 +43,7 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
 
   const handleDownloadPDF = () => {
     generateDeliveryChallanPDF(dispatch);
-    addToast('PDF Downloaded', `Delivery Challan ${dispatch.challanNumber} saved.`, 'success');
+    addToast('PDF Downloaded', `Dispatch slip ${dispatch.challanNumber || dispatch.id} saved.`, 'success');
   };
 
   const steps = ['Dispatched', 'In Transit', 'Out for Delivery', 'Delivered'];
@@ -95,7 +95,7 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
-                Delivery Challan: <span style={{ color: 'var(--primary-600)' }}>{dispatch.challanNumber || dispatch.id}</span>
+                Shipment Dispatch Slip: <span style={{ color: 'var(--primary-600)' }}>{dispatch.challanNumber || dispatch.id}</span>
               </h3>
               <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
                 Order #{dispatch.orderId} • Carrier: {dispatch.courierCarrier}
@@ -117,11 +117,11 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
               <option value="Delivered">Delivered</option>
             </select>
 
-            <button className="btn btn-secondary btn-sm" onClick={handlePrint} title="Print Delivery Challan">
+            <button className="btn btn-secondary btn-sm" onClick={handlePrint} title="Print Dispatch Slip">
               <Printer size={15} /> Print
             </button>
 
-            <button className="btn btn-primary btn-sm" onClick={handleDownloadPDF} title="Download A4 PDF">
+            <button className="btn btn-primary btn-sm" onClick={handleDownloadPDF} title="Download Dispatch PDF">
               <Download size={15} /> Download PDF
             </button>
 
@@ -286,13 +286,13 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
                     marginBottom: '4px'
                   }}
                 >
-                  DELIVERY CHALLAN
+                  SHIPMENT DISPATCH NOTE
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  (Under Rule 55 of CGST Rules, 2017)
+                  (Consignment Note & Transport Advice)
                 </div>
                 <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '6px' }}>
-                  Challan No: <span style={{ color: 'var(--primary-600)' }}>{dispatch.challanNumber || dispatch.id}</span>
+                  Dispatch Ref: <span style={{ color: 'var(--primary-600)' }}>{dispatch.challanNumber || dispatch.id}</span>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
                   Date: <strong>{formatDate(dispatch.dispatchDate)}</strong>

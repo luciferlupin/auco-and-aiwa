@@ -443,7 +443,7 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
           {matchedDispatches.length > 0 && (
             <div style={{ marginBottom: '18px' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Truck size={14} /> Dispatches & Challans ({matchedDispatches.length})
+                <Truck size={14} /> Shipments & Dispatches ({matchedDispatches.length})
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {matchedDispatches.map((d) => (

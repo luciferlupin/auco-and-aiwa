@@ -40,7 +40,7 @@ export const ReportsView = () => {
     { id: 'leads', label: '2. Lead Conversion Report', icon: Users },
     { id: 'clients', label: '3. Client Performance Report', icon: FileText },
     { id: 'orders', label: '4. Order Fulfillment Report', icon: ShoppingCart },
-    { id: 'dispatches', label: '5. Dispatches & Logistics Challans', icon: Truck },
+    { id: 'dispatches', label: '5. Dispatches & Logistics Report', icon: Truck },
     { id: 'payments', label: '6. Payment & Collections Report', icon: CreditCard },
     { id: 'outstanding', label: '7. Outstanding Balance Report', icon: CreditCard },
     { id: 'inventory', label: '8. Inventory Stock Valuation', icon: Boxes },
@@ -68,9 +68,9 @@ export const ReportsView = () => {
         csvContent += `"${p.productCode}","${p.name}","${p.sku}","${p.category}",${p.price},${p.currentStock},${p.availableStock},${p.reservedStock},${p.minStockLevel},"${p.supplier}"\n`;
       });
     } else if (selectedReport === 'dispatches') {
-      csvContent += 'Challan #,Order ID,Client Name,Carrier,Tracking AWB,E-Way Bill,Dispatch Date,Est Delivery,Packages,Weight,Status\n';
+      csvContent += 'Dispatch ID,Order ID,Client Name,Carrier,Tracking AWB,E-Way Bill,Dispatch Date,Est Delivery,Packages,Weight,Status\n';
       scopedDispatches.forEach(d => {
-        csvContent += `"${d.challanNumber}","${d.orderId}","${d.clientName}","${d.courierCarrier}","${d.trackingNumber}","${d.ewayBillNumber}","${d.dispatchDate}","${d.estimatedDelivery}","${d.packageCount}","${d.packageWeight}","${d.dispatchStatus}"\n`;
+        csvContent += `"${d.challanNumber || d.id}","${d.orderId}","${d.clientName}","${d.courierCarrier}","${d.trackingNumber}","${d.ewayBillNumber}","${d.dispatchDate}","${d.estimatedDelivery}","${d.packageCount}","${d.packageWeight}","${d.dispatchStatus}"\n`;
       });
     } else if (selectedReport === 'outstanding' || selectedReport === 'payments') {
       csvContent += 'Invoice #,Client Name,Invoice Amount,Amount Paid,Balance Due,Due Date,Status\n';
@@ -567,8 +567,8 @@ export const ReportsView = () => {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="flex-between">
             <div>
-              <h3>Dispatches & Logistics Challans Report</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AWB carrier tracking and delivery challan status</p>
+              <h3>Dispatches & Logistics Report</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AWB courier tracking and dispatch status</p>
             </div>
           </div>
 
@@ -576,7 +576,7 @@ export const ReportsView = () => {
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Challan #</th>
+                  <th>Dispatch ID</th>
                   <th>Order Ref</th>
                   <th>Client Name</th>
                   <th>Carrier</th>
@@ -590,7 +590,7 @@ export const ReportsView = () => {
               <tbody>
                 {scopedDispatches.map((d) => (
                   <tr key={d.id}>
-                    <td><strong style={{ color: 'var(--primary-600)' }}>{d.challanNumber}</strong></td>
+                    <td><strong style={{ color: 'var(--primary-600)' }}>{d.challanNumber || d.id}</strong></td>
                     <td>{d.orderId}</td>
                     <td><strong>{d.clientName}</strong></td>
                     <td><span className="badge badge-purple">{d.courierCarrier}</span></td>

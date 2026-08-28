@@ -395,7 +395,7 @@ export const SettingsView = () => {
           <div className="card" style={{ background: 'var(--bg-subtle)', borderLeft: '4px solid var(--primary-600)' }}>
             <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9rem' }}>Dual-Brand Portal Architecture</h4>
             <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              <strong>Auco</strong> and <strong>Aiwa</strong> operate as two independent brands with isolated product catalogs, delivery challans, GST billing details, and customer registries. This software serves as a unified multi-brand operations portal enabling management to toggle between brands or view combined enterprise metrics.
+              <strong>Auco</strong> and <strong>Aiwa</strong> operate as two independent brands with isolated product catalogs, dispatch shipments, GST billing details, and customer registries. This software serves as a unified multi-brand operations portal enabling management to toggle between brands or view combined enterprise metrics.
             </p>
           </div>
         </div>

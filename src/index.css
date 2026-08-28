@@ -706,7 +706,7 @@ p { color: var(--text-secondary); }
 }
 
 /* ==========================================================================
-   PRINT MEDIA STYLES (Clean GST Invoices & Delivery Challans)
+   PRINT MEDIA STYLES (Clean GST Invoices & Dispatch Notes)
    ========================================================================== */
 @media print {
   body, html {

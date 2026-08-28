@@ -168,7 +168,7 @@ export const DispatchOrderModal = ({
               <div>
                 <h3 style={{ margin: 0 }}>Dispatch Client Order</h3>
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Generate official GST Delivery Challan & initiate shipment tracking
+                  Generate shipment tracking & initiate courier dispatch
                 </p>
               </div>
             </div>
@@ -331,12 +331,12 @@ export const DispatchOrderModal = ({
 
               <div className="grid-3" style={{ gap: '12px', marginTop: '10px' }}>
                 <div className="form-group">
-                  <label className="form-label">Delivery Challan # *</label>
+                  <label className="form-label">Dispatch Ref / Slip # *</label>
                   <input
                     type="text"
                     required
                     className="form-input"
-                    placeholder="e.g. DC-2026-1002"
+                    placeholder="e.g. DSP-2026-1002"
                     value={formData.challanNumber}
                     onChange={(e) => setFormData({ ...formData, challanNumber: e.target.value })}
                   />
@@ -507,7 +507,7 @@ export const DispatchOrderModal = ({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Truck size={16} /> Confirm & Generate Delivery Challan
+              <Truck size={16} /> Confirm & Dispatch Shipment
             </button>
           </div>
         </form>

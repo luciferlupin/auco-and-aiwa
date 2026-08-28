@@ -289,17 +289,17 @@ export const generateDeliveryChallanPDF = (dispatch) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(slateDark[0], slateDark[1], slateDark[2]);
-    doc.text('DELIVERY CHALLAN', 194, 18, { align: 'right' });
+    doc.text('SHIPMENT DISPATCH NOTE', 194, 18, { align: 'right' });
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
-    doc.text('(Rule 55 - CGST Rules, 2017)', 194, 23, { align: 'right' });
+    doc.text('(Consignment & Courier Transport)', 194, 23, { align: 'right' });
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text(`${dispatch.challanNumber || dispatch.id || 'DC-2026-000'}`, 194, 29, { align: 'right' });
+    doc.text(`${dispatch.challanNumber || dispatch.id || 'DSP-2026-000'}`, 194, 29, { align: 'right' });
 
     doc.setFontSize(8);
     doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
