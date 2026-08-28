@@ -159,7 +159,7 @@ export const SettingsView = () => {
           TAB 1: ROLES & PERMISSIONS
           ========================================================================= */}
       {activeTab === 'roles' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '20px' }}>
+        <div className="grid-2">
           {roleDefinitions.map((rd) => {
             const Icon = rd.icon;
             const isCurrent = currentRole === rd.role;

@@ -97,7 +97,7 @@ export const CheckInModal = ({ isOpen, onClose }) => {
             background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
             color: '#ffffff',
             padding: '16px 20px',
-            margin: '16px 24px 0 24px',
+            margin: '14px 16px 0 16px',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
             alignItems: 'center',

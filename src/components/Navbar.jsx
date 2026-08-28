@@ -100,19 +100,21 @@ export const Navbar = ({
       }}
     >
       {/* Left: Mobile Menu Toggle & Global Search Trigger */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, maxWidth: '460px' }}>
-        {/* Mobile Hamburger Button (visible on mobile) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '460px' }}>
+        {/* Mobile Hamburger Button */}
         <button
           onClick={onToggleMobileSidebar}
-          className="btn btn-secondary btn-icon"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="btn btn-secondary btn-icon mobile-only"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', flexShrink: 0 }}
           title="Toggle Navigation Menu"
         >
           <Menu size={18} />
         </button>
 
+        {/* Global Search Bar (Desktop) */}
         <button
           onClick={onOpenSearch}
+          className="desktop-only"
           style={{
             width: '100%',
             height: '38px',
@@ -120,7 +122,6 @@ export const Navbar = ({
             border: '1px solid var(--border-default)',
             borderRadius: 'var(--radius-sm)',
             padding: '0 12px',
-            display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             color: 'var(--text-muted)',
@@ -152,10 +153,20 @@ export const Navbar = ({
             ⌘K
           </kbd>
         </button>
+
+        {/* Mobile Quick Search Icon Button */}
+        <button
+          onClick={onOpenSearch}
+          className="btn btn-secondary btn-icon mobile-only"
+          style={{ width: '38px', height: '38px', flexShrink: 0 }}
+          title="Quick Search"
+        >
+          <Search size={17} />
+        </button>
       </div>
 
       {/* Right: Company Switcher Pill, Cloud Sync Pill, Quick Add, Alerts, Role Switcher, Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         {/* Company Brand Workspace Switcher Dropdown */}
         <div style={{ position: 'relative' }}>
           <button
@@ -262,6 +273,7 @@ export const Navbar = ({
 
         {/* Supabase Sync Pill */}
         <div
+          className="desktop-only"
           title={isCloudSynced ? "Live Cloud Synced to Supabase (ktrqhmzaesllajbowymt)" : "Connected to Supabase Cloud Core"}
           style={{
             display: 'flex',

@@ -137,13 +137,13 @@ export const ReportsView = () => {
       {/* Control Bar */}
       <div className="card" style={{ padding: '14px 18px' }}>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>SELECT REPORT:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>REPORT:</span>
             <select
               className="form-select"
               value={selectedReport}
               onChange={(e) => setSelectedReport(e.target.value)}
-              style={{ width: '280px', fontWeight: 600 }}
+              style={{ width: '100%', fontWeight: 600 }}
             >
               {reportTypes.map((rt) => (
                 <option key={rt.id} value={rt.id}>{rt.label}</option>
@@ -151,13 +151,13 @@ export const ReportsView = () => {
             </select>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)' }}>DATE RANGE:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>RANGE:</span>
             <select
               className="form-select"
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              style={{ width: '180px' }}
+              style={{ width: '100%' }}
             >
               <option value="all">All-Time Cumulative</option>
               <option value="month">This Month (August 2026)</option>

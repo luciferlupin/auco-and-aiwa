@@ -283,7 +283,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
           </div>
 
           {/* Business Overview & Sales Performance */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '20px' }}>
+          <div className="dashboard-split-grid">
             {/* Sales Pipeline & Conversion Chart */}
             <div className="card">
               <div className="flex-between" style={{ marginBottom: '16px' }}>
@@ -378,7 +378,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
           </div>
 
           {/* Recent Orders & Low Stock Warning */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '20px' }}>
+          <div className="dashboard-split-grid">
             <div className="card">
               <div className="flex-between" style={{ marginBottom: '14px' }}>
                 <div>
@@ -472,7 +472,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
           {/* =========================================================================
               OWNER EXCLUSIVE: LIVE STAFF ATTENDANCE & REAL-TIME ACTIVITY AUDIT LOG
               ========================================================================= */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1.3fr)', gap: '20px', marginTop: '4px' }}>
+          <div className="dashboard-owner-grid" style={{ marginTop: '4px' }}>
             {/* Live Team Attendance & Shift Tracker */}
             <div className="card">
               <div className="flex-between" style={{ marginBottom: '14px' }}>
@@ -674,7 +674,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '20px' }}>
+          <div className="dashboard-split-grid">
             <div className="card">
               <div className="flex-between" style={{ marginBottom: '14px' }}>
                 <div>
@@ -808,7 +808,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '20px' }}>
+          <div className="dashboard-split-grid">
             <div className="card">
               <div className="flex-between" style={{ marginBottom: '14px' }}>
                 <div>
@@ -933,7 +933,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '20px' }}>
+          <div className="dashboard-split-grid">
             <div className="card">
               <div className="flex-between" style={{ marginBottom: '14px' }}>
                 <div>

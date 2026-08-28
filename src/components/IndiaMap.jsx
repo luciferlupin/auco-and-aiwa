@@ -87,7 +87,7 @@ export const IndiaMap = ({ onSelectClient }) => {
       </div>
 
       {/* Main Map View & Drilldown Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '20px' }}>
+      <div className="dashboard-split-grid">
         {/* Visual India SVG Map Container */}
         <div
           className="card"
