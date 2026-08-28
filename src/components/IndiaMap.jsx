@@ -118,8 +118,38 @@ export const IndiaMap = ({ onSelectClient }) => {
             )}
           </div>
 
+          {/* Quick State Selection Chips for Easy Mobile & Desktop Tapping */}
+          <div style={{ width: '100%', display: 'flex', gap: '6px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '10px', marginBottom: '8px' }}>
+            <button
+              className={`segmented-btn ${!selectedState ? 'active' : ''}`}
+              onClick={() => { setSelectedState(null); setSelectedClientPin(null); }}
+              style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '14px', border: '1px solid var(--border-default)' }}
+            >
+              All India
+            </button>
+            {Object.entries(stateStats)
+              .filter(([_, stats]) => stats.clientCount > 0)
+              .map(([stateName, stats]) => (
+                <button
+                  key={stateName}
+                  className={`segmented-btn ${selectedState === stateName ? 'active' : ''}`}
+                  onClick={() => { setSelectedState(stateName); setSelectedClientPin(null); }}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: '0.75rem',
+                    borderRadius: '14px',
+                    border: '1px solid var(--border-default)',
+                    background: selectedState === stateName ? 'var(--primary-50)' : 'transparent',
+                    color: selectedState === stateName ? 'var(--primary-700)' : 'inherit'
+                  }}
+                >
+                  📍 {stateName} ({stats.clientCount})
+                </button>
+              ))}
+          </div>
+
           {/* SVG Map Layout */}
-          <div style={{ position: 'relative', width: '100%', maxWidth: '580px', height: '540px' }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '580px', height: '480px' }}>
             <svg
               viewBox="0 0 700 820"
               style={{ width: '100%', height: '100%', overflow: 'visible' }}

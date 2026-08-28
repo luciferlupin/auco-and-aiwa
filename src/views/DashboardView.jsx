@@ -356,7 +356,8 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              <div className="table-container">
+              {/* Desktop Table */}
+              <div className="table-container desktop-only">
                 <table className="custom-table">
                   <thead>
                     <tr>
@@ -379,6 +380,25 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+                {scopedOrders.slice(0, 4).map((o) => (
+                  <div key={o.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.85rem' }}>{o.id}</strong>
+                        <span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`} style={{ fontSize: '0.65rem' }}>{o.deliveryStatus}</span>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', marginTop: '2px' }}>{o.clientName}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{o.productCode}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{formatCurrency(o.orderValue)}</strong>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -652,7 +672,8 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              <div className="table-container">
+              {/* Desktop Table */}
+              <div className="table-container desktop-only">
                 <table className="custom-table">
                   <thead>
                     <tr>
@@ -687,6 +708,31 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+                {myLeads.slice(0, 5).map((l) => (
+                  <div key={l.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{l.company}</div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{l.client} • {l.city}</div>
+                      <span className={`badge ${getStatusBadgeClass(l.stage)}`} style={{ fontSize: '0.65rem', marginTop: '3px' }}>{l.stage}</span>
+                    </div>
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <strong style={{ color: 'var(--primary-600)', fontSize: '0.95rem' }}>{formatCurrency(l.expectedValue)}</strong>
+                      <a
+                        href={getWhatsAppUrl(l.phone, `Hi ${l.client}, following up on your inquiry with ${l.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="badge badge-whatsapp"
+                        style={{ fontSize: '0.68rem', padding: '3px 8px' }}
+                      >
+                        <MessageSquare size={11} /> WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -786,7 +832,8 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              <div className="table-container">
+              {/* Desktop Table */}
+              <div className="table-container desktop-only">
                 <table className="custom-table">
                   <thead>
                     <tr>
@@ -809,6 +856,25 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+                {pendingInvoices.map((inv) => (
+                  <div key={inv.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.85rem' }}>{inv.invoiceNumber}</strong>
+                        <span className={`badge ${getStatusBadgeClass(inv.paymentStatus)}`} style={{ fontSize: '0.65rem' }}>{inv.paymentStatus}</span>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', marginTop: '2px' }}>{inv.clientName}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Due: {formatDate(inv.paymentDueDate)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <strong style={{ color: 'var(--danger-text)', fontSize: '0.95rem' }}>{formatCurrency(inv.balance)}</strong>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -911,7 +977,8 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              <div className="table-container">
+              {/* Desktop Table */}
+              <div className="table-container desktop-only">
                 <table className="custom-table">
                   <thead>
                     <tr>
@@ -934,6 +1001,22 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+                {scopedOrders.map((o) => (
+                  <div key={o.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.85rem' }}>{o.id}</strong>
+                        <span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`} style={{ fontSize: '0.65rem' }}>{o.deliveryStatus}</span>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', marginTop: '2px' }}>{o.clientName}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{o.productCode} • Tech: {o.assignedTeamMember}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

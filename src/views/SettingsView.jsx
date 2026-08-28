@@ -119,38 +119,38 @@ export const SettingsView = () => {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="card" style={{ padding: '0 18px', borderBottom: '1px solid var(--border-default)' }}>
-        <div className="tabs-nav" style={{ margin: 0 }}>
+      {/* Tabs (Segmented Control) */}
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '4px' }}>
+        <div className="segmented-control">
           <button
-            className={`tab-btn ${activeTab === 'roles' ? 'active' : ''}`}
+            className={`segmented-btn ${activeTab === 'roles' ? 'active' : ''}`}
             onClick={() => setActiveTab('roles')}
           >
-            Role Permissions Matrix
+            Role Permissions
           </button>
           <button
-            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+            className={`segmented-btn ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-            Team Members Directory ({users.length})
+            Team Directory ({users.length})
           </button>
           <button
-            className={`tab-btn ${activeTab === 'attendance' ? 'active' : ''}`}
+            className={`segmented-btn ${activeTab === 'attendance' ? 'active' : ''}`}
             onClick={() => setActiveTab('attendance')}
           >
-            Staff Attendance Register ({attendance.length})
+            Attendance ({attendance.length})
           </button>
           <button
-            className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
+            className={`segmented-btn ${activeTab === 'audit' ? 'active' : ''}`}
             onClick={() => setActiveTab('audit')}
           >
-            Activity Audit Trail ({activities.length})
+            Audit Trail ({activities.length})
           </button>
           <button
-            className={`tab-btn ${activeTab === 'company' ? 'active' : ''}`}
+            className={`segmented-btn ${activeTab === 'company' ? 'active' : ''}`}
             onClick={() => setActiveTab('company')}
           >
-            Company Profile (Auco & Aiwa)
+            Company Profile
           </button>
         </div>
       </div>

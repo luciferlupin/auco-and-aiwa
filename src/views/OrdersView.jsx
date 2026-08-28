@@ -219,63 +219,39 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
         </div>
       </div>
 
-      {/* View Switcher Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-default)', gap: '4px' }}>
-        <button
-          onClick={() => setActiveTab('orders')}
-          style={{
-            padding: '10px 18px',
-            background: 'none',
-            border: 'none',
-            borderBottom: activeTab === 'orders' ? '2px solid var(--primary-600)' : '2px solid transparent',
-            color: activeTab === 'orders' ? 'var(--primary-600)' : 'var(--text-secondary)',
-            fontWeight: activeTab === 'orders' ? 700 : 500,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <ShoppingCart size={16} />
-          Orders Directory ({scopedOrders.length})
-        </button>
+      {/* View Switcher Tabs (Segmented Control) */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="segmented-control">
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`segmented-btn ${activeTab === 'orders' ? 'active' : ''}`}
+          >
+            <ShoppingCart size={15} />
+            <span>Orders Directory ({scopedOrders.length})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('dispatches')}
-          style={{
-            padding: '10px 18px',
-            background: 'none',
-            border: 'none',
-            borderBottom: activeTab === 'dispatches' ? '2px solid var(--primary-600)' : '2px solid transparent',
-            color: activeTab === 'dispatches' ? 'var(--primary-600)' : 'var(--text-secondary)',
-            fontWeight: activeTab === 'dispatches' ? 700 : 500,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <Truck size={16} />
-          Shipments & Dispatches ({scopedDispatches.length})
-          {activeDispatchesCount > 0 && (
-            <span
-              style={{
-                background: '#f59e0b',
-                color: '#fff',
-                borderRadius: '10px',
-                padding: '2px 7px',
-                fontSize: '0.7rem',
-                fontWeight: 700
-              }}
-            >
-              {activeDispatchesCount} Live
-            </span>
-          )}
-        </button>
+          <button
+            onClick={() => setActiveTab('dispatches')}
+            className={`segmented-btn ${activeTab === 'dispatches' ? 'active' : ''}`}
+          >
+            <Truck size={15} />
+            <span>Shipments & Dispatches ({scopedDispatches.length})</span>
+            {activeDispatchesCount > 0 && (
+              <span
+                style={{
+                  background: '#f59e0b',
+                  color: '#fff',
+                  borderRadius: '10px',
+                  padding: '1px 6px',
+                  fontSize: '0.68rem',
+                  fontWeight: 700
+                }}
+              >
+                {activeDispatchesCount} Live
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
