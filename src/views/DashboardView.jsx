@@ -98,92 +98,58 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Banner / Welcome Bar with Company Tabs */}
+      {/* Top Welcome Bar */}
       <div
         style={{
           background: selectedCompany === 'AUCO'
-            ? 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #0369a1 100%)'
+            ? 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)'
             : (selectedCompany === 'AIWA'
-              ? 'linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #be185d 100%)'
-              : 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)'),
-          borderRadius: 'var(--radius-xl)',
-          padding: '28px 32px',
+              ? 'linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%)'
+              : 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'),
+          borderRadius: 'var(--radius-lg)',
+          padding: '20px 24px',
           color: '#ffffff',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '20px',
-          boxShadow: 'var(--shadow-lg)',
-          position: 'relative',
-          overflow: 'hidden'
+          gap: '14px',
+          boxShadow: 'var(--shadow-sm)'
         }}
       >
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <span className="badge badge-purple" style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}>
-              {currentRole} Dashboard
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span className="badge badge-purple" style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', fontSize: '0.7rem', fontWeight: 700 }}>
+              {currentRole}
             </span>
             <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>
-              🏢 Workspace: {activeBrand.name}
+              {activeBrand.name}
             </span>
           </div>
 
-          <h1 style={{ color: '#ffffff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
+          <h1 style={{ color: '#ffffff', fontSize: '1.45rem', fontWeight: 800, margin: 0 }}>
             Welcome, {currentUser?.name || 'User'}
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.86rem', margin: '6px 0 0 0' }}>
-            {activeBrand.tagline} • Real-time sales, inventory, orders & accounts tracking.
-          </p>
-          <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.88rem', marginTop: '4px', maxWidth: '640px', lineHeight: 1.4 }}>
-            {currentRole === 'Admin' && 'Unified business management: Control sales pipeline, inventory stock levels, invoice billing, and team task delivery.'}
-            {currentRole === 'Sales' && 'Pipeline command: Manage active leads, follow-ups, quotes, and 1-click client conversions.'}
-            {currentRole === 'Accounts' && 'Finance command: Manage GST tax invoices, track overdue payments, and calculate outstanding receivables.'}
-            {currentRole === 'Services' && 'Service & delivery command: Manage hardware deployments, client requirements, and field operations.'}
+          <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.82rem', margin: '4px 0 0 0' }}>
+            {activeBrand.tagline}
           </p>
         </div>
 
-        {/* Company Quick-Switch Tabs in Header */}
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.22)', padding: '6px', borderRadius: 'var(--radius-lg)', backdropFilter: 'blur(10px)' }}>
-          {companyBrands.map((b) => {
-            const isSelected = selectedCompany === b.id;
-            return (
-              <button
-                key={b.id}
-                onClick={() => setSelectedCompany(b.id)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  background: isSelected ? '#ffffff' : 'transparent',
-                  color: isSelected ? '#0f172a' : 'rgba(255,255,255,0.8)',
-                  fontWeight: isSelected ? 700 : 500,
-                  fontSize: '0.78rem',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {b.shortName}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Quick actions for current role */}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {currentRole === 'Admin' && (
             <>
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={onOpenTaskModal}
-                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}
+                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
               >
                 <Plus size={14} /> Assign Task
               </button>
               <button
                 className="btn btn-sm"
                 onClick={onOpenOrderModal}
-                style={{ background: '#ffffff', color: '#312e81', fontWeight: 700, boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
+                style={{ background: '#ffffff', color: '#1e3a8a', fontWeight: 700 }}
               >
                 <ShoppingCart size={14} /> New Order
               </button>
@@ -213,7 +179,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
               onClick={onOpenInvoiceModal}
               style={{ background: '#ffffff', color: '#92400e', fontWeight: 700 }}
             >
-              <FileText size={14} /> Generate Tax Invoice
+              <FileText size={14} /> Generate Invoice
             </button>
           )}
           {currentRole === 'Services' && (
