@@ -1832,7 +1832,7 @@ export const AppProvider = ({ children }) => {
     setTasks(initialTasks);
     setFollowUps(initialFollowUps);
     setDispatches(initialDispatches);
-    addToast('System Reset', 'All demo data has been restored to default factory state.', 'info');
+    addToast('Workspace Reset', 'All workspace records have been reset to initial baseline.', 'info');
   };
 
   return (

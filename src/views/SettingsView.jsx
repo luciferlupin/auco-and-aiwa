@@ -110,12 +110,12 @@ export const SettingsView = () => {
         <button
           className="btn btn-danger btn-sm"
           onClick={() => {
-            if (window.confirm('Reset all demo data back to default factory state?')) {
+            if (window.confirm('Reset workspace records to clean initial state?')) {
               resetDemoData();
             }
           }}
         >
-          <RotateCcw size={14} /> Restore Factory Data
+          <RotateCcw size={14} /> Reset Data
         </button>
       </div>
 

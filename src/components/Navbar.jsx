@@ -271,37 +271,6 @@ export const Navbar = ({
           <span>{isCheckedIn ? `On Duty (${userTodayAttendance.workMode.split(' ')[0]})` : 'Clock In'}</span>
         </button>
 
-        {/* Supabase Sync Pill */}
-        <div
-          className="desktop-only"
-          title={isCloudSynced ? "Live Cloud Synced to Supabase (ktrqhmzaesllajbowymt)" : "Connected to Supabase Cloud Core"}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 10px',
-            background: 'var(--bg-subtle)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.72rem',
-            color: 'var(--text-secondary)',
-            fontWeight: 600
-          }}
-        >
-          <span
-            style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: isSyncing ? '#f59e0b' : '#10b981',
-              boxShadow: '0 0 6px #10b981'
-            }}
-          />
-          <span style={{ display: 'inline-block' }}>
-            {isSyncing ? 'Syncing...' : 'Supabase Live'}
-          </span>
-        </div>
-
         {/* Quick Add Dropdown */}
         <div style={{ position: 'relative' }}>
           <button

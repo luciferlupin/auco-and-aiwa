@@ -446,7 +446,7 @@ export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile
           })}
         </nav>
 
-        {/* Footer Database Sync Action */}
+        {/* Clean Enterprise Footer */}
         <div
           style={{
             padding: '14px 18px',
@@ -461,17 +461,10 @@ export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="status-dot status-dot-success" />
-            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Supabase Cloud</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Enterprise Active</span>
           </div>
 
-          <button
-            onClick={() => fetchSupabaseData()}
-            className="btn btn-ghost btn-icon"
-            style={{ width: '28px', height: '28px' }}
-            title="Refresh database sync"
-          >
-            <RefreshCw size={13} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
-          </button>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>v2.4</span>
         </div>
       </aside>
     </>
