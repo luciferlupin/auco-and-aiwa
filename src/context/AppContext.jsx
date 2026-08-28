@@ -236,6 +236,8 @@ export const AppProvider = ({ children }) => {
     return initialActivities;
   });
 
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+
   // Self-healing migration for existing cached browsers
   useEffect(() => {
     if (currentUser?.name === 'Rajesh Sharma') {
@@ -1898,6 +1900,8 @@ export const AppProvider = ({ children }) => {
         attendance,
         checkIn,
         checkOut,
+        isCheckInModalOpen,
+        setIsCheckInModalOpen,
         activities,
         logActivity,
         resetDemoData

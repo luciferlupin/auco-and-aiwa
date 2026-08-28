@@ -18,7 +18,6 @@ import {
   CheckCircle2,
   Clock
 } from 'lucide-react';
-import { CheckInModal } from './CheckInModal';
 
 export const Navbar = ({
   onToggleMobileSidebar,
@@ -45,14 +44,14 @@ export const Navbar = ({
     selectedCompany,
     setSelectedCompany,
     matchesCompany,
-    attendance
+    attendance,
+    setIsCheckInModalOpen
   } = useApp();
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
   const userTodayAttendance = attendance.find(
@@ -634,12 +633,6 @@ export const Navbar = ({
           )}
         </div>
       </div>
-
-      {/* Check In / Check Out Modal */}
-      <CheckInModal
-        isOpen={isCheckInModalOpen}
-        onClose={() => setIsCheckInModalOpen(false)}
-      />
     </header>
   );
 };

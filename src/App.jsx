@@ -31,9 +31,10 @@ import {
 } from './components/QuickActionModal';
 import { DispatchOrderModal } from './components/DispatchOrderModal';
 import { DeliveryChallanModal } from './components/DeliveryChallanModal';
+import { CheckInModal } from './components/CheckInModal';
 
 export const App = () => {
-  const { isAuthenticated, currentRole } = useApp();
+  const { isAuthenticated, currentRole, isCheckInModalOpen, setIsCheckInModalOpen } = useApp();
   const [currentView, setCurrentView] = useState('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
@@ -183,6 +184,10 @@ export const App = () => {
         isOpen={isChallanModalOpen}
         onClose={() => setIsChallanModalOpen(false)}
         dispatch={selectedChallanDispatch}
+      />
+      <CheckInModal
+        isOpen={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
       />
 
       {/* Reactive System Notifications */}
