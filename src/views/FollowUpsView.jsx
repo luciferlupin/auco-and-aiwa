@@ -24,7 +24,7 @@ export const FollowUpsView = () => {
 
   const [newFollowUp, setNewFollowUp] = useState({
     clientName: '',
-    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
+    brand: selectedCompany || 'AUCO',
     phone: '',
     assignedSalesperson: currentUser.name,
     followUpDate: new Date().toISOString().split('T')[0],

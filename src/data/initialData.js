@@ -2,17 +2,6 @@
 
 export const companyBrands = [
   {
-    id: 'ALL',
-    name: 'All Brands (Portal Overview)',
-    legalName: 'Auco & Aiwa Dual-Brand Operations Portal',
-    tagline: 'Multi-Brand Operations Management Portal',
-    shortName: 'Auco & Aiwa Portal',
-    logoLetter: 'A&A',
-    color: '#4f46e5',
-    accentColor: '#06b6d4',
-    industry: 'Unified Management Portal for Auco & Aiwa Brands'
-  },
-  {
     id: 'AUCO',
     name: 'Auco Automation',
     legalName: 'Auco Automation India Pvt Ltd',
@@ -1208,11 +1197,11 @@ export const initialTasks = [
   },
   {
     id: 'TSK-003',
-    brand: 'ALL',
-    taskName: 'Accounts Reconciliation for August Invoices',
-    description: 'Review bank settlements for NEFT and UPI receipts, reconcile GST returns.',
+    brand: 'AIWA',
+    taskName: 'Aiwa Accounts Reconciliation for August Invoices',
+    description: 'Review bank settlements for NEFT and UPI receipts, reconcile GST returns for Aiwa Commercial AV.',
     assignedPerson: 'Amit Patel',
-    client: 'Internal - All Accounts',
+    client: 'NCR Logistics & Warehousing Hub',
     priority: 'Medium',
     dueDate: '2026-08-31',
     status: 'To Do',

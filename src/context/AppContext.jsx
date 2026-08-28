@@ -35,23 +35,24 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem('auco_current_role') || 'Admin';
   });
 
-  // Company / Brand Workspace State ('ALL' | 'AUCO' | 'AIWA')
+  // Company / Brand Workspace State ('AUCO' | 'AIWA')
   const [selectedCompany, setSelectedCompanyState] = useState(() => {
-    return localStorage.getItem('auco_selected_company') || 'ALL';
+    const stored = localStorage.getItem('auco_selected_company');
+    return stored === 'AIWA' || stored === 'AUCO' ? stored : 'AUCO';
   });
 
   const setSelectedCompany = (companyId) => {
-    setSelectedCompanyState(companyId);
-    localStorage.setItem('auco_selected_company', companyId);
-    const brand = companyBrands.find((b) => b.id === companyId) || companyBrands[0];
-    addToast('Workspace Switched', `Viewing ${brand.name} (${brand.industry})`, 'info');
+    const validCompany = companyId === 'AIWA' ? 'AIWA' : 'AUCO';
+    setSelectedCompanyState(validCompany);
+    localStorage.setItem('auco_selected_company', validCompany);
+    const brand = companyBrands.find((b) => b.id === validCompany) || companyBrands[0];
+    addToast('Brand Switched', `Active Brand: ${brand.name}`, 'info');
   };
 
   // Helper function to check if an entity matches active company
   const matchesCompany = (item, defaultBrand = 'AUCO') => {
-    if (!selectedCompany || selectedCompany === 'ALL') return true;
     if (!item) return true;
-    if (item.brand === 'ALL' || item.brand === 'BOTH') return true;
+    if (item.brand === 'BOTH' || item.brand === 'ALL') return true;
     if (item.brand) return item.brand === selectedCompany;
     if (item.productCode) {
       if (selectedCompany === 'AUCO') return item.productCode.toUpperCase().startsWith('AUC');
@@ -82,26 +83,37 @@ export const AppProvider = ({ children }) => {
   const enrichBrand = (items, type = 'product') => {
     if (!items || !Array.isArray(items)) return [];
     return items.map((item) => {
-      if (item.brand) return item;
-      if (item.productCode) {
-        return {
-          ...item,
-          brand: item.productCode.toUpperCase().startsWith('AIW') ? 'AIWA' : 'AUCO'
-        };
-      }
+      const id = String(item.id || '');
+      const code = String(item.productCode || '').toUpperCase();
       const name = (item.companyName || item.company || item.clientName || item.client || '').toLowerCase();
-      if (
-        name.includes('aiwa') ||
-        name.includes('sound') ||
-        name.includes('acoustics') ||
+      
+      const isAiwa =
+        item.brand === 'AIWA' ||
+        code.startsWith('AIW') ||
+        id === 'CLN-002' || id === 'CLN-005' || id === 'CLN-006' || id === 'CLN-007' ||
+        id === 'LEAD-001' || id === 'LEAD-005' ||
+        id === 'ORD-1003' || id === 'ORD-1004' ||
+        id === 'DSP-2026-003' || id === 'DSP-2026-004' ||
+        id === 'INV-2026-003' || id === 'INV-2026-004' ||
+        id === 'PAY-003' || id === 'PAY-004' ||
+        id === 'TSK-003' || id === 'TSK-004' ||
+        id === 'FLW-001' || id === 'FLW-003' ||
+        id === 'PRD-103' || id === 'PRD-104' || id === 'PRD-106' ||
         name.includes('bengal') ||
+        name.includes('ncr') ||
         name.includes('cochin') ||
         name.includes('cyberabad') ||
-        name.includes('ncr')
-      ) {
-        return { ...item, brand: 'AIWA' };
-      }
-      return { ...item, brand: 'AUCO' };
+        name.includes('navi mumbai') ||
+        name.includes('bangalore aero') ||
+        name.includes('sound') ||
+        name.includes('audio') ||
+        name.includes('acoustics') ||
+        name.includes('broadcast');
+
+      return {
+        ...item,
+        brand: isAiwa ? 'AIWA' : 'AUCO'
+      };
     });
   };
 
@@ -555,7 +567,7 @@ export const AppProvider = ({ children }) => {
     const newOrderId = orderData.id || generateId('ORD');
     const newOrder = {
       id: newOrderId,
-      brand: orderData.brand || (selectedCompany !== 'ALL' ? selectedCompany : ((orderData.items || []).some((i) => i.productCode?.startsWith('AIW')) ? 'AIWA' : 'AUCO')),
+      brand: orderData.brand || selectedCompany || ((orderData.items || []).some((i) => i.productCode?.startsWith('AIW')) ? 'AIWA' : 'AUCO'),
       clientId: orderData.clientId,
       clientName: orderData.clientName,
       items: orderData.items || [],
@@ -651,7 +663,7 @@ export const AppProvider = ({ children }) => {
       id: newDispatchId,
       challanNumber: newChallanNumber,
       orderId: order.id,
-      brand: dispatchPayload.brand || order.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      brand: dispatchPayload.brand || order.brand || selectedCompany || 'AUCO',
       clientId: order.clientId || client?.id || '',
       clientName: order.clientName,
       companyName: client?.companyName || order.clientName,
@@ -817,7 +829,7 @@ export const AppProvider = ({ children }) => {
     const newInvoice = {
       id: invNum,
       invoiceNumber: invNum,
-      brand: invoiceData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      brand: invoiceData.brand || selectedCompany || 'AUCO',
       orderId: invoiceData.orderId || '',
       clientId: invoiceData.clientId,
       clientName: invoiceData.clientName,
@@ -1115,7 +1127,7 @@ export const AppProvider = ({ children }) => {
   const addClient = async (clientData) => {
     const newClient = {
       id: clientData.id || generateId('CLN'),
-      brand: clientData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      brand: clientData.brand || selectedCompany || 'AUCO',
       clientName: clientData.clientName,
       companyName: clientData.companyName,
       contactPerson: clientData.contactPerson || clientData.clientName,
@@ -1211,7 +1223,7 @@ export const AppProvider = ({ children }) => {
   const addLead = async (leadData) => {
     const newLead = {
       id: leadData.id || generateId('LEAD'),
-      brand: leadData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      brand: leadData.brand || selectedCompany || 'AUCO',
       client: leadData.client,
       company: leadData.company,
       phone: leadData.phone,
@@ -1308,7 +1320,7 @@ export const AppProvider = ({ children }) => {
   const addTask = async (taskData) => {
     const newTask = {
       id: taskData.id || generateId('TSK'),
-      brand: taskData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      brand: taskData.brand || selectedCompany || 'AUCO',
       taskName: taskData.taskName,
       description: taskData.description || '',
       assignedPerson: taskData.assignedPerson || currentUser.name,
@@ -1366,7 +1378,7 @@ export const AppProvider = ({ children }) => {
   const addFollowUp = async (followUpData) => {
     const newFollowUp = {
       id: followUpData.id || generateId('FLW'),
-      brand: followUpData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      brand: followUpData.brand || selectedCompany || 'AUCO',
       clientId: followUpData.clientId || '',
       clientName: followUpData.clientName,
       contactPerson: followUpData.contactPerson || '',

@@ -22,7 +22,7 @@ export const CreateLeadModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     company: '',
     client: '',
-    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
+    brand: selectedCompany || 'AUCO',
     phone: '',
     email: '',
     city: 'Pune',
@@ -193,7 +193,7 @@ export const CreateClientModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     companyName: '',
     clientName: '',
-    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
+    brand: selectedCompany || 'AUCO',
     contactPerson: '',
     phone: '',
     email: '',
@@ -389,10 +389,9 @@ export const CreateClientModal = ({ isOpen, onClose }) => {
 export const CreateOrderModal = ({ isOpen, onClose }) => {
   const { clients, inventory, lookupProductByCode, createOrder, currentUser, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [selectedClientId, setSelectedClientId] = useState('');
-  const [brand, setBrand] = useState(selectedCompany !== 'ALL' ? selectedCompany : 'AUCO');
+  const [brand, setBrand] = useState(selectedCompany || 'AUCO');
   
   const getBrandProducts = (b) => {
-    if (b === 'ALL') return inventory;
     return inventory.filter((p) => p.brand === b || (b === 'AUCO' ? p.productCode?.startsWith('AUC') : p.productCode?.startsWith('AIW')));
   };
 
@@ -473,7 +472,7 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
   };
 
   const availableProducts = getBrandProducts(brand);
-  const eligibleClients = selectedCompany === 'ALL' ? clients : clients.filter(matchesCompany);
+  const eligibleClients = clients.filter(matchesCompany);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -641,10 +640,9 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
 export const CreateInvoiceModal = ({ isOpen, onClose }) => {
   const { clients, inventory, lookupProductByCode, createInvoice, selectedCompany, matchesCompany } = useApp();
   const [selectedClientId, setSelectedClientId] = useState('');
-  const [brand, setBrand] = useState(selectedCompany !== 'ALL' ? selectedCompany : 'AUCO');
+  const [brand, setBrand] = useState(selectedCompany || 'AUCO');
 
   const getBrandProducts = (b) => {
-    if (b === 'ALL') return inventory;
     return inventory.filter((p) => p.brand === b || (b === 'AUCO' ? p.productCode?.startsWith('AUC') : p.productCode?.startsWith('AIW')));
   };
 
@@ -726,7 +724,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
   };
 
   const availableProducts = getBrandProducts(brand);
-  const eligibleClients = selectedCompany === 'ALL' ? clients : clients.filter(matchesCompany);
+  const eligibleClients = clients.filter(matchesCompany);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -893,7 +891,7 @@ export const CreateTaskModal = ({ isOpen, onClose }) => {
   const { addTask, users, clients, selectedCompany } = useApp();
   const [taskData, setTaskData] = useState({
     taskName: '',
-    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
+    brand: selectedCompany || 'AUCO',
     description: '',
     assignedPerson: users[0]?.name || 'Rajesh Sharma',
     client: clients[0]?.companyName || 'General Operations',

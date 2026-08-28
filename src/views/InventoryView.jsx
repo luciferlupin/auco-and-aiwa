@@ -32,7 +32,7 @@ export const InventoryView = () => {
   // New product form state
   const [newProduct, setNewProduct] = useState({
     name: '',
-    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
+    brand: selectedCompany || 'AUCO',
     productCode: '',
     sku: '',
     category: 'Automation Hardware',
