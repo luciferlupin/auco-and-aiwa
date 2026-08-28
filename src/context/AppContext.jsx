@@ -230,6 +230,7 @@ export const AppProvider = ({ children }) => {
       if (!clientErr && dbClients && dbClients.length > 0) {
         const mappedClients = dbClients.map(c => ({
           id: c.id,
+          brand: c.brand || ((c.company_name || '').includes('Bengal') || (c.company_name || '').includes('NCR') || (c.company_name || '').includes('Cochin') || (c.company_name || '').includes('Cyberabad') ? 'AIWA' : 'AUCO'),
           clientName: c.client_name,
           companyName: c.company_name,
           contactPerson: c.contact_person,
@@ -263,6 +264,7 @@ export const AppProvider = ({ children }) => {
       if (!prodErr && dbProducts && dbProducts.length > 0) {
         const mappedProducts = dbProducts.map(p => ({
           id: p.id,
+          brand: p.brand || (p.product_code?.startsWith('AIW') ? 'AIWA' : 'AUCO'),
           productCode: p.product_code,
           name: p.name,
           sku: p.sku,
@@ -285,6 +287,7 @@ export const AppProvider = ({ children }) => {
       if (!leadErr && dbLeads && dbLeads.length > 0) {
         const mappedLeads = dbLeads.map(l => ({
           id: l.id,
+          brand: l.brand || ((l.company || '').includes('Bangalore Aero') || (l.company || '').includes('Navi Mumbai') ? 'AIWA' : 'AUCO'),
           client: l.client,
           company: l.company,
           phone: l.phone,
@@ -315,6 +318,7 @@ export const AppProvider = ({ children }) => {
       if (!orderErr && dbOrders && dbOrders.length > 0) {
         const mappedOrders = dbOrders.map(o => ({
           id: o.id,
+          brand: o.brand || (o.items?.[0]?.productCode?.startsWith('AIW') ? 'AIWA' : 'AUCO'),
           clientId: o.client_id,
           clientName: o.client_name,
           items: o.items || [],
@@ -336,6 +340,7 @@ export const AppProvider = ({ children }) => {
       if (!dispErr && dbDispatches && dbDispatches.length > 0) {
         const mappedDispatches = dbDispatches.map(d => ({
           id: d.id,
+          brand: d.brand || (d.items?.[0]?.productCode?.startsWith('AIW') ? 'AIWA' : 'AUCO'),
           challanNumber: d.challan_number,
           orderId: d.order_id,
           clientId: d.client_id,
@@ -368,6 +373,7 @@ export const AppProvider = ({ children }) => {
       if (!invErr && dbInvoices && dbInvoices.length > 0) {
         const mappedInvoices = dbInvoices.map(i => ({
           id: i.id,
+          brand: i.brand || (i.items?.[0]?.productCode?.startsWith('AIW') ? 'AIWA' : 'AUCO'),
           invoiceNumber: i.invoice_number,
           orderId: i.order_id,
           clientId: i.client_id,
@@ -398,6 +404,7 @@ export const AppProvider = ({ children }) => {
       if (!payErr && dbPayments && dbPayments.length > 0) {
         const mappedPayments = dbPayments.map(p => ({
           id: p.id,
+          brand: p.brand || (p.invoice_number === 'INV-2026-003' || p.invoice_number === 'INV-2026-004' ? 'AIWA' : 'AUCO'),
           invoiceId: p.invoice_id,
           invoiceNumber: p.invoice_number,
           clientId: p.client_id,
@@ -420,6 +427,7 @@ export const AppProvider = ({ children }) => {
       if (!taskErr && dbTasks && dbTasks.length > 0) {
         const mappedTasks = dbTasks.map(t => ({
           id: t.id,
+          brand: t.brand || ((t.task_name || '').includes('Aiwa') ? 'AIWA' : 'AUCO'),
           taskName: t.task_name,
           description: t.description,
           assignedPerson: t.assigned_person,
@@ -440,6 +448,7 @@ export const AppProvider = ({ children }) => {
       if (!flwErr && dbFollowups && dbFollowups.length > 0) {
         const mappedFollowups = dbFollowups.map(f => ({
           id: f.id,
+          brand: f.brand || ((f.client_name || '').includes('Bangalore Aero') ? 'AIWA' : 'AUCO'),
           clientId: f.client_id,
           clientName: f.client_name,
           contactPerson: f.contact_person,
@@ -613,6 +622,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('orders').insert({
         id: newOrder.id,
+        brand: newOrder.brand,
         client_id: newOrder.clientId,
         client_name: newOrder.clientName,
         items: newOrder.items,
@@ -735,6 +745,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('dispatches').insert({
         id: newDispatch.id,
+        brand: newDispatch.brand,
         challan_number: newDispatch.challanNumber,
         order_id: newDispatch.orderId,
         client_id: newDispatch.clientId,
@@ -892,6 +903,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('invoices').insert({
         id: newInvoice.id,
+        brand: newInvoice.brand,
         invoice_number: newInvoice.invoiceNumber,
         order_id: newInvoice.orderId,
         client_id: newInvoice.clientId,
@@ -916,6 +928,7 @@ export const AppProvider = ({ children }) => {
 
       await supabase.from('payments').insert({
         id: newPayment.id,
+        brand: newPayment.brand,
         invoice_id: newPayment.invoiceId,
         invoice_number: newPayment.invoiceNumber,
         client_id: newPayment.clientId,
@@ -1065,6 +1078,7 @@ export const AppProvider = ({ children }) => {
       try {
         await supabase.from('clients').insert({
           id: newClient.id,
+          brand: newClient.brand,
           client_name: newClient.clientName,
           company_name: newClient.companyName,
           contact_person: newClient.contactPerson,
@@ -1157,6 +1171,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('clients').insert({
         id: newClient.id,
+        brand: newClient.brand,
         client_name: newClient.clientName,
         company_name: newClient.companyName,
         contact_person: newClient.contactPerson,
@@ -1250,6 +1265,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('leads').insert({
         id: newLead.id,
+        brand: newLead.brand,
         client: newLead.client,
         company: newLead.company,
         phone: newLead.phone,
@@ -1337,6 +1353,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('tasks').insert({
         id: newTask.id,
+        brand: newTask.brand,
         task_name: newTask.taskName,
         description: newTask.description,
         assigned_person: newTask.assignedPerson,
@@ -1395,6 +1412,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('followups').insert({
         id: newFollowUp.id,
+        brand: newFollowUp.brand,
         client_id: newFollowUp.clientId,
         client_name: newFollowUp.clientName,
         contact_person: newFollowUp.contactPerson,
@@ -1453,6 +1471,7 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.from('products').insert({
         id: newProduct.id,
+        brand: newProduct.brand,
         product_code: newProduct.productCode,
         name: newProduct.name,
         sku: newProduct.sku,
