@@ -41,7 +41,8 @@ export const Navbar = ({
     tasks,
     companyBrands,
     selectedCompany,
-    setSelectedCompany
+    setSelectedCompany,
+    matchesCompany
   } = useApp();
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
@@ -51,10 +52,14 @@ export const Navbar = ({
 
   const activeBrand = companyBrands.find((b) => b.id === selectedCompany) || companyBrands[0];
 
-  // Derive system alerts for notification bell
-  const lowStockCount = inventory.filter((p) => p.availableStock <= p.minStockLevel).length;
-  const overdueInvoicesCount = invoices.filter((i) => i.paymentStatus === 'Overdue').length;
-  const urgentTasksCount = tasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed').length;
+  // Derive system alerts for notification bell (scoped by active brand workspace)
+  const scopedInventory = inventory.filter(matchesCompany);
+  const scopedInvoices = invoices.filter(matchesCompany);
+  const scopedTasks = tasks.filter(matchesCompany);
+
+  const lowStockCount = scopedInventory.filter((p) => p.availableStock <= p.minStockLevel).length;
+  const overdueInvoicesCount = scopedInvoices.filter((i) => i.paymentStatus === 'Overdue').length;
+  const urgentTasksCount = scopedTasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed').length;
   const totalAlerts = lowStockCount + overdueInvoicesCount + urgentTasksCount;
 
   const roleConfigs = [

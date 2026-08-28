@@ -322,7 +322,6 @@ export const CreateClientModal = ({ isOpen, onClose }) => {
                 >
                   <option value="AUCO">Auco Automation</option>
                   <option value="AIWA">Aiwa Commercial AV</option>
-                  <option value="BOTH">Both Brands (Group Client)</option>
                 </select>
               </div>
 

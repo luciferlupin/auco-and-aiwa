@@ -73,12 +73,13 @@ export const InventoryView = () => {
     setShowAddModal(false);
     setNewProduct({
       name: '',
+      brand: selectedCompany || 'AUCO',
       productCode: '',
       sku: '',
-      category: 'Automation Hardware',
+      category: selectedCompany === 'AIWA' ? 'Commercial AV' : 'Automation Hardware',
       currentStock: 20,
       minStockLevel: 5,
-      supplier: 'Auco Main Works',
+      supplier: selectedCompany === 'AIWA' ? 'Aiwa Precision Labs' : 'Auco Main Works',
       price: 35000
     });
   };

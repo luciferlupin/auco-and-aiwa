@@ -65,6 +65,7 @@ export const FollowUpsView = () => {
     setShowAddModal(false);
     setNewFollowUp({
       clientName: '',
+      brand: selectedCompany || 'AUCO',
       phone: '',
       assignedSalesperson: currentUser.name,
       followUpDate: new Date().toISOString().split('T')[0],

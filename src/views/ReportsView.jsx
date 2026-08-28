@@ -164,7 +164,7 @@ export const ReportsView = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Orders and contract values booked</p>
             </div>
             <strong style={{ fontSize: '1.2rem', color: 'var(--primary-600)' }}>
-              Total: {formatCurrency(orders.reduce((acc, o) => acc + Number(o.orderValue || 0), 0))}
+              Total: {formatCurrency(scopedOrders.reduce((acc, o) => acc + Number(o.orderValue || 0), 0))}
             </strong>
           </div>
 
@@ -181,7 +181,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((o) => (
+                {scopedOrders.map((o) => (
                   <tr key={o.id}>
                     <td><strong>{o.id}</strong></td>
                     <td>{o.clientName}</td>
@@ -206,7 +206,7 @@ export const ReportsView = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Pipeline velocity, lead sources, and win rate</p>
             </div>
             <span className="badge badge-success" style={{ fontSize: '0.9rem', padding: '6px 12px' }}>
-              Overall Conversion Rate: {Math.round((leads.filter(l => l.conversionStatus === 'Converted').length / leads.length) * 100)}%
+              Overall Conversion Rate: {scopedLeads.length > 0 ? Math.round((scopedLeads.filter(l => l.conversionStatus === 'Converted').length / scopedLeads.length) * 100) : 0}%
             </span>
           </div>
 
@@ -224,7 +224,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {leads.map((l) => (
+                {scopedLeads.map((l) => (
                   <tr key={l.id}>
                     <td><strong>{l.company}</strong> ({l.client})</td>
                     <td><span className="badge badge-neutral">{l.leadSource}</span></td>
@@ -254,7 +254,7 @@ export const ReportsView = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total lifetime value, order frequency, and account standing</p>
             </div>
             <strong style={{ fontSize: '1.2rem', color: 'var(--primary-600)' }}>
-              Total Network Value: {formatCurrency(clients.reduce((acc, c) => acc + Number(c.totalBusinessValue || 0), 0))}
+              Total Network Value: {formatCurrency(scopedClients.reduce((acc, c) => acc + Number(c.totalBusinessValue || 0), 0))}
             </strong>
           </div>
 
@@ -273,7 +273,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {clients.map((c) => (
+                {scopedClients.map((c) => (
                   <tr key={c.id}>
                     <td><strong>{c.id}</strong></td>
                     <td><strong>{c.companyName}</strong></td>
@@ -315,7 +315,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((o) => (
+                {scopedOrders.map((o) => (
                   <tr key={o.id}>
                     <td><strong>{o.id}</strong></td>
                     <td>{o.clientName}</td>
@@ -341,7 +341,7 @@ export const ReportsView = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Settled payments and receipts</p>
             </div>
             <strong style={{ fontSize: '1.2rem', color: 'var(--success-text)' }}>
-              Collected: {formatCurrency(payments.reduce((acc, p) => acc + Number(p.amountPaid || 0), 0))}
+              Collected: {formatCurrency(scopedPayments.reduce((acc, p) => acc + Number(p.amountPaid || 0), 0))}
             </strong>
           </div>
 
@@ -359,7 +359,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((p) => (
+                {scopedPayments.map((p) => (
                   <tr key={p.id}>
                     <td><strong>{p.invoiceNumber}</strong></td>
                     <td>{p.clientName}</td>
@@ -385,7 +385,7 @@ export const ReportsView = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Unpaid invoices and overdue collection targets</p>
             </div>
             <strong style={{ fontSize: '1.2rem', color: 'var(--danger-text)' }}>
-              Total AR Balance: {formatCurrency(invoices.reduce((acc, i) => acc + Number(i.balance || 0), 0))}
+              Total AR Balance: {formatCurrency(scopedInvoices.reduce((acc, i) => acc + Number(i.balance || 0), 0))}
             </strong>
           </div>
 
@@ -403,7 +403,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {invoices.filter(i => i.balance > 0).map((inv) => (
+                {scopedInvoices.filter(i => i.balance > 0).map((inv) => (
                   <tr key={inv.id}>
                     <td><strong>{inv.invoiceNumber}</strong></td>
                     <td>{inv.clientName}</td>
@@ -429,7 +429,7 @@ export const ReportsView = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Available stock units, safety thresholds, and asset values</p>
             </div>
             <strong style={{ fontSize: '1.2rem', color: 'var(--primary-600)' }}>
-              Total Valuation: {formatCurrency(inventory.reduce((acc, p) => acc + (p.currentStock * p.price), 0))}
+              Total Valuation: {formatCurrency(scopedInventory.reduce((acc, p) => acc + (p.currentStock * p.price), 0))}
             </strong>
           </div>
 
@@ -447,7 +447,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {inventory.map((p) => (
+                {scopedInventory.map((p) => (
                   <tr key={p.id}>
                     <td><strong>{p.productCode}</strong></td>
                     <td>{p.name}</td>
@@ -487,7 +487,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {tasks.map((t) => (
+                {scopedTasks.map((t) => (
                   <tr key={t.id}>
                     <td><strong>{t.taskName}</strong></td>
                     <td>{t.assignedPerson}</td>
@@ -526,7 +526,7 @@ export const ReportsView = () => {
               </thead>
               <tbody>
                 {Object.entries(indiaStateData).map(([stName, data]) => {
-                  const stateClients = clients.filter(c => c.state === stName);
+                  const stateClients = scopedClients.filter(c => c.state === stName);
                   const stOrders = stateClients.reduce((acc, c) => acc + Number(c.totalOrders || 0), 0);
                   const stValue = stateClients.reduce((acc, c) => acc + Number(c.totalBusinessValue || 0), 0);
                   return (
@@ -571,7 +571,7 @@ export const ReportsView = () => {
                 </tr>
               </thead>
               <tbody>
-                {dispatches.map((d) => (
+                {scopedDispatches.map((d) => (
                   <tr key={d.id}>
                     <td><strong style={{ color: 'var(--primary-600)' }}>{d.challanNumber}</strong></td>
                     <td>{d.orderId}</td>

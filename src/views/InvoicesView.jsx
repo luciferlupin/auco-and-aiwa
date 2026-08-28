@@ -87,7 +87,7 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
             <FileText size={18} style={{ color: 'var(--primary-600)' }} />
           </div>
           <div className="stat-value">{formatCurrency(totalInvoiced)}</div>
-          <div className="stat-subtext">{invoices.length} invoices generated</div>
+          <div className="stat-subtext">{scopedInvoices.length} invoices generated</div>
         </div>
 
         <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>

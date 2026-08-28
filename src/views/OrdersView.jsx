@@ -95,6 +95,7 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
       // Synthesize dispatch record
       const syntheticDispatch = {
         id: order.dispatchDetails.dispatchId || `DSP-${order.id}`,
+        brand: order.brand || (order.items?.[0]?.productCode?.startsWith('AIW') ? 'AIWA' : 'AUCO'),
         challanNumber: order.dispatchDetails.challanNumber || `DC-2026-${order.id.replace(/\D/g, '')}`,
         orderId: order.id,
         clientName: order.clientName,
