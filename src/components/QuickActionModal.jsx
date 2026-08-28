@@ -892,7 +892,7 @@ export const CreateTaskModal = ({ isOpen, onClose }) => {
     taskName: '',
     brand: selectedCompany || 'AUCO',
     description: '',
-    assignedPerson: users[0]?.name || 'Rajesh Sharma',
+    assignedPerson: users[0]?.name || 'Shrey Taneja',
     client: clients[0]?.companyName || 'General Operations',
     priority: 'Medium',
     dueDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],

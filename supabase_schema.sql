@@ -361,12 +361,13 @@ CREATE POLICY "Enterprise app access on followups" ON public.followups
 -- Seed Users
 INSERT INTO public.users_directory (id, name, email, role, department, phone, avatar, active)
 VALUES 
-    ('USR-001', 'Rajesh Sharma', 'rajesh.sharma@auco-aiwa.com', 'Admin', 'Management', '+91 98201 11223', 'RS', true),
-    ('USR-002', 'Vikram Malhotra', 'vikram.m@auco-aiwa.com', 'Sales', 'Sales & BD', '+91 98112 33445', 'VM', true),
-    ('USR-003', 'Priya Desai', 'priya.d@auco-aiwa.com', 'Sales', 'Sales & BD', '+91 98334 55667', 'PD', true),
-    ('USR-004', 'Amit Patel', 'amit.patel@auco-aiwa.com', 'Accounts', 'Finance & Billing', '+91 98450 77889', 'AP', true),
-    ('USR-005', 'Sneha Kulkarni', 'sneha.k@auco-aiwa.com', 'Services', 'Customer Delivery & Service', '+91 98765 44321', 'SK', true),
-    ('USR-006', 'Rahul Verma', 'rahul.v@auco-aiwa.com', 'Services', 'Field Operations', '+91 98991 22334', 'RV', true)
+    ('USR-001', 'Shrey Taneja', 'shrey.taneja@auco-automation.com', 'Admin', 'Managing Director (Auco)', '+91 98100 12001', 'ST', true),
+    ('USR-002', 'Divyansh Taneja', 'divyansh.taneja@aiwa-india.com', 'Admin', 'Managing Director (Aiwa)', '+91 98100 12002', 'DT', true),
+    ('USR-003', 'Vikram Malhotra', 'vikram.m@aiwa-india.com', 'Sales', 'Commercial AV Sales', '+91 98112 33445', 'VM', true),
+    ('USR-004', 'Priya Desai', 'priya.d@auco-automation.com', 'Sales', 'Industrial Automation Sales', '+91 98334 55667', 'PD', true),
+    ('USR-005', 'Amit Patel', 'amit.patel@auco-automation.com', 'Accounts', 'Finance & GST Billing', '+91 98450 77889', 'AP', true),
+    ('USR-006', 'Sneha Kulkarni', 'sneha.k@auco-automation.com', 'Services', 'Client Commissioning', '+91 98765 44321', 'SK', true),
+    ('USR-007', 'Rahul Verma', 'rahul.v@aiwa-india.com', 'Services', 'AV Field Operations', '+91 98991 22334', 'RV', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed Products (Partitioned: AUC-* -> AUCO, AIW-* -> AIWA)
@@ -434,10 +435,10 @@ ON CONFLICT (id) DO NOTHING;
 -- Seed Tasks (Partitioned: AUCO vs AIWA)
 INSERT INTO public.tasks (id, brand, task_name, description, assigned_person, client, priority, due_date, status, created_by, created_at, notes)
 VALUES
-    ('TSK-001', 'AUCO', 'Deploy On-site Commissioning Team at Bhosari', 'Install and configure 2x Auco X1 controllers.', 'Sneha Kulkarni', 'Mehta Precision Engineering Ltd', 'High', '2026-08-29', 'In Progress', 'Rajesh Sharma (Admin)', '2026-08-24', 'Pre-flight check completed.'),
-    ('TSK-002', 'AUCO', 'Dispatch Urgent Stock to Chennai Facility', 'Ensure 2x AUC-101 and 1x AUC-550 are packed.', 'Rahul Verma', 'Deccan Automations & Robotics', 'Urgent', '2026-08-27', 'In Progress', 'Rajesh Sharma (Admin)', '2026-08-25', 'AWB generated.'),
-    ('TSK-003', 'AIWA', 'Aiwa Accounts Reconciliation for August Invoices', 'Review bank settlements for NEFT and UPI receipts, reconcile GST returns for Aiwa Commercial AV.', 'Amit Patel', 'NCR Logistics & Warehousing Hub', 'Medium', '2026-08-31', 'To Do', 'Rajesh Sharma (Admin)', '2026-08-26', ''),
-    ('TSK-004', 'AIWA', 'Deliver Aiwa Acoustic Matrix Training Session', 'Conduct remote video training with AV engineers at Cyberabad Tech Park.', 'Sneha Kulkarni', 'Cyberabad Tech Parks AV Facilities', 'Medium', '2026-08-22', 'Completed', 'Rajesh Sharma (Admin)', '2026-08-18', 'Training delivered successfully.')
+    ('TSK-001', 'AUCO', 'Deploy On-site Commissioning Team at Bhosari', 'Install and configure 2x Auco X1 controllers.', 'Sneha Kulkarni', 'Mehta Precision Engineering Ltd', 'High', '2026-08-29', 'In Progress', 'Shrey Taneja (Admin)', '2026-08-24', 'Pre-flight check completed.'),
+    ('TSK-002', 'AUCO', 'Dispatch Urgent Stock to Chennai Facility', 'Ensure 2x AUC-101 and 1x AUC-550 are packed.', 'Rahul Verma', 'Deccan Automations & Robotics', 'Urgent', '2026-08-27', 'In Progress', 'Shrey Taneja (Admin)', '2026-08-25', 'AWB generated.'),
+    ('TSK-003', 'AIWA', 'Aiwa Accounts Reconciliation for August Invoices', 'Review bank settlements for NEFT and UPI receipts, reconcile GST returns for Aiwa Commercial AV.', 'Amit Patel', 'NCR Logistics & Warehousing Hub', 'Medium', '2026-08-31', 'To Do', 'Divyansh Taneja (Admin)', '2026-08-26', ''),
+    ('TSK-004', 'AIWA', 'Deliver Aiwa Acoustic Matrix Training Session', 'Conduct remote video training with AV engineers at Cyberabad Tech Park.', 'Sneha Kulkarni', 'Cyberabad Tech Parks AV Facilities', 'Medium', '2026-08-22', 'Completed', 'Divyansh Taneja (Admin)', '2026-08-18', 'Training delivered successfully.')
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed Follow-ups (Partitioned: AUCO vs AIWA)

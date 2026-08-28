@@ -28,60 +28,77 @@ export const companyBrands = [
 export const initialUsers = [
   {
     id: 'USR-001',
-    name: 'Rajesh Sharma',
-    email: 'rajesh.sharma@auco-aiwa.com',
+    name: 'Shrey Taneja',
+    email: 'shrey.taneja@auco-automation.com',
     role: 'Admin',
-    department: 'Management',
-    phone: '+91 98201 11223',
-    avatar: 'RS',
+    department: 'Managing Director (Auco)',
+    brand: 'AUCO',
+    phone: '+91 98100 12001',
+    avatar: 'ST',
     active: true
   },
   {
     id: 'USR-002',
+    name: 'Divyansh Taneja',
+    email: 'divyansh.taneja@aiwa-india.com',
+    role: 'Admin',
+    department: 'Managing Director (Aiwa)',
+    brand: 'AIWA',
+    phone: '+91 98100 12002',
+    avatar: 'DT',
+    active: true
+  },
+  {
+    id: 'USR-003',
     name: 'Vikram Malhotra',
-    email: 'vikram.m@auco-aiwa.com',
+    email: 'vikram.m@aiwa-india.com',
     role: 'Sales',
-    department: 'Sales & BD',
+    department: 'Commercial AV Sales',
+    brand: 'AIWA',
     phone: '+91 98112 33445',
     avatar: 'VM',
     active: true
   },
   {
-    id: 'USR-003',
+    id: 'USR-004',
     name: 'Priya Desai',
-    email: 'priya.d@auco-aiwa.com',
+    email: 'priya.d@auco-automation.com',
     role: 'Sales',
-    department: 'Sales & BD',
+    department: 'Industrial Automation Sales',
+    brand: 'AUCO',
     phone: '+91 98334 55667',
     avatar: 'PD',
     active: true
   },
   {
-    id: 'USR-004',
+    id: 'USR-005',
     name: 'Amit Patel',
-    email: 'amit.patel@auco-aiwa.com',
+    email: 'amit.patel@auco-automation.com',
     role: 'Accounts',
-    department: 'Finance & Billing',
+    department: 'Finance & GST Billing',
+    brand: 'BOTH',
     phone: '+91 98450 77889',
     avatar: 'AP',
     active: true
   },
   {
-    id: 'USR-005',
+    id: 'USR-006',
     name: 'Sneha Kulkarni',
-    email: 'sneha.k@auco-aiwa.com',
+    email: 'sneha.k@auco-automation.com',
     role: 'Services',
-    department: 'Customer Delivery & Service',
+    department: 'Client Commissioning',
+    brand: 'AUCO',
     phone: '+91 98765 44321',
     avatar: 'SK',
     active: true
   },
   {
-    id: 'USR-006',
+    id: 'USR-007',
     name: 'Rahul Verma',
-    email: 'rahul.v@auco-aiwa.com',
+    email: 'rahul.v@aiwa-india.com',
     role: 'Services',
-    department: 'Field Operations',
+    department: 'AV Field Operations',
+    brand: 'AIWA',
     phone: '+91 98991 22334',
     avatar: 'RV',
     active: true
@@ -1177,7 +1194,7 @@ export const initialTasks = [
     priority: 'High',
     dueDate: '2026-08-29',
     status: 'In Progress',
-    createdBy: 'Rajesh Sharma (Admin)',
+    createdBy: 'Shrey Taneja (Admin)',
     createdAt: '2026-08-24',
     notes: 'Pre-flight check completed. Technicians departing Pune center tomorrow 9 AM.'
   },
@@ -1191,7 +1208,7 @@ export const initialTasks = [
     priority: 'Urgent',
     dueDate: '2026-08-27',
     status: 'In Progress',
-    createdBy: 'Rajesh Sharma (Admin)',
+    createdBy: 'Shrey Taneja (Admin)',
     createdAt: '2026-08-25',
     notes: 'AWB #7729103 generated. Picked up by logistics.'
   },
@@ -1205,7 +1222,7 @@ export const initialTasks = [
     priority: 'Medium',
     dueDate: '2026-08-31',
     status: 'To Do',
-    createdBy: 'Rajesh Sharma (Admin)',
+    createdBy: 'Divyansh Taneja (Admin)',
     createdAt: '2026-08-26',
     notes: ''
   },
@@ -1219,7 +1236,7 @@ export const initialTasks = [
     priority: 'Medium',
     dueDate: '2026-08-22',
     status: 'Completed',
-    createdBy: 'Rajesh Sharma (Admin)',
+    createdBy: 'Divyansh Taneja (Admin)',
     createdAt: '2026-08-19',
     notes: 'Training conducted successfully with 6 engineers. Client signed off training sheet.'
   },
@@ -1233,7 +1250,7 @@ export const initialTasks = [
     priority: 'High',
     dueDate: '2026-08-28',
     status: 'To Do',
-    createdBy: 'Rajesh Sharma (Admin)',
+    createdBy: 'Shrey Taneja (Admin)',
     createdAt: '2026-08-26',
     notes: ''
   }
@@ -1364,9 +1381,9 @@ export const initialAttendance = [
   {
     id: 'ATT-2026-001',
     userId: 'USR-001',
-    userName: 'Rajesh Sharma',
+    userName: 'Shrey Taneja',
     userRole: 'Admin',
-    department: 'Management',
+    department: 'Managing Director (Auco)',
     date: '2026-08-28',
     checkInTime: '09:00 AM',
     checkOutTime: null,
@@ -1374,44 +1391,44 @@ export const initialAttendance = [
     workMode: 'Office HQ (Pune)',
     location: 'Auco Automation HQ, Pune',
     shiftDuration: 'In Progress',
-    notes: 'Executive review & quarterly operations monitoring.'
+    notes: 'Auco Executive management & operations oversight.'
   },
   {
     id: 'ATT-2026-002',
     userId: 'USR-002',
-    userName: 'Priya Iyer',
+    userName: 'Divyansh Taneja',
+    userRole: 'Admin',
+    department: 'Managing Director (Aiwa)',
+    date: '2026-08-28',
+    checkInTime: '09:15 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Office HQ (Delhi)',
+    location: 'Aiwa House, New Delhi',
+    shiftDuration: 'In Progress',
+    notes: 'Aiwa commercial AV strategy & dealer distribution meeting.'
+  },
+  {
+    id: 'ATT-2026-003',
+    userId: 'USR-003',
+    userName: 'Vikram Malhotra',
     userRole: 'Sales',
-    department: 'Sales & Business Dev',
+    department: 'Commercial AV Sales',
     date: '2026-08-28',
     checkInTime: '09:30 AM',
     checkOutTime: null,
     status: 'Checked In',
     workMode: 'Field Client Visit',
-    location: 'Client Site (MIDC Bhosari)',
+    location: 'Gurugram Cyber City',
     shiftDuration: 'In Progress',
-    notes: 'On-site demo for Mehta Precision Engineering Ltd.'
-  },
-  {
-    id: 'ATT-2026-003',
-    userId: 'USR-003',
-    userName: 'Amit Deshmukh',
-    userRole: 'Sales',
-    department: 'Sales & Business Dev',
-    date: '2026-08-28',
-    checkInTime: '09:15 AM',
-    checkOutTime: null,
-    status: 'Checked In',
-    workMode: 'Office HQ (Pune)',
-    location: 'Auco Automation HQ, Pune',
-    shiftDuration: 'In Progress',
-    notes: 'Outreach calls and proposal dispatch for Aiwa AV systems.'
+    notes: 'On-site demo with NCR Logistics AV infrastructure team.'
   },
   {
     id: 'ATT-2026-004',
     userId: 'USR-004',
-    userName: 'Neha Verma',
-    userRole: 'Accounts',
-    department: 'Accounts & Finance',
+    userName: 'Priya Desai',
+    userRole: 'Sales',
+    department: 'Industrial Automation Sales',
     date: '2026-08-28',
     checkInTime: '09:00 AM',
     checkOutTime: null,
@@ -1419,29 +1436,29 @@ export const initialAttendance = [
     workMode: 'Office HQ (Pune)',
     location: 'Auco Automation HQ, Pune',
     shiftDuration: 'In Progress',
-    notes: 'GST tax invoice audit & AR collections follow-up.'
+    notes: 'Outreach calls and quote formulation for Titan Manufacturing.'
   },
   {
     id: 'ATT-2026-005',
     userId: 'USR-005',
-    userName: 'Vikram Singh',
-    userRole: 'Services',
-    department: 'Services & Operations',
+    userName: 'Amit Patel',
+    userRole: 'Accounts',
+    department: 'Finance & GST Billing',
     date: '2026-08-28',
-    checkInTime: '08:45 AM',
+    checkInTime: '09:00 AM',
     checkOutTime: null,
     status: 'Checked In',
-    workMode: 'Field Client Visit',
-    location: 'Faridabad Industrial Site',
+    workMode: 'Office HQ (Pune)',
+    location: 'Auco Automation HQ, Pune',
     shiftDuration: 'In Progress',
-    notes: 'Hardware installation & telemetry unit calibration.'
+    notes: 'GST tax invoice audit & dual-brand ledger reconciliation.'
   },
   {
     id: 'ATT-2026-006',
     userId: 'USR-006',
     userName: 'Sneha Kulkarni',
     userRole: 'Services',
-    department: 'Services & Operations',
+    department: 'Client Commissioning',
     date: '2026-08-28',
     checkInTime: '08:30 AM',
     checkOutTime: null,
@@ -1450,44 +1467,36 @@ export const initialAttendance = [
     location: 'Logistics Dock, Bhosari',
     shiftDuration: 'In Progress',
     notes: 'Carrier dispatch packing and BlueDart AWB generation.'
-  },
-  {
-    id: 'ATT-2026-007',
-    userId: 'USR-002',
-    userName: 'Priya Iyer',
-    userRole: 'Sales',
-    department: 'Sales & Business Dev',
-    date: '2026-08-27',
-    checkInTime: '09:15 AM',
-    checkOutTime: '06:45 PM',
-    status: 'Completed',
-    workMode: 'Office HQ (Pune)',
-    location: 'Auco Automation HQ, Pune',
-    shiftDuration: '9 hrs 30 mins',
-    notes: 'Completed 12 prospect calls, converted Pune Robotics deal.'
-  },
-  {
-    id: 'ATT-2026-008',
-    userId: 'USR-004',
-    userName: 'Neha Verma',
-    userRole: 'Accounts',
-    department: 'Accounts & Finance',
-    date: '2026-08-27',
-    checkInTime: '09:00 AM',
-    checkOutTime: '06:15 PM',
-    status: 'Completed',
-    workMode: 'Office HQ (Pune)',
-    location: 'Auco Automation HQ, Pune',
-    shiftDuration: '9 hrs 15 mins',
-    notes: 'Reconciled bank statement for NEFT receipts ₹2,00,000.'
   }
 ];
 
 export const initialActivities = [
   {
     id: 'ACT-1001',
+    timestamp: '2026-08-28T09:00:00Z',
+    userName: 'Shrey Taneja',
+    userRole: 'Admin',
+    brand: 'AUCO',
+    actionType: 'STAFF_CHECK_IN',
+    entityType: 'Attendance',
+    entityId: 'ATT-2026-001',
+    description: 'Shrey Taneja started duty shift at Auco Automation HQ (Pune)'
+  },
+  {
+    id: 'ACT-1002',
+    timestamp: '2026-08-28T09:15:00Z',
+    userName: 'Divyansh Taneja',
+    userRole: 'Admin',
+    brand: 'AIWA',
+    actionType: 'STAFF_CHECK_IN',
+    entityType: 'Attendance',
+    entityId: 'ATT-2026-002',
+    description: 'Divyansh Taneja started duty shift at Aiwa House (New Delhi)'
+  },
+  {
+    id: 'ACT-1003',
     timestamp: '2026-08-28T09:30:00Z',
-    userName: 'Priya Iyer',
+    userName: 'Priya Desai',
     userRole: 'Sales',
     brand: 'AUCO',
     actionType: 'LEAD_CONVERTED',
@@ -1496,7 +1505,7 @@ export const initialActivities = [
     description: 'Converted lead "Mehta Precision Engineering Ltd" to active Client (Deal value: ₹8,50,000)'
   },
   {
-    id: 'ACT-1002',
+    id: 'ACT-1004',
     timestamp: '2026-08-28T09:45:00Z',
     userName: 'Sneha Kulkarni',
     userRole: 'Services',
@@ -1507,9 +1516,9 @@ export const initialActivities = [
     description: 'Dispatched 2 units of AUC-101 to Mehta Precision via BlueDart Express (AWB: BLU-9821034)'
   },
   {
-    id: 'ACT-1003',
+    id: 'ACT-1005',
     timestamp: '2026-08-28T10:15:00Z',
-    userName: 'Neha Verma',
+    userName: 'Amit Patel',
     userRole: 'Accounts',
     brand: 'AUCO',
     actionType: 'PAYMENT_RECORDED',
@@ -1518,9 +1527,9 @@ export const initialActivities = [
     description: 'Recorded partial settlement ₹1,20,200 for Invoice INV-2026-001 via NEFT'
   },
   {
-    id: 'ACT-1004',
+    id: 'ACT-1006',
     timestamp: '2026-08-28T10:40:00Z',
-    userName: 'Amit Deshmukh',
+    userName: 'Vikram Malhotra',
     userRole: 'Sales',
     brand: 'AIWA',
     actionType: 'ORDER_CREATED',
@@ -1529,9 +1538,9 @@ export const initialActivities = [
     description: 'Booked commercial AV order for NCR Logistics & Warehousing Hub (Value: ₹64,000)'
   },
   {
-    id: 'ACT-1005',
+    id: 'ACT-1007',
     timestamp: '2026-08-28T11:10:00Z',
-    userName: 'Vikram Singh',
+    userName: 'Rahul Verma',
     userRole: 'Services',
     brand: 'AIWA',
     actionType: 'TASK_COMPLETED',
@@ -1540,15 +1549,15 @@ export const initialActivities = [
     description: 'Completed field installation & acoustic calibration for Cyberabad Tech Parks'
   },
   {
-    id: 'ACT-1006',
+    id: 'ACT-1008',
     timestamp: '2026-08-28T11:30:00Z',
-    userName: 'Rajesh Sharma',
+    userName: 'Shrey Taneja',
     userRole: 'Admin',
     brand: 'AUCO',
     actionType: 'STOCK_ADJUSTMENT',
     entityType: 'Inventory',
     entityId: 'AUC-101',
-    description: 'Received factory batch (+20 units) of Auco Industrial Automation Controller X1'
+    description: 'Approved factory batch (+20 units) of Auco Industrial Automation Controller X1'
   }
 ];
 

@@ -30,7 +30,7 @@ export const AppProvider = ({ children }) => {
     if (savedUser) {
       try { return JSON.parse(savedUser); } catch(e) {}
     }
-    return initialUsers[0]; // Rajesh Sharma (Admin)
+    return initialUsers[0]; // Shrey Taneja (Admin - AUCO)
   });
 
   const [currentRole, setCurrentRole] = useState(() => {
@@ -48,6 +48,15 @@ export const AppProvider = ({ children }) => {
     setSelectedCompanyState(validCompany);
     localStorage.setItem('auco_selected_company', validCompany);
     const brand = companyBrands.find((b) => b.id === validCompany) || companyBrands[0];
+
+    // If currently logged in as Admin, align admin persona to active brand
+    if (currentRole === 'Admin') {
+      const targetAdmin = users.find((u) => u.role === 'Admin' && u.brand === validCompany) || users[0];
+      if (targetAdmin) {
+        setCurrentUser(targetAdmin);
+      }
+    }
+
     addToast('Brand Switched', `Active Brand: ${brand.name}`, 'info');
   };
 
@@ -531,7 +540,12 @@ export const AppProvider = ({ children }) => {
 
   const switchRole = (role) => {
     setCurrentRole(role);
-    const matchUser = users.find((u) => u.role === role) || users[0];
+    let matchUser = null;
+    if (role === 'Admin') {
+      matchUser = users.find((u) => u.role === 'Admin' && u.brand === selectedCompany) || users.find((u) => u.role === 'Admin') || users[0];
+    } else {
+      matchUser = users.find((u) => u.role === role && (u.brand === selectedCompany || u.brand === 'BOTH')) || users.find((u) => u.role === role) || users[0];
+    }
     setCurrentUser(matchUser);
     addToast('Role Switched', `Switched to ${role} account (${matchUser.name})`, 'info');
   };
