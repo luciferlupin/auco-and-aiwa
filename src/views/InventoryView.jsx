@@ -119,15 +119,15 @@ export const InventoryView = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Inventory Catalog & Stock Control</h2>
+          <h2>Inventory Catalog</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Real-time stock monitoring with unique Product Code matching, automated order deductions, and low-stock alerts.
+            Real-time stock monitoring, SKU availability, and safety thresholds
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-          <Plus size={16} /> Add New Product SKU
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={15} /> Add SKU
         </button>
       </div>
 

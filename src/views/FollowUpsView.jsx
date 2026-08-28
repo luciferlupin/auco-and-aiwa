@@ -89,15 +89,15 @@ export const FollowUpsView = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Client & Lead Follow-Up Management</h2>
+          <h2>Client Follow-Ups</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Schedule and track customer interactions across WhatsApp, phone calls, meetings, and emails.
+            Scheduled interactions and WhatsApp reminders
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-          <Plus size={16} /> Schedule Follow-Up
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={15} /> New Follow-Up
         </button>
       </div>
 

@@ -114,15 +114,15 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Client Directory & Central Accounts</h2>
+          <h2>Client Directory</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Central repository for Indian client accounts, order frequencies, payment terms, and WhatsApp engagement.
+            Central client accounts and order histories
           </p>
         </div>
-        <button className="btn btn-primary" onClick={onOpenClientModal}>
-          <Plus size={16} /> Add New Client
+        <button className="btn btn-primary" onClick={onOpenClientModal} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={15} /> New Client
         </button>
       </div>
 

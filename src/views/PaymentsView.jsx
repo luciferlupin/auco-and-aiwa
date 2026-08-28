@@ -52,14 +52,14 @@ export const PaymentsView = ({ onNavigate }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Payment & Collections Management</h2>
+          <h2>Payment Receipts</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Real-time accounts receivable tracking, automated balance calculation (Outstanding = Billed - Paid), and overdue payment monitoring.
+            Accounts receivable tracking, settled payments, and outstanding balances
           </p>
         </div>
-        <button className="btn btn-secondary" onClick={() => onNavigate('invoices')}>
+        <button className="btn btn-secondary btn-sm" onClick={() => onNavigate('invoices')}>
           View Invoices
         </button>
       </div>

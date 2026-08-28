@@ -67,15 +67,15 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Invoice & Billing Management</h2>
+          <h2>Invoices & Tax Billing</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            GST-compliant invoicing system with automated payment status tracking and PDF invoice generation.
+            GST-compliant invoicing, receivables ledger, and PDF bills
           </p>
         </div>
-        <button className="btn btn-primary" onClick={onOpenInvoiceModal}>
-          <Plus size={16} /> Create Tax Invoice
+        <button className="btn btn-primary" onClick={onOpenInvoiceModal} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={15} /> New Invoice
         </button>
       </div>
 

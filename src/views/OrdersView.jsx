@@ -163,18 +163,18 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Client Orders, Fulfillment & Dispatches</h2>
+          <h2>Orders & Dispatches</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Track client equipment bookings, coordinate carrier logistics, and track shipments in real time.
+            Client orders, fulfillment, and carrier logistics
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('dispatches')}>
-            <Truck size={14} /> View All Shipments
+            <Truck size={14} /> Shipments
           </button>
-          <button className="btn btn-primary btn-sm" onClick={onOpenOrderModal}>
+          <button className="btn btn-primary btn-sm" onClick={onOpenOrderModal} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Plus size={14} /> New Order
           </button>
         </div>

@@ -113,15 +113,15 @@ export const LeadsView = ({ onOpenLeadModal }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Sales Pipeline & Leads Directory</h2>
+          <h2>Sales Pipeline</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Track sales stages, log WhatsApp inquiries, and convert prospect leads into active clients.
+            Active prospect pipeline and lead conversions
           </p>
         </div>
         <button className="btn btn-primary" onClick={onOpenLeadModal} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Plus size={16} /> Add New Lead
+          <Plus size={15} /> New Lead
         </button>
       </div>
 

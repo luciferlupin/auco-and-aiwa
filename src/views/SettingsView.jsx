@@ -100,11 +100,11 @@ export const SettingsView = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>System Settings & Role Permissions</h2>
+          <h2>Settings & Roles</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Enterprise role definitions, permissions matrix, team directory, and system data maintenance.
+            Role permissions matrix, team directory, and system logs
           </p>
         </div>
         <button

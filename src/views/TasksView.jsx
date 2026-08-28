@@ -58,15 +58,15 @@ export const TasksView = ({ onOpenTaskModal }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Task Delegation & Team Execution</h2>
+          <h2>Assigned Tasks</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Admin task assignments, field technician progress tracking, and client service deliveries.
+            Operational task delegation and team execution tracking
           </p>
         </div>
-        <button className="btn btn-primary" onClick={onOpenTaskModal}>
-          <Plus size={16} /> Assign New Task
+        <button className="btn btn-primary" onClick={onOpenTaskModal} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Plus size={15} /> Assign Task
         </button>
       </div>
 

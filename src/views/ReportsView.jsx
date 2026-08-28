@@ -117,19 +117,19 @@ export const ReportsView = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Business Intelligence & Reports</h2>
+          <h2>Business Reports</h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Comprehensive executive reporting with date filters, exportable CSV sheets, and printable records.
+            Performance analytics, revenue summaries, and CSV exports
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button className="btn btn-secondary btn-sm" onClick={handlePrint}>
-            <Printer size={15} /> Print Report
+            <Printer size={14} /> Print
           </button>
           <button className="btn btn-primary btn-sm" onClick={handleExportCSV}>
-            <Download size={15} /> Export CSV
+            <Download size={14} /> Export CSV
           </button>
         </div>
       </div>
