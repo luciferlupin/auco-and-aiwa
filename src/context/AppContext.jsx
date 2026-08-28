@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import {
+  companyBrands,
   initialUsers,
   initialProducts,
   initialClients,
@@ -9,7 +10,8 @@ import {
   initialInvoices,
   initialPayments,
   initialFollowUps,
-  initialTasks
+  initialTasks,
+  initialDispatches
 } from '../data/initialData';
 import { generateId } from '../utils/formatters';
 
@@ -33,6 +35,31 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem('auco_current_role') || 'Admin';
   });
 
+  // Company / Brand Workspace State ('ALL' | 'AUCO' | 'AIWA')
+  const [selectedCompany, setSelectedCompanyState] = useState(() => {
+    return localStorage.getItem('auco_selected_company') || 'ALL';
+  });
+
+  const setSelectedCompany = (companyId) => {
+    setSelectedCompanyState(companyId);
+    localStorage.setItem('auco_selected_company', companyId);
+    const brand = companyBrands.find((b) => b.id === companyId) || companyBrands[0];
+    addToast('Workspace Switched', `Viewing ${brand.name} (${brand.industry})`, 'info');
+  };
+
+  // Helper function to check if an entity matches active company
+  const matchesCompany = (item, defaultBrand = 'AUCO') => {
+    if (!selectedCompany || selectedCompany === 'ALL') return true;
+    if (!item) return true;
+    if (item.brand === 'ALL' || item.brand === 'BOTH') return true;
+    if (item.brand) return item.brand === selectedCompany;
+    if (item.productCode) {
+      if (selectedCompany === 'AUCO') return item.productCode.toUpperCase().startsWith('AUC');
+      if (selectedCompany === 'AIWA') return item.productCode.toUpperCase().startsWith('AIW');
+    }
+    return defaultBrand === selectedCompany;
+  };
+
   const [isCloudSynced, setIsCloudSynced] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -51,7 +78,33 @@ export const AppProvider = ({ children }) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // State collections with LocalStorage fallback
+  // State collections with LocalStorage fallback & auto-enrichment for brands
+  const enrichBrand = (items, type = 'product') => {
+    if (!items || !Array.isArray(items)) return [];
+    return items.map((item) => {
+      if (item.brand) return item;
+      if (item.productCode) {
+        return {
+          ...item,
+          brand: item.productCode.toUpperCase().startsWith('AIW') ? 'AIWA' : 'AUCO'
+        };
+      }
+      const name = (item.companyName || item.company || item.clientName || item.client || '').toLowerCase();
+      if (
+        name.includes('aiwa') ||
+        name.includes('sound') ||
+        name.includes('acoustics') ||
+        name.includes('bengal') ||
+        name.includes('cochin') ||
+        name.includes('cyberabad') ||
+        name.includes('ncr')
+      ) {
+        return { ...item, brand: 'AIWA' };
+      }
+      return { ...item, brand: 'AUCO' };
+    });
+  };
+
   const [users, setUsers] = useState(() => {
     const data = localStorage.getItem('auco_users');
     return data ? JSON.parse(data) : initialUsers;
@@ -59,42 +112,47 @@ export const AppProvider = ({ children }) => {
 
   const [inventory, setInventory] = useState(() => {
     const data = localStorage.getItem('auco_inventory');
-    return data ? JSON.parse(data) : initialProducts;
+    return data ? enrichBrand(JSON.parse(data), 'product') : initialProducts;
   });
 
   const [clients, setClients] = useState(() => {
     const data = localStorage.getItem('auco_clients');
-    return data ? JSON.parse(data) : initialClients;
+    return data ? enrichBrand(JSON.parse(data), 'client') : initialClients;
   });
 
   const [leads, setLeads] = useState(() => {
     const data = localStorage.getItem('auco_leads');
-    return data ? JSON.parse(data) : initialLeads;
+    return data ? enrichBrand(JSON.parse(data), 'lead') : initialLeads;
   });
 
   const [orders, setOrders] = useState(() => {
     const data = localStorage.getItem('auco_orders');
-    return data ? JSON.parse(data) : initialOrders;
+    return data ? enrichBrand(JSON.parse(data), 'order') : initialOrders;
   });
 
   const [invoices, setInvoices] = useState(() => {
     const data = localStorage.getItem('auco_invoices');
-    return data ? JSON.parse(data) : initialInvoices;
+    return data ? enrichBrand(JSON.parse(data), 'invoice') : initialInvoices;
   });
 
   const [payments, setPayments] = useState(() => {
     const data = localStorage.getItem('auco_payments');
-    return data ? JSON.parse(data) : initialPayments;
+    return data ? enrichBrand(JSON.parse(data), 'payment') : initialPayments;
   });
 
   const [tasks, setTasks] = useState(() => {
     const data = localStorage.getItem('auco_tasks');
-    return data ? JSON.parse(data) : initialTasks;
+    return data ? enrichBrand(JSON.parse(data), 'task') : initialTasks;
   });
 
   const [followUps, setFollowUps] = useState(() => {
     const data = localStorage.getItem('auco_followups');
-    return data ? JSON.parse(data) : initialFollowUps;
+    return data ? enrichBrand(JSON.parse(data), 'followup') : initialFollowUps;
+  });
+
+  const [dispatches, setDispatches] = useState(() => {
+    const data = localStorage.getItem('auco_dispatches');
+    return data ? enrichBrand(JSON.parse(data), 'dispatch') : initialDispatches;
   });
 
   // Sync to LocalStorage
@@ -145,6 +203,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('auco_followups', JSON.stringify(followUps));
   }, [followUps]);
+
+  useEffect(() => {
+    localStorage.setItem('auco_dispatches', JSON.stringify(dispatches));
+  }, [dispatches]);
 
   // Load from Supabase on start
   const fetchSupabaseData = useCallback(async () => {
@@ -254,6 +316,130 @@ export const AppProvider = ({ children }) => {
           assignedTeamMember: o.assigned_team_member
         }));
         setOrders(mappedOrders);
+        setIsCloudSynced(true);
+      }
+
+      // Check dispatches
+      const { data: dbDispatches, error: dispErr } = await supabase.from('dispatches').select('*');
+      if (!dispErr && dbDispatches && dbDispatches.length > 0) {
+        const mappedDispatches = dbDispatches.map(d => ({
+          id: d.id,
+          challanNumber: d.challan_number,
+          orderId: d.order_id,
+          clientId: d.client_id,
+          clientName: d.client_name,
+          companyName: d.company_name || d.client_name,
+          contactPerson: d.contact_person,
+          phone: d.phone,
+          email: d.email,
+          shippingAddress: d.shipping_address,
+          items: d.items || [],
+          courierCarrier: d.courier_carrier,
+          trackingNumber: d.tracking_number,
+          ewayBillNumber: d.eway_bill_number,
+          dispatchDate: d.dispatch_date,
+          estimatedDelivery: d.estimated_delivery,
+          actualDeliveryDate: d.actual_delivery_date,
+          packageCount: d.package_count,
+          packageWeight: d.package_weight,
+          vehicleNumber: d.vehicle_number,
+          dispatchedBy: d.dispatched_by,
+          dispatchStatus: d.dispatch_status,
+          notes: d.notes
+        }));
+        setDispatches(mappedDispatches);
+        setIsCloudSynced(true);
+      }
+
+      // Check invoices
+      const { data: dbInvoices, error: invErr } = await supabase.from('invoices').select('*');
+      if (!invErr && dbInvoices && dbInvoices.length > 0) {
+        const mappedInvoices = dbInvoices.map(i => ({
+          id: i.id,
+          invoiceNumber: i.invoice_number,
+          orderId: i.order_id,
+          clientId: i.client_id,
+          clientName: i.client_name,
+          contactPerson: i.contact_person,
+          email: i.email,
+          phone: i.phone,
+          billingAddress: i.billing_address,
+          items: i.items || [],
+          subtotal: Number(i.subtotal || 0),
+          taxRate: Number(i.tax_rate || 18),
+          taxAmount: Number(i.tax_amount || 0),
+          totalAmount: Number(i.total_amount || 0),
+          amountPaid: Number(i.amount_paid || 0),
+          balance: Number(i.balance || 0),
+          paymentStatus: i.payment_status,
+          issueDate: i.issue_date,
+          paymentDueDate: i.payment_due_date,
+          paymentTerms: i.payment_terms,
+          notes: i.notes
+        }));
+        setInvoices(mappedInvoices);
+        setIsCloudSynced(true);
+      }
+
+      // Check payments
+      const { data: dbPayments, error: payErr } = await supabase.from('payments').select('*');
+      if (!payErr && dbPayments && dbPayments.length > 0) {
+        const mappedPayments = dbPayments.map(p => ({
+          id: p.id,
+          invoiceId: p.invoice_id,
+          invoiceNumber: p.invoice_number,
+          clientId: p.client_id,
+          clientName: p.client_name,
+          invoiceAmount: Number(p.invoice_amount || 0),
+          amountPaid: Number(p.amount_paid || 0),
+          balance: Number(p.balance || 0),
+          paymentDate: p.payment_date,
+          paymentDueDate: p.payment_due_date,
+          paymentDays: Number(p.payment_days || 30),
+          paymentStatus: p.payment_status,
+          paymentMode: p.payment_mode
+        }));
+        setPayments(mappedPayments);
+        setIsCloudSynced(true);
+      }
+
+      // Check tasks
+      const { data: dbTasks, error: taskErr } = await supabase.from('tasks').select('*');
+      if (!taskErr && dbTasks && dbTasks.length > 0) {
+        const mappedTasks = dbTasks.map(t => ({
+          id: t.id,
+          taskName: t.task_name,
+          description: t.description,
+          assignedPerson: t.assigned_person,
+          client: t.client,
+          priority: t.priority,
+          dueDate: t.due_date,
+          status: t.status,
+          createdBy: t.created_by,
+          createdAt: t.created_at,
+          notes: t.notes
+        }));
+        setTasks(mappedTasks);
+        setIsCloudSynced(true);
+      }
+
+      // Check followups
+      const { data: dbFollowups, error: flwErr } = await supabase.from('followups').select('*');
+      if (!flwErr && dbFollowups && dbFollowups.length > 0) {
+        const mappedFollowups = dbFollowups.map(f => ({
+          id: f.id,
+          clientId: f.client_id,
+          clientName: f.client_name,
+          contactPerson: f.contact_person,
+          phone: f.phone,
+          assignedSalesperson: f.assigned_salesperson,
+          followUpDate: f.follow_up_date,
+          followUpType: f.follow_up_type,
+          notes: f.notes,
+          nextAction: f.next_action,
+          status: f.status
+        }));
+        setFollowUps(mappedFollowups);
         setIsCloudSynced(true);
       }
     } catch (err) {
@@ -369,6 +555,7 @@ export const AppProvider = ({ children }) => {
     const newOrderId = orderData.id || generateId('ORD');
     const newOrder = {
       id: newOrderId,
+      brand: orderData.brand || (selectedCompany !== 'ALL' ? selectedCompany : ((orderData.items || []).some((i) => i.productCode?.startsWith('AIW')) ? 'AIWA' : 'AUCO')),
       clientId: orderData.clientId,
       clientName: orderData.clientName,
       items: orderData.items || [],
@@ -447,6 +634,171 @@ export const AppProvider = ({ children }) => {
     addToast('Order Updated', `Order ${orderId} updated.`, 'info');
   };
 
+  // AUTOMATION 2B: Dispatch Order & Generate Delivery Challan & Assign Delivery Task
+  const dispatchOrder = async (orderId, dispatchPayload) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) {
+      addToast('Dispatch Failed', `Order ${orderId} not found.`, 'danger');
+      return null;
+    }
+
+    const client = clients.find((c) => c.id === order.clientId || c.clientName === order.clientName);
+
+    const newDispatchId = dispatchPayload.id || generateId('DSP-2026');
+    const newChallanNumber = dispatchPayload.challanNumber || `DC-2026-${orderId.replace(/\D/g, '') || Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newDispatch = {
+      id: newDispatchId,
+      challanNumber: newChallanNumber,
+      orderId: order.id,
+      brand: dispatchPayload.brand || order.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
+      clientId: order.clientId || client?.id || '',
+      clientName: order.clientName,
+      companyName: client?.companyName || order.clientName,
+      contactPerson: dispatchPayload.contactPerson || client?.contactPerson || client?.clientName || 'Store Incharge',
+      phone: dispatchPayload.phone || client?.phone || '',
+      email: dispatchPayload.email || client?.email || '',
+      shippingAddress: dispatchPayload.shippingAddress || client?.address || 'Site Delivery Location',
+      items: order.items || [],
+      courierCarrier: dispatchPayload.courierCarrier || 'BlueDart Express',
+      trackingNumber: dispatchPayload.trackingNumber || `AWB-${Math.floor(1000000 + Math.random() * 9000000)}`,
+      ewayBillNumber: dispatchPayload.ewayBillNumber || `2410-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+      dispatchDate: dispatchPayload.dispatchDate || new Date().toISOString().split('T')[0],
+      estimatedDelivery: dispatchPayload.estimatedDelivery || new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
+      actualDeliveryDate: dispatchPayload.dispatchStatus === 'Delivered' ? (dispatchPayload.dispatchDate || new Date().toISOString().split('T')[0]) : null,
+      packageCount: dispatchPayload.packageCount || '1 Carton',
+      packageWeight: dispatchPayload.packageWeight || '5.0 kg',
+      vehicleNumber: dispatchPayload.vehicleNumber || 'Standard Hub Freight',
+      dispatchedBy: dispatchPayload.dispatchedBy || currentUser.name,
+      dispatchStatus: dispatchPayload.dispatchStatus || 'Dispatched',
+      notes: dispatchPayload.notes || 'Precision equipment package. Handle with care.'
+    };
+
+    // Update dispatches state
+    setDispatches((prev) => [newDispatch, ...prev.filter((d) => d.orderId !== order.id)]);
+
+    // Update order with dispatch details & status
+    const updatedDispatchDetails = {
+      dispatchId: newDispatch.id,
+      challanNumber: newDispatch.challanNumber,
+      courierCarrier: newDispatch.courierCarrier,
+      trackingNumber: newDispatch.trackingNumber,
+      ewayBillNumber: newDispatch.ewayBillNumber,
+      dispatchDate: newDispatch.dispatchDate,
+      estimatedDelivery: newDispatch.estimatedDelivery,
+      dispatchStatus: newDispatch.dispatchStatus,
+      packageCount: newDispatch.packageCount,
+      packageWeight: newDispatch.packageWeight
+    };
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              deliveryStatus: newDispatch.dispatchStatus === 'Delivered' ? 'Delivered' : 'In Progress',
+              dispatchDetails: updatedDispatchDetails
+            }
+          : o
+      )
+    );
+
+    // Auto-create / log field delivery task in tasks
+    const newTask = {
+      id: generateId('TSK'),
+      taskName: `Deliver Order ${order.id} (${newDispatch.courierCarrier} AWB #${newDispatch.trackingNumber})`,
+      description: `Track shipment & coordinate receipt with ${order.clientName}. Delivery Challan: ${newDispatch.challanNumber}.`,
+      assignedPerson: dispatchPayload.dispatchedBy || currentUser.name,
+      client: order.clientName,
+      priority: 'High',
+      dueDate: newDispatch.estimatedDelivery,
+      status: newDispatch.dispatchStatus === 'Delivered' ? 'Completed' : 'In Progress',
+      createdBy: `${currentUser.name} (${currentRole})`,
+      createdAt: new Date().toISOString().split('T')[0],
+      notes: `Courier: ${newDispatch.courierCarrier}, AWB: ${newDispatch.trackingNumber}, E-Way: ${newDispatch.ewayBillNumber}`
+    };
+    setTasks((prev) => [newTask, ...prev]);
+
+    // Supabase sync if connected
+    try {
+      await supabase.from('dispatches').insert({
+        id: newDispatch.id,
+        challan_number: newDispatch.challanNumber,
+        order_id: newDispatch.orderId,
+        client_id: newDispatch.clientId,
+        client_name: newDispatch.clientName,
+        company_name: newDispatch.companyName,
+        contact_person: newDispatch.contactPerson,
+        phone: newDispatch.phone,
+        email: newDispatch.email,
+        shipping_address: newDispatch.shippingAddress,
+        items: newDispatch.items,
+        courier_carrier: newDispatch.courierCarrier,
+        tracking_number: newDispatch.trackingNumber,
+        eway_bill_number: newDispatch.ewayBillNumber,
+        dispatch_date: newDispatch.dispatchDate,
+        estimated_delivery: newDispatch.estimatedDelivery,
+        package_count: newDispatch.packageCount,
+        package_weight: newDispatch.packageWeight,
+        vehicle_number: newDispatch.vehicleNumber,
+        dispatched_by: newDispatch.dispatchedBy,
+        dispatch_status: newDispatch.dispatchStatus,
+        notes: newDispatch.notes
+      });
+      await supabase.from('orders').update({
+        delivery_status: newDispatch.dispatchStatus === 'Delivered' ? 'Delivered' : 'In Progress'
+      }).eq('id', orderId);
+    } catch (e) {}
+
+    addToast('Order Dispatched', `Order ${orderId} dispatched via ${newDispatch.courierCarrier} (${newDispatch.trackingNumber}). Delivery Challan ${newDispatch.challanNumber} ready.`, 'success');
+    return newDispatch;
+  };
+
+  const updateDispatchStatus = async (dispatchId, newStatus, deliveryNotes = '') => {
+    let linkedOrderId = null;
+    setDispatches((prev) =>
+      prev.map((d) => {
+        if (d.id === dispatchId || d.challanNumber === dispatchId) {
+          linkedOrderId = d.orderId;
+          return {
+            ...d,
+            dispatchStatus: newStatus,
+            actualDeliveryDate: newStatus === 'Delivered' ? new Date().toISOString().split('T')[0] : d.actualDeliveryDate,
+            notes: deliveryNotes ? `${d.notes ? d.notes + ' | ' : ''}${deliveryNotes}` : d.notes
+          };
+        }
+        return d;
+      })
+    );
+
+    if (linkedOrderId) {
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id === linkedOrderId) {
+            return {
+              ...o,
+              deliveryStatus: newStatus === 'Delivered' ? 'Delivered' : o.deliveryStatus,
+              dispatchDetails: o.dispatchDetails ? { ...o.dispatchDetails, dispatchStatus: newStatus } : o.dispatchDetails
+            };
+          }
+          return o;
+        })
+      );
+    }
+
+    try {
+      await supabase.from('dispatches').update({
+        dispatch_status: newStatus,
+        actual_delivery_date: newStatus === 'Delivered' ? new Date().toISOString().split('T')[0] : null
+      }).eq('id', dispatchId);
+      if (linkedOrderId && newStatus === 'Delivered') {
+        await supabase.from('orders').update({ delivery_status: 'Delivered' }).eq('id', linkedOrderId);
+      }
+    } catch (e) {}
+
+    addToast('Dispatch Updated', `Shipment ${dispatchId} status updated to "${newStatus}".`, 'info');
+  };
+
   // AUTOMATION 3: Create Invoice & Sync Payment Record
   const createInvoice = async (invoiceData) => {
     const invNum = invoiceData.invoiceNumber || generateId('INV-2026');
@@ -465,6 +817,7 @@ export const AppProvider = ({ children }) => {
     const newInvoice = {
       id: invNum,
       invoiceNumber: invNum,
+      brand: invoiceData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
       orderId: invoiceData.orderId || '',
       clientId: invoiceData.clientId,
       clientName: invoiceData.clientName,
@@ -493,6 +846,7 @@ export const AppProvider = ({ children }) => {
       id: generateId('PAY'),
       invoiceId: invNum,
       invoiceNumber: invNum,
+      brand: newInvoice.brand,
       clientId: newInvoice.clientId,
       clientName: newInvoice.clientName,
       invoiceAmount: totalAmount,
@@ -669,6 +1023,7 @@ export const AppProvider = ({ children }) => {
     if (!existingClient) {
       const newClient = {
         id: clientId,
+        brand: lead.brand || 'AUCO',
         clientName: lead.client,
         companyName: lead.company,
         contactPerson: `${lead.client} (Contact)`,
@@ -760,6 +1115,7 @@ export const AppProvider = ({ children }) => {
   const addClient = async (clientData) => {
     const newClient = {
       id: clientData.id || generateId('CLN'),
+      brand: clientData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
       clientName: clientData.clientName,
       companyName: clientData.companyName,
       contactPerson: clientData.contactPerson || clientData.clientName,
@@ -826,6 +1182,14 @@ export const AppProvider = ({ children }) => {
 
     try {
       const dbUpdates = {};
+      if (updates.companyName) dbUpdates.company_name = updates.companyName;
+      if (updates.contactPerson) dbUpdates.contact_person = updates.contactPerson;
+      if (updates.phone) dbUpdates.phone = updates.phone;
+      if (updates.email) dbUpdates.email = updates.email;
+      if (updates.address) dbUpdates.address = updates.address;
+      if (updates.city) dbUpdates.city = updates.city;
+      if (updates.state) dbUpdates.state = updates.state;
+      if (updates.clientType) dbUpdates.client_type = updates.clientType;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
       if (updates.clientStatus) dbUpdates.client_status = updates.clientStatus;
       if (updates.pendingAmount !== undefined) dbUpdates.pending_amount = updates.pendingAmount;
@@ -835,10 +1199,19 @@ export const AppProvider = ({ children }) => {
     addToast('Client Updated', `Client details updated.`, 'info');
   };
 
+  const deleteClient = async (clientId) => {
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+    try {
+      await supabase.from('clients').delete().eq('id', clientId);
+    } catch (e) {}
+    addToast('Client Deleted', `Client ${clientId} removed from directory.`, 'info');
+  };
+
   // Lead CRUD
   const addLead = async (leadData) => {
     const newLead = {
       id: leadData.id || generateId('LEAD'),
+      brand: leadData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
       client: leadData.client,
       company: leadData.company,
       phone: leadData.phone,
@@ -900,6 +1273,10 @@ export const AppProvider = ({ children }) => {
     try {
       const dbUpdates = {};
       if (updates.stage) dbUpdates.stage = updates.stage;
+      if (updates.expectedValue !== undefined) dbUpdates.expected_value = updates.expectedValue;
+      if (updates.nextAction) dbUpdates.next_action = updates.nextAction;
+      if (updates.followUpDate) dbUpdates.follow_up_date = updates.followUpDate;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
       if (updates.conversionPercentage !== undefined) dbUpdates.conversion_percentage = updates.conversionPercentage;
       if (updates.conversionStatus) dbUpdates.conversion_status = updates.conversionStatus;
       await supabase.from('leads').update(dbUpdates).eq('id', leadId);
@@ -908,10 +1285,30 @@ export const AppProvider = ({ children }) => {
     addToast('Lead Updated', `Pipeline lead status updated.`, 'info');
   };
 
+  const deleteLead = async (leadId) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+    try {
+      await supabase.from('leads').delete().eq('id', leadId);
+    } catch (e) {}
+    addToast('Lead Deleted', `Lead ${leadId} removed from pipeline.`, 'info');
+  };
+
+  // Order Deletion
+  const deleteOrder = async (orderId) => {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    setDispatches((prev) => prev.filter((d) => d.orderId !== orderId));
+    try {
+      await supabase.from('orders').delete().eq('id', orderId);
+      await supabase.from('dispatches').delete().eq('order_id', orderId);
+    } catch (e) {}
+    addToast('Order Deleted', `Order ${orderId} removed.`, 'info');
+  };
+
   // Tasks CRUD
   const addTask = async (taskData) => {
     const newTask = {
       id: taskData.id || generateId('TSK'),
+      brand: taskData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
       taskName: taskData.taskName,
       description: taskData.description || '',
       assignedPerson: taskData.assignedPerson || currentUser.name,
@@ -957,10 +1354,19 @@ export const AppProvider = ({ children }) => {
     addToast('Task Updated', `Task status updated.`, 'info');
   };
 
+  const deleteTask = async (taskId) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    try {
+      await supabase.from('tasks').delete().eq('id', taskId);
+    } catch (e) {}
+    addToast('Task Deleted', `Task ${taskId} removed.`, 'info');
+  };
+
   // Follow-ups CRUD
   const addFollowUp = async (followUpData) => {
     const newFollowUp = {
       id: followUpData.id || generateId('FLW'),
+      brand: followUpData.brand || (selectedCompany !== 'ALL' ? selectedCompany : 'AUCO'),
       clientId: followUpData.clientId || '',
       clientName: followUpData.clientName,
       contactPerson: followUpData.contactPerson || '',
@@ -1004,10 +1410,19 @@ export const AppProvider = ({ children }) => {
     } catch (e) {}
   };
 
+  const deleteFollowUp = async (followUpId) => {
+    setFollowUps((prev) => prev.filter((f) => f.id !== followUpId));
+    try {
+      await supabase.from('followups').delete().eq('id', followUpId);
+    } catch (e) {}
+    addToast('Follow-Up Deleted', `Follow-up ${followUpId} removed.`, 'info');
+  };
+
   // Product / Inventory CRUD
   const addProduct = async (productData) => {
     const newProduct = {
       id: productData.id || generateId('PRD'),
+      brand: productData.brand || (productData.productCode?.toUpperCase().startsWith('AIW') ? 'AIWA' : 'AUCO'),
       productCode: (productData.productCode || generateId('AUC')).toUpperCase(),
       name: productData.name,
       sku: (productData.sku || productData.productCode).toUpperCase(),
@@ -1045,6 +1460,59 @@ export const AppProvider = ({ children }) => {
     return newProduct;
   };
 
+  const updateProduct = async (productId, updates) => {
+    setInventory((prev) =>
+      prev.map((p) => (p.id === productId || p.productCode === productId ? { ...p, ...updates } : p))
+    );
+    try {
+      const dbUpdates = {};
+      if (updates.name) dbUpdates.name = updates.name;
+      if (updates.price !== undefined) dbUpdates.price = Number(updates.price);
+      if (updates.minStockLevel !== undefined) dbUpdates.min_stock_level = Number(updates.minStockLevel);
+      if (updates.supplier) dbUpdates.supplier = updates.supplier;
+      if (updates.category) dbUpdates.category = updates.category;
+      await supabase.from('products').update(dbUpdates).or(`id.eq.${productId},product_code.eq.${productId}`);
+    } catch (e) {}
+    addToast('Product Updated', `Product updated successfully.`, 'info');
+  };
+
+  const deleteProduct = async (productId) => {
+    setInventory((prev) => prev.filter((p) => p.id !== productId && p.productCode !== productId));
+    try {
+      await supabase.from('products').delete().or(`id.eq.${productId},product_code.eq.${productId}`);
+    } catch (e) {}
+    addToast('Product Deleted', `Product removed from inventory catalog.`, 'info');
+  };
+
+  // Invoice Update & Delete
+  const updateInvoice = async (invoiceNumber, updates) => {
+    setInvoices((prev) =>
+      prev.map((inv) => (inv.invoiceNumber === invoiceNumber || inv.id === invoiceNumber ? { ...inv, ...updates } : inv))
+    );
+    try {
+      await supabase.from('invoices').update(updates).eq('invoice_number', invoiceNumber);
+    } catch (e) {}
+    addToast('Invoice Updated', `Invoice ${invoiceNumber} updated.`, 'info');
+  };
+
+  const deleteInvoice = async (invoiceNumber) => {
+    setInvoices((prev) => prev.filter((i) => i.invoiceNumber !== invoiceNumber && i.id !== invoiceNumber));
+    setPayments((prev) => prev.filter((p) => p.invoiceNumber !== invoiceNumber));
+    try {
+      await supabase.from('invoices').delete().eq('invoice_number', invoiceNumber);
+      await supabase.from('payments').delete().eq('invoice_number', invoiceNumber);
+    } catch (e) {}
+    addToast('Invoice Deleted', `Invoice ${invoiceNumber} and associated payment records removed.`, 'info');
+  };
+
+  const deleteDispatch = async (dispatchId) => {
+    setDispatches((prev) => prev.filter((d) => d.id !== dispatchId && d.challanNumber !== dispatchId));
+    try {
+      await supabase.from('dispatches').delete().or(`id.eq.${dispatchId},challan_number.eq.${dispatchId}`);
+    } catch (e) {}
+    addToast('Dispatch Deleted', `Delivery Challan ${dispatchId} removed.`, 'info');
+  };
+
   // Reset Demo Data
   const resetDemoData = () => {
     setUsers(initialUsers);
@@ -1056,6 +1524,7 @@ export const AppProvider = ({ children }) => {
     setPayments(initialPayments);
     setTasks(initialTasks);
     setFollowUps(initialFollowUps);
+    setDispatches(initialDispatches);
     addToast('System Reset', 'All demo data has been restored to default factory state.', 'info');
   };
 
@@ -1080,28 +1549,45 @@ export const AppProvider = ({ children }) => {
         setUsers,
         inventory,
         addProduct,
+        updateProduct,
+        deleteProduct,
         adjustProductStock,
         lookupProductByCode,
         clients,
         addClient,
         updateClient,
+        deleteClient,
         leads,
         addLead,
         updateLead,
+        deleteLead,
         convertLeadToClient,
         orders,
         createOrder,
         updateOrderStatus,
+        deleteOrder,
+        dispatches,
+        dispatchOrder,
+        updateDispatchStatus,
+        deleteDispatch,
         invoices,
         createInvoice,
+        updateInvoice,
+        deleteInvoice,
         payments,
         recordPayment,
         tasks,
         addTask,
         updateTask,
+        deleteTask,
         followUps,
         addFollowUp,
         updateFollowUp,
+        deleteFollowUp,
+        companyBrands,
+        selectedCompany,
+        setSelectedCompany,
+        matchesCompany,
         resetDemoData
       }}
     >

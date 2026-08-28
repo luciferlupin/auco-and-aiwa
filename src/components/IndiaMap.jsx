@@ -5,10 +5,13 @@ import { formatCurrency, getWhatsAppUrl } from '../utils/formatters';
 import { MapPin, Building2, Phone, Mail, ShoppingCart, MessageSquare, ArrowRight, X } from 'lucide-react';
 
 export const IndiaMap = ({ onSelectClient }) => {
-  const { clients, orders } = useApp();
+  const { clients, orders, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [selectedState, setSelectedState] = useState(null);
   const [selectedClientPin, setSelectedClientPin] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
+
+  // Scoped clients by company
+  const scopedClients = clients.filter(matchesCompany);
 
   // Group clients and orders by state
   const stateStats = {};
@@ -22,7 +25,7 @@ export const IndiaMap = ({ onSelectClient }) => {
     };
   });
 
-  clients.forEach((client) => {
+  scopedClients.forEach((client) => {
     const st = client.state;
     if (!stateStats[st]) {
       stateStats[st] = {
@@ -41,9 +44,9 @@ export const IndiaMap = ({ onSelectClient }) => {
   });
 
   // Calculate India totals
-  const totalIndiaClients = clients.length;
-  const totalIndiaValue = clients.reduce((acc, c) => acc + Number(c.totalBusinessValue || 0), 0);
-  const totalIndiaOrders = clients.reduce((acc, c) => acc + Number(c.totalOrders || 0), 0);
+  const totalIndiaClients = scopedClients.length;
+  const totalIndiaValue = scopedClients.reduce((acc, c) => acc + Number(c.totalBusinessValue || 0), 0);
+  const totalIndiaOrders = scopedClients.reduce((acc, c) => acc + Number(c.totalOrders || 0), 0);
 
   const activeStateData = selectedState ? stateStats[selectedState] : null;
 

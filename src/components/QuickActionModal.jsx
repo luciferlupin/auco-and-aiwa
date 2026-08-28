@@ -18,10 +18,11 @@ import { formatCurrency, generateId } from '../utils/formatters';
 // 1. CREATE LEAD MODAL
 // =========================================================================
 export const CreateLeadModal = ({ isOpen, onClose }) => {
-  const { addLead, currentUser } = useApp();
+  const { addLead, currentUser, selectedCompany } = useApp();
   const [formData, setFormData] = useState({
     company: '',
     client: '',
+    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
     phone: '',
     email: '',
     city: 'Pune',
@@ -124,7 +125,18 @@ export const CreateLeadModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="grid-2">
+            <div className="grid-3">
+              <div className="form-group">
+                <label className="form-label">Brand / Division *</label>
+                <select
+                  className="form-select"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                >
+                  <option value="AUCO">Auco Automation</option>
+                  <option value="AIWA">Aiwa Commercial AV</option>
+                </select>
+              </div>
               <div className="form-group">
                 <label className="form-label">Lead Source</label>
                 <select
@@ -177,10 +189,11 @@ export const CreateLeadModal = ({ isOpen, onClose }) => {
 // 2. CREATE CLIENT MODAL
 // =========================================================================
 export const CreateClientModal = ({ isOpen, onClose }) => {
-  const { addClient, currentUser } = useApp();
+  const { addClient, currentUser, selectedCompany } = useApp();
   const [formData, setFormData] = useState({
     companyName: '',
     clientName: '',
+    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
     contactPerson: '',
     phone: '',
     email: '',
@@ -301,6 +314,19 @@ export const CreateClientModal = ({ isOpen, onClose }) => {
 
             <div className="grid-3">
               <div className="form-group">
+                <label className="form-label">Brand / Division</label>
+                <select
+                  className="form-select"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                >
+                  <option value="AUCO">Auco Automation</option>
+                  <option value="AIWA">Aiwa Commercial AV</option>
+                  <option value="BOTH">Both Brands (Group Client)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Client Type</label>
                 <select
                   className="form-select"
@@ -361,15 +387,33 @@ export const CreateClientModal = ({ isOpen, onClose }) => {
 // 3. CREATE ORDER MODAL (WITH PRODUCT CODE MATCHING & AUTO STOCK DEDUCTION)
 // =========================================================================
 export const CreateOrderModal = ({ isOpen, onClose }) => {
-  const { clients, inventory, lookupProductByCode, createOrder, currentUser } = useApp();
+  const { clients, inventory, lookupProductByCode, createOrder, currentUser, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [brand, setBrand] = useState(selectedCompany !== 'ALL' ? selectedCompany : 'AUCO');
+  
+  const getBrandProducts = (b) => {
+    if (b === 'ALL') return inventory;
+    return inventory.filter((p) => p.brand === b || (b === 'AUCO' ? p.productCode?.startsWith('AUC') : p.productCode?.startsWith('AIW')));
+  };
+
+  const initialProdList = getBrandProducts(brand);
+  const defaultProd = initialProdList[0] || inventory[0] || { productCode: 'AUC-101', name: 'Product', price: 45000, availableStock: 45 };
+
   const [items, setItems] = useState([
-    { productCode: 'AUC-101', name: 'Auco Industrial Automation Controller X1', quantity: 1, price: 45000, availableStock: 45 }
+    { productCode: defaultProd.productCode, name: defaultProd.name, quantity: 1, price: defaultProd.price, availableStock: defaultProd.availableStock }
   ]);
   const [deliveryStatus, setDeliveryStatus] = useState('In Progress');
   const [assignedMember, setAssignedMember] = useState(currentUser.name);
 
   if (!isOpen) return null;
+
+  const handleBrandChange = (newBrand) => {
+    setBrand(newBrand);
+    const prods = getBrandProducts(newBrand);
+    if (prods.length > 0) {
+      setItems([{ productCode: prods[0].productCode, name: prods[0].name, quantity: 1, price: prods[0].price, availableStock: prods[0].availableStock }]);
+    }
+  };
 
   const handleProductCodeChange = (index, code) => {
     const matched = lookupProductByCode(code);
@@ -398,7 +442,8 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
   };
 
   const handleAddItem = () => {
-    const firstProd = inventory[0] || { productCode: 'AUC-101', name: 'Product', price: 10000, availableStock: 10 };
+    const prods = getBrandProducts(brand);
+    const firstProd = prods[0] || inventory[0] || { productCode: 'AUC-101', name: 'Product', price: 10000, availableStock: 10 };
     setItems([...items, { productCode: firstProd.productCode, name: firstProd.name, price: firstProd.price, availableStock: firstProd.availableStock, quantity: 1 }]);
   };
 
@@ -417,6 +462,7 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
     createOrder({
       clientId: client.id,
       clientName: client.companyName,
+      brand,
       items: items.map(i => ({ productCode: i.productCode, name: i.name, quantity: i.quantity, price: i.price, total: i.price * i.quantity })),
       orderValue: totalOrderValue,
       deliveryStatus,
@@ -426,37 +472,52 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  const availableProducts = getBrandProducts(brand);
+  const eligibleClients = selectedCompany === 'ALL' ? clients : clients.filter(matchesCompany);
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-content modal-content-lg" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit}>
           <div className="modal-header">
             <div>
-              <span className="badge badge-purple">Automated Inventory Stock Deduction</span>
-              <h3 style={{ marginTop: '4px' }}>Create New Client Order</h3>
+              <span className="badge badge-info">Inventory Synced</span>
+              <h3 style={{ marginTop: '4px' }}>Create New Sales Order</h3>
             </div>
             <button type="button" className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
           </div>
 
           <div className="modal-body">
-            <div className="grid-2">
+            <div className="grid-3">
               <div className="form-group">
-                <label className="form-label">Select Client *</label>
+                <label className="form-label">Client Company *</label>
                 <select
                   required
                   className="form-select"
                   value={selectedClientId}
                   onChange={(e) => setSelectedClientId(e.target.value)}
                 >
-                  <option value="">-- Choose Client Company --</option>
-                  {clients.map((c) => (
+                  <option value="">-- Choose Client --</option>
+                  {eligibleClients.map((c) => (
                     <option key={c.id} value={c.id}>{c.companyName} ({c.city})</option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Assigned Delivery / Sales Member</label>
+                <label className="form-label">Brand / Division *</label>
+                <select
+                  className="form-select"
+                  value={brand}
+                  onChange={(e) => handleBrandChange(e.target.value)}
+                >
+                  <option value="AUCO">Auco Automation</option>
+                  <option value="AIWA">Aiwa Commercial AV</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Assigned Member</label>
                 <input
                   type="text"
                   className="form-input"
@@ -466,14 +527,12 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Product Code Line Items */}
-            <div style={{ marginTop: '10px', marginBottom: '14px' }}>
+            {/* Line Items */}
+            <div style={{ marginTop: '10px' }}>
               <div className="flex-between" style={{ marginBottom: '8px' }}>
-                <label className="form-label" style={{ margin: 0 }}>
-                  Order Line Items (Search by Product Code)
-                </label>
+                <label className="form-label" style={{ margin: 0 }}>Order Line Items</label>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={handleAddItem}>
-                  <Plus size={14} /> Add Line Item
+                  <Plus size={14} /> Add Product
                 </button>
               </div>
 
@@ -483,7 +542,7 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
                     key={idx}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '130px 1.5fr 70px 110px 110px 36px',
+                      gridTemplateColumns: '150px 1.5fr 70px 110px 110px 36px',
                       gap: '8px',
                       alignItems: 'center',
                       background: 'var(--bg-subtle)',
@@ -491,79 +550,84 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
                       borderRadius: 'var(--radius-md)'
                     }}
                   >
-                    {/* Product Code input */}
                     <div>
-                      <input
-                        type="text"
-                        placeholder="Code (e.g. AUC-101)"
-                        className="form-input"
+                      <select
+                        className="form-select"
                         style={{ padding: '6px 8px', fontSize: '0.8rem', fontWeight: 700 }}
                         value={item.productCode}
                         onChange={(e) => handleProductCodeChange(idx, e.target.value)}
-                      />
+                      >
+                        {availableProducts.map((p) => (
+                          <option key={p.productCode} value={p.productCode}>
+                            {p.productCode} - {p.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {/* Product Name & Available Stock indicator */}
-                    <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.name || 'Product not matched'}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: (item.availableStock || 0) <= 5 ? 'var(--danger-text)' : 'var(--text-muted)' }}>
-                        Stock: {item.availableStock ?? '—'} available
-                      </div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.name || 'Custom item'}
                     </div>
 
-                    {/* Qty */}
-                    <div>
-                      <input
-                        type="number"
-                        min="1"
-                        className="form-input"
-                        style={{ padding: '6px 8px', fontSize: '0.8rem', textAlign: 'center' }}
-                        value={item.quantity}
-                        onChange={(e) => handleQuantityChange(idx, e.target.value)}
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      className="form-input"
+                      style={{ padding: '6px 8px', fontSize: '0.8rem', textAlign: 'center' }}
+                      value={item.quantity}
+                      onChange={(e) => handleQuantityChange(idx, e.target.value)}
+                    />
 
-                    {/* Unit Price */}
                     <div style={{ fontSize: '0.8rem', textAlign: 'right' }}>
                       {formatCurrency(item.price)}
                     </div>
 
-                    {/* Total Price */}
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, textAlign: 'right', color: 'var(--primary-600)' }}>
                       {formatCurrency((item.price || 0) * (item.quantity || 1))}
                     </div>
 
-                    {/* Delete */}
-                    <div>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon"
-                        style={{ width: '28px', height: '28px' }}
-                        onClick={() => handleRemoveItem(idx)}
-                        disabled={items.length <= 1}
-                      >
-                        <Trash2 size={14} style={{ color: 'var(--danger-text)' }} />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-icon"
+                      style={{ width: '28px', height: '28px' }}
+                      onClick={() => handleRemoveItem(idx)}
+                      disabled={items.length <= 1}
+                    >
+                      <Trash2 size={14} style={{ color: 'var(--danger-text)' }} />
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Total Order Summary */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px', padding: '12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
+            {/* Delivery & Summary Bar */}
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-50)', padding: '14px 18px', borderRadius: 'var(--radius-md)' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Initial Delivery Status</div>
+                <select
+                  className="form-select"
+                  style={{ width: '160px', marginTop: '4px', padding: '4px 8px', fontSize: '0.8rem' }}
+                  value={deliveryStatus}
+                  onChange={(e) => setDeliveryStatus(e.target.value)}
+                >
+                  <option value="In Progress">In Progress</option>
+                  <option value="Dispatched">Dispatched</option>
+                  <option value="Delivered">Delivered</option>
+                </select>
+              </div>
+
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total Order Value: </span>
-                <strong style={{ fontSize: '1.25rem', color: 'var(--primary-600)' }}>{formatCurrency(totalOrderValue)}</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Order Value</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-600)' }}>
+                  {formatCurrency(totalOrderValue)}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary">Confirm & Deduct Stock</button>
+            <button type="submit" className="btn btn-primary">Create Order</button>
           </div>
         </form>
       </div>
@@ -575,16 +639,34 @@ export const CreateOrderModal = ({ isOpen, onClose }) => {
 // 4. CREATE INVOICE MODAL
 // =========================================================================
 export const CreateInvoiceModal = ({ isOpen, onClose }) => {
-  const { clients, inventory, lookupProductByCode, createInvoice } = useApp();
+  const { clients, inventory, lookupProductByCode, createInvoice, selectedCompany, matchesCompany } = useApp();
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [brand, setBrand] = useState(selectedCompany !== 'ALL' ? selectedCompany : 'AUCO');
+
+  const getBrandProducts = (b) => {
+    if (b === 'ALL') return inventory;
+    return inventory.filter((p) => p.brand === b || (b === 'AUCO' ? p.productCode?.startsWith('AUC') : p.productCode?.startsWith('AIW')));
+  };
+
+  const initialProdList = getBrandProducts(brand);
+  const defaultProd = initialProdList[0] || inventory[0] || { productCode: 'AUC-101', name: 'Product', price: 45000 };
+
   const [items, setItems] = useState([
-    { productCode: 'AUC-101', name: 'Auco Industrial Automation Controller X1', quantity: 1, price: 45000 }
+    { productCode: defaultProd.productCode, name: defaultProd.name, quantity: 1, price: defaultProd.price }
   ]);
   const [taxRate, setTaxRate] = useState(18);
   const [paymentTerms, setPaymentTerms] = useState('Net 30');
   const [notes, setNotes] = useState('');
 
   if (!isOpen) return null;
+
+  const handleBrandChange = (newBrand) => {
+    setBrand(newBrand);
+    const prods = getBrandProducts(newBrand);
+    if (prods.length > 0) {
+      setItems([{ productCode: prods[0].productCode, name: prods[0].name, quantity: 1, price: prods[0].price }]);
+    }
+  };
 
   const handleProductCodeChange = (index, code) => {
     const matched = lookupProductByCode(code);
@@ -612,7 +694,8 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
   };
 
   const handleAddItem = () => {
-    const firstProd = inventory[0] || { productCode: 'AUC-101', name: 'Product', price: 10000 };
+    const prods = getBrandProducts(brand);
+    const firstProd = prods[0] || inventory[0] || { productCode: 'AUC-101', name: 'Product', price: 10000 };
     setItems([...items, { productCode: firstProd.productCode, name: firstProd.name, price: firstProd.price, quantity: 1 }]);
   };
 
@@ -628,6 +711,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
     createInvoice({
       clientId: client.id,
       clientName: client.companyName,
+      brand,
       contactPerson: client.contactPerson,
       phone: client.phone,
       email: client.email,
@@ -640,6 +724,9 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
 
     onClose();
   };
+
+  const availableProducts = getBrandProducts(brand);
+  const eligibleClients = selectedCompany === 'ALL' ? clients : clients.filter(matchesCompany);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -654,7 +741,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="modal-body">
-            <div className="grid-2">
+            <div className="grid-3">
               <div className="form-group">
                 <label className="form-label">Billed Client *</label>
                 <select
@@ -664,9 +751,21 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
                   onChange={(e) => setSelectedClientId(e.target.value)}
                 >
                   <option value="">-- Choose Client Company --</option>
-                  {clients.map((c) => (
+                  {eligibleClients.map((c) => (
                     <option key={c.id} value={c.id}>{c.companyName} ({c.city})</option>
                   ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Brand / Division *</label>
+                <select
+                  className="form-select"
+                  value={brand}
+                  onChange={(e) => handleBrandChange(e.target.value)}
+                >
+                  <option value="AUCO">Auco Automation</option>
+                  <option value="AIWA">Aiwa Commercial AV</option>
                 </select>
               </div>
 
@@ -700,7 +799,7 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
                     key={idx}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '130px 1.6fr 70px 110px 110px 36px',
+                      gridTemplateColumns: '150px 1.5fr 70px 110px 110px 36px',
                       gap: '8px',
                       alignItems: 'center',
                       background: 'var(--bg-subtle)',
@@ -708,14 +807,20 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
                       borderRadius: 'var(--radius-md)'
                     }}
                   >
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Code (e.g. AUC-101)"
-                      style={{ padding: '6px 8px', fontSize: '0.8rem', fontWeight: 700 }}
-                      value={item.productCode}
-                      onChange={(e) => handleProductCodeChange(idx, e.target.value)}
-                    />
+                    <div>
+                      <select
+                        className="form-select"
+                        style={{ padding: '6px 8px', fontSize: '0.8rem', fontWeight: 700 }}
+                        value={item.productCode}
+                        onChange={(e) => handleProductCodeChange(idx, e.target.value)}
+                      >
+                        {availableProducts.map((p) => (
+                          <option key={p.productCode} value={p.productCode}>
+                            {p.productCode} - {p.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                     <div style={{ fontSize: '0.82rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.name || 'Custom item'}
@@ -785,9 +890,10 @@ export const CreateInvoiceModal = ({ isOpen, onClose }) => {
 // 5. ASSIGN TASK MODAL
 // =========================================================================
 export const CreateTaskModal = ({ isOpen, onClose }) => {
-  const { addTask, users, clients } = useApp();
+  const { addTask, users, clients, selectedCompany } = useApp();
   const [taskData, setTaskData] = useState({
     taskName: '',
+    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
     description: '',
     assignedPerson: users[0]?.name || 'Rajesh Sharma',
     client: clients[0]?.companyName || 'General Operations',
@@ -862,7 +968,20 @@ export const CreateTaskModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="grid-2">
+            <div className="grid-3">
+              <div className="form-group">
+                <label className="form-label">Brand / Division</label>
+                <select
+                  className="form-select"
+                  value={taskData.brand}
+                  onChange={(e) => setTaskData({ ...taskData, brand: e.target.value })}
+                >
+                  <option value="AUCO">Auco Automation</option>
+                  <option value="AIWA">Aiwa Commercial AV</option>
+                  <option value="ALL">All Companies</option>
+                </select>
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Priority Level</label>
                 <select
@@ -899,3 +1018,7 @@ export const CreateTaskModal = ({ isOpen, onClose }) => {
     </div>
   );
 };
+
+export { DispatchOrderModal } from './DispatchOrderModal';
+export { DeliveryChallanModal } from './DeliveryChallanModal';
+

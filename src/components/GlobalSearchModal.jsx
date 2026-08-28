@@ -8,13 +8,14 @@ import {
   Boxes,
   FileText,
   CheckSquare,
+  Truck,
   ArrowRight,
   X
 } from 'lucide-react';
 import { formatCurrency, getStatusBadgeClass } from '../utils/formatters';
 
 export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
-  const { clients, leads, orders, inventory, invoices, tasks } = useApp();
+  const { clients, leads, orders, inventory, invoices, tasks, dispatches } = useApp();
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
@@ -109,13 +110,26 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
       )
     : [];
 
+  // Search dispatches & challans
+  const matchedDispatches = q
+    ? dispatches.filter(
+        (d) =>
+          d.challanNumber.toLowerCase().includes(q) ||
+          d.trackingNumber.toLowerCase().includes(q) ||
+          d.courierCarrier.toLowerCase().includes(q) ||
+          d.clientName.toLowerCase().includes(q) ||
+          d.orderId.toLowerCase().includes(q)
+      )
+    : [];
+
   const totalMatches =
     matchedClients.length +
     matchedLeads.length +
     matchedOrders.length +
     matchedProducts.length +
     matchedInvoices.length +
-    matchedTasks.length;
+    matchedTasks.length +
+    matchedDispatches.length;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -212,8 +226,14 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong style={{ color: 'var(--primary-600)' }}>[{p.productCode}]</strong> {p.name}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${p.brand === 'AIWA' || p.productCode?.startsWith('AIW') ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {p.brand === 'AIWA' || p.productCode?.startsWith('AIW') ? 'AIWA' : 'AUCO'}
+                        </span>
+                        <strong style={{ color: 'var(--primary-600)' }}>[{p.productCode}]</strong>
+                        <span>{p.name}</span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         SKU: {p.sku} • Stock: {p.availableStock} available • Price: {formatCurrency(p.price)}
                       </div>
                     </div>
@@ -246,8 +266,13 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong>{c.companyName}</strong> ({c.contactPerson})
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${c.brand === 'AIWA' ? 'badge-purple' : (c.brand === 'BOTH' ? 'badge-neutral' : 'badge-info')}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {c.brand || 'AUCO'}
+                        </span>
+                        <strong>{c.companyName}</strong> ({c.contactPerson})
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         {c.city}, {c.state} • {c.phone} • {c.totalOrders} Orders ({formatCurrency(c.totalBusinessValue)})
                       </div>
                     </div>
@@ -280,8 +305,13 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong>{l.company}</strong> — {l.client}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${l.brand === 'AIWA' ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {l.brand || 'AUCO'}
+                        </span>
+                        <strong>{l.company}</strong> — {l.client}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Value: {formatCurrency(l.expectedValue)} • Rep: {l.assignedSalesperson}
                       </div>
                     </div>
@@ -314,8 +344,13 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong>{o.id}</strong> — {o.clientName}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${o.brand === 'AIWA' ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {o.brand || 'AUCO'}
+                        </span>
+                        <strong>{o.id}</strong> — {o.clientName}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Items: {o.productCode} • {formatCurrency(o.orderValue)}
                       </div>
                     </div>
@@ -348,8 +383,13 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong>{inv.invoiceNumber}</strong> — {inv.clientName}
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${inv.brand === 'AIWA' ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {inv.brand || 'AUCO'}
+                        </span>
+                        <strong>{inv.invoiceNumber}</strong> — {inv.clientName}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Total: {formatCurrency(inv.totalAmount)} • Balance: {formatCurrency(inv.balance)}
                       </div>
                     </div>
@@ -382,12 +422,56 @@ export const GlobalSearchModal = ({ isOpen, onClose, onNavigate }) => {
                     }}
                   >
                     <div>
-                      <strong>{t.taskName}</strong>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${t.brand === 'AIWA' ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {t.brand || 'AUCO'}
+                        </span>
+                        <strong>{t.taskName}</strong>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Assigned: {t.assignedPerson} • Client: {t.client}
                       </div>
                     </div>
                     <span className={`badge ${getStatusBadgeClass(t.status)}`}>{t.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dispatches & Delivery Challans */}
+          {matchedDispatches.length > 0 && (
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Truck size={14} /> Dispatches & Challans ({matchedDispatches.length})
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {matchedDispatches.map((d) => (
+                  <div
+                    key={d.id}
+                    onClick={() => { onNavigate('orders'); onClose(); }}
+                    style={{
+                      padding: '10px 12px',
+                      background: 'var(--bg-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className={`badge ${d.brand === 'AIWA' ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+                          {d.brand || 'AUCO'}
+                        </span>
+                        <strong>{d.challanNumber}</strong> — {d.clientName}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        Courier: {d.courierCarrier} • AWB: {d.trackingNumber} • Order: {d.orderId}
+                      </div>
+                    </div>
+                    <span className={`badge ${getStatusBadgeClass(d.dispatchStatus)}`}>{d.dispatchStatus}</span>
                   </div>
                 ))}
               </div>

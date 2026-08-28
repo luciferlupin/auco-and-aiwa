@@ -1,5 +1,38 @@
 // Initial comprehensive dataset for Auco & Aiwa Internal Business Management Software
 
+export const companyBrands = [
+  {
+    id: 'ALL',
+    name: 'All Companies',
+    tagline: 'Auco & Aiwa Enterprise Group',
+    shortName: 'Auco & Aiwa',
+    logoLetter: 'A&A',
+    color: '#4f46e5',
+    accentColor: '#06b6d4',
+    industry: 'Industrial Automation & Commercial AV'
+  },
+  {
+    id: 'AUCO',
+    name: 'Auco Automation',
+    tagline: 'Industrial Automation, Sensors & Robotics',
+    shortName: 'Auco',
+    logoLetter: 'AU',
+    color: '#2563eb',
+    accentColor: '#0ea5e9',
+    industry: 'Industrial Automation & IoT'
+  },
+  {
+    id: 'AIWA',
+    name: 'Aiwa India',
+    tagline: 'Commercial AV, Acoustics & Studio Testing',
+    shortName: 'Aiwa',
+    logoLetter: 'AW',
+    color: '#7c3aed',
+    accentColor: '#d946ef',
+    industry: 'Commercial AV & Acoustics'
+  }
+];
+
 export const initialUsers = [
   {
     id: 'USR-001',
@@ -66,6 +99,7 @@ export const initialUsers = [
 export const initialProducts = [
   {
     id: 'PRD-101',
+    brand: 'AUCO',
     productCode: 'AUC-101',
     name: 'Auco Industrial Automation Controller X1',
     sku: 'AUC-AC-101-IND',
@@ -81,6 +115,7 @@ export const initialProducts = [
   },
   {
     id: 'PRD-102',
+    brand: 'AUCO',
     productCode: 'AUC-202',
     name: 'Auco Smart Sensor Array - Dual Channel',
     sku: 'AUC-SN-202-DC',
@@ -96,6 +131,7 @@ export const initialProducts = [
   },
   {
     id: 'PRD-103',
+    brand: 'AIWA',
     productCode: 'AIW-301',
     name: 'Aiwa High-Precision Sound Calibration Kit',
     sku: 'AIW-SC-301-PRO',
@@ -111,6 +147,7 @@ export const initialProducts = [
   },
   {
     id: 'PRD-104',
+    brand: 'AIWA',
     productCode: 'AIW-405',
     name: 'Aiwa Commercial Audio Matrix Switcher 8x8',
     sku: 'AIW-MX-405-8X',
@@ -126,6 +163,7 @@ export const initialProducts = [
   },
   {
     id: 'PRD-105',
+    brand: 'AUCO',
     productCode: 'AUC-550',
     name: 'Auco IoT Gateway & Edge Telemetry Unit',
     sku: 'AUC-GW-550-EDG',
@@ -141,6 +179,7 @@ export const initialProducts = [
   },
   {
     id: 'PRD-106',
+    brand: 'AIWA',
     productCode: 'AIW-800',
     name: 'Aiwa Studio Acoustic Analyzer V4',
     sku: 'AIW-AN-800-V4',
@@ -156,6 +195,7 @@ export const initialProducts = [
   },
   {
     id: 'PRD-107',
+    brand: 'AUCO',
     productCode: 'AUC-900',
     name: 'Auco Annual Enterprise Maintenance SLA',
     sku: 'AUC-SRV-SLA-YR',
@@ -174,6 +214,7 @@ export const initialProducts = [
 export const initialClients = [
   {
     id: 'CLN-001',
+    brand: 'AUCO',
     clientName: 'Sunil Mehta',
     companyName: 'Mehta Precision Engineering Ltd',
     contactPerson: 'Sunil Mehta (MD)',
@@ -200,6 +241,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-002',
+    brand: 'AIWA',
     clientName: 'Ananya Roy',
     companyName: 'Bengal Broadcast & Media Studios',
     contactPerson: 'Ananya Roy (CTO)',
@@ -226,6 +268,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-003',
+    brand: 'AUCO',
     clientName: 'Karthik Ramanathan',
     companyName: 'Deccan Automations & Robotics',
     contactPerson: 'Karthik Ramanathan (Head of Procurement)',
@@ -252,6 +295,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-004',
+    brand: 'AUCO',
     clientName: 'Rohit Khandelwal',
     companyName: 'Jaipur Smart Infrastructure Corp',
     contactPerson: 'Rohit Khandelwal (VP Tech)',
@@ -278,6 +322,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-005',
+    brand: 'AIWA',
     clientName: 'Gaurav Bhatia',
     companyName: 'NCR Logistics & Warehousing Hub',
     contactPerson: 'Gaurav Bhatia (Operations Director)',
@@ -304,6 +349,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-006',
+    brand: 'AIWA',
     clientName: 'Harish Nambiar',
     companyName: 'Cochin Marine & Industrial Systems',
     contactPerson: 'Harish Nambiar (General Manager)',
@@ -330,6 +376,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-007',
+    brand: 'AIWA',
     clientName: 'Naveen Reddy',
     companyName: 'Cyberabad Tech Parks AV Facilities',
     contactPerson: 'Naveen Reddy (AV Lead)',
@@ -356,6 +403,7 @@ export const initialClients = [
   },
   {
     id: 'CLN-008',
+    brand: 'AUCO',
     clientName: 'Bhavin Shah',
     companyName: 'Gujarat Precision Tools & Dies',
     contactPerson: 'Bhavin Shah (Partner)',
@@ -385,6 +433,7 @@ export const initialClients = [
 export const initialLeads = [
   {
     id: 'LEAD-001',
+    brand: 'AIWA',
     client: 'Nandini Swaminathan',
     company: 'Bangalore Aero & Defense Dynamics',
     phone: '+91 98450 11990',
@@ -408,6 +457,7 @@ export const initialLeads = [
   },
   {
     id: 'LEAD-002',
+    brand: 'AUCO',
     client: 'Deepak Chawla',
     company: 'Noida Electronics Assembly Line',
     phone: '+91 98180 77443',
@@ -431,6 +481,7 @@ export const initialLeads = [
   },
   {
     id: 'LEAD-003',
+    brand: 'AUCO',
     client: 'Manish Tiwari',
     company: 'Indore Auto Component Manufacturers',
     phone: '+91 98260 22345',
@@ -454,6 +505,7 @@ export const initialLeads = [
   },
   {
     id: 'LEAD-004',
+    brand: 'AUCO',
     client: 'Sanjay Aggarwal',
     company: 'Ludhiana Textiles Automated Looms',
     phone: '+91 98150 99112',
@@ -477,6 +529,7 @@ export const initialLeads = [
   },
   {
     id: 'LEAD-005',
+    brand: 'AIWA',
     client: 'Rameshwar Soni',
     company: 'Navi Mumbai Media Complex',
     phone: '+91 98200 88231',
@@ -500,6 +553,7 @@ export const initialLeads = [
   },
   {
     id: 'LEAD-006',
+    brand: 'AUCO',
     client: 'Tariq Hussain',
     company: 'Srinagar Craft & Precision Tools',
     phone: '+91 98190 33211',
@@ -523,6 +577,7 @@ export const initialLeads = [
   },
   {
     id: 'LEAD-007',
+    brand: 'AUCO',
     client: 'Sunil Mehta',
     company: 'Mehta Precision Engineering Ltd',
     phone: '+91 98220 14589',
@@ -549,6 +604,7 @@ export const initialLeads = [
 export const initialOrders = [
   {
     id: 'ORD-1001',
+    brand: 'AUCO',
     clientId: 'CLN-001',
     clientName: 'Mehta Precision Engineering Ltd',
     items: [
@@ -562,10 +618,23 @@ export const initialOrders = [
     deliveryStatus: 'Delivered',
     paymentStatus: 'Partially Paid',
     invoiceId: 'INV-2026-001',
-    assignedTeamMember: 'Sneha Kulkarni'
+    assignedTeamMember: 'Sneha Kulkarni',
+    dispatchDetails: {
+      dispatchId: 'DSP-2026-001',
+      challanNumber: 'DC-2026-001',
+      courierCarrier: 'BlueDart Express',
+      trackingNumber: 'BLU-8829103',
+      ewayBillNumber: '2410-9876-5432',
+      dispatchDate: '2026-08-16',
+      estimatedDelivery: '2026-08-17',
+      dispatchStatus: 'Delivered',
+      packageCount: '2 Cartons',
+      packageWeight: '14.5 kg'
+    }
   },
   {
     id: 'ORD-1002',
+    brand: 'AUCO',
     clientId: 'CLN-003',
     clientName: 'Deccan Automations & Robotics',
     items: [
@@ -579,10 +648,23 @@ export const initialOrders = [
     deliveryStatus: 'In Progress',
     paymentStatus: 'Unpaid',
     invoiceId: 'INV-2026-002',
-    assignedTeamMember: 'Rahul Verma'
+    assignedTeamMember: 'Rahul Verma',
+    dispatchDetails: {
+      dispatchId: 'DSP-2026-002',
+      challanNumber: 'DC-2026-002',
+      courierCarrier: 'BlueDart Express',
+      trackingNumber: 'BLU-9920145',
+      ewayBillNumber: '2410-4491-8821',
+      dispatchDate: '2026-08-25',
+      estimatedDelivery: '2026-08-29',
+      dispatchStatus: 'In Transit',
+      packageCount: '1 Crate',
+      packageWeight: '8.2 kg'
+    }
   },
   {
     id: 'ORD-1003',
+    brand: 'AIWA',
     clientId: 'CLN-005',
     clientName: 'NCR Logistics & Warehousing Hub',
     items: [
@@ -595,10 +677,23 @@ export const initialOrders = [
     deliveryStatus: 'In Progress',
     paymentStatus: 'Unpaid',
     invoiceId: 'INV-2026-003',
-    assignedTeamMember: 'Sneha Kulkarni'
+    assignedTeamMember: 'Sneha Kulkarni',
+    dispatchDetails: {
+      dispatchId: 'DSP-2026-003',
+      challanNumber: 'DC-2026-003',
+      courierCarrier: 'Delhivery Surface',
+      trackingNumber: 'DLV-5541092',
+      ewayBillNumber: '2410-1123-9988',
+      dispatchDate: '2026-08-26',
+      estimatedDelivery: '2026-08-30',
+      dispatchStatus: 'Dispatched',
+      packageCount: '1 Crate',
+      packageWeight: '12.0 kg'
+    }
   },
   {
     id: 'ORD-1004',
+    brand: 'AIWA',
     clientId: 'CLN-007',
     clientName: 'Cyberabad Tech Parks AV Facilities',
     items: [
@@ -612,10 +707,23 @@ export const initialOrders = [
     deliveryStatus: 'Delivered',
     paymentStatus: 'Paid',
     invoiceId: 'INV-2026-004',
-    assignedTeamMember: 'Rahul Verma'
+    assignedTeamMember: 'Rahul Verma',
+    dispatchDetails: {
+      dispatchId: 'DSP-2026-004',
+      challanNumber: 'DC-2026-004',
+      courierCarrier: 'Safexpress Logistics',
+      trackingNumber: 'SFX-7719203',
+      ewayBillNumber: '2410-3301-4455',
+      dispatchDate: '2026-08-19',
+      estimatedDelivery: '2026-08-21',
+      dispatchStatus: 'Delivered',
+      packageCount: '2 Flight Cases',
+      packageWeight: '22.0 kg'
+    }
   },
   {
     id: 'ORD-1005',
+    brand: 'AUCO',
     clientId: 'CLN-008',
     clientName: 'Gujarat Precision Tools & Dies',
     items: [
@@ -628,13 +736,170 @@ export const initialOrders = [
     deliveryStatus: 'Delivered',
     paymentStatus: 'Paid',
     invoiceId: 'INV-2026-005',
-    assignedTeamMember: 'Sneha Kulkarni'
+    assignedTeamMember: 'Sneha Kulkarni',
+    dispatchDetails: {
+      dispatchId: 'DSP-2026-005',
+      challanNumber: 'DC-2026-005',
+      courierCarrier: 'V-Trans Freight',
+      trackingNumber: 'VTR-3391820',
+      ewayBillNumber: '2410-6677-1122',
+      dispatchDate: '2026-08-06',
+      estimatedDelivery: '2026-08-08',
+      dispatchStatus: 'Delivered',
+      packageCount: '1 Box',
+      packageWeight: '4.8 kg'
+    }
+  }
+];
+
+export const initialDispatches = [
+  {
+    id: 'DSP-2026-001',
+    brand: 'AUCO',
+    challanNumber: 'DC-2026-001',
+    orderId: 'ORD-1001',
+    clientId: 'CLN-001',
+    clientName: 'Mehta Precision Engineering Ltd',
+    companyName: 'Mehta Precision Engineering Ltd',
+    contactPerson: 'Sunil Mehta (MD)',
+    phone: '+91 98220 14589',
+    email: 'sunil@mehtaprecision.in',
+    shippingAddress: 'Plot 42, MIDC Bhosari Industrial Estate, Pune, Maharashtra - 411026',
+    items: [
+      { productCode: 'AUC-101', name: 'Auco Industrial Automation Controller X1', quantity: 2 },
+      { productCode: 'AUC-202', name: 'Auco Smart Sensor Array - Dual Channel', quantity: 4 }
+    ],
+    courierCarrier: 'BlueDart Express',
+    trackingNumber: 'BLU-8829103',
+    ewayBillNumber: '2410-9876-5432',
+    dispatchDate: '2026-08-16',
+    estimatedDelivery: '2026-08-17',
+    actualDeliveryDate: '2026-08-17',
+    packageCount: '2 Heavy Duty Cartons',
+    packageWeight: '14.5 kg',
+    vehicleNumber: 'MH-12-QX-4412 (BlueDart Hub Pune)',
+    dispatchedBy: 'Sneha Kulkarni',
+    dispatchStatus: 'Delivered',
+    notes: 'Delivered in sound condition. Calibration certificate and installation warranty document enclosed.'
+  },
+  {
+    id: 'DSP-2026-002',
+    brand: 'AUCO',
+    challanNumber: 'DC-2026-002',
+    orderId: 'ORD-1002',
+    clientId: 'CLN-003',
+    clientName: 'Deccan Automations & Robotics',
+    companyName: 'Deccan Automations & Robotics',
+    contactPerson: 'Karthik Ramanathan',
+    phone: '+91 98401 22987',
+    email: 'karthik@deccanauto.in',
+    shippingAddress: 'SIPCOT IT Park, Siruseri, OMR, Chennai, Tamil Nadu - 603103',
+    items: [
+      { productCode: 'AUC-101', name: 'Auco Industrial Automation Controller X1', quantity: 2 },
+      { productCode: 'AUC-550', name: 'Auco IoT Gateway & Edge Telemetry Unit', quantity: 1 }
+    ],
+    courierCarrier: 'BlueDart Express',
+    trackingNumber: 'BLU-9920145',
+    ewayBillNumber: '2410-4491-8821',
+    dispatchDate: '2026-08-25',
+    estimatedDelivery: '2026-08-29',
+    packageCount: '1 Reinforced Crate',
+    packageWeight: '8.2 kg',
+    vehicleNumber: 'Air Cargo Express (BlueDart)',
+    dispatchedBy: 'Rahul Verma',
+    dispatchStatus: 'In Transit',
+    notes: 'Urgent stock dispatch. Direct air freight to Chennai hub. Field tech will receive on-site.'
+  },
+  {
+    id: 'DSP-2026-003',
+    brand: 'AIWA',
+    challanNumber: 'DC-2026-003',
+    orderId: 'ORD-1003',
+    clientId: 'CLN-005',
+    clientName: 'NCR Logistics & Warehousing Hub',
+    companyName: 'NCR Logistics & Warehousing Hub',
+    contactPerson: 'Gaurav Bhatia (Operations)',
+    phone: '+91 98100 44521',
+    email: 'gbhatia@ncrlogistics.com',
+    shippingAddress: 'Udyog Vihar Phase IV, Gurugram, Haryana - 122015',
+    items: [
+      { productCode: 'AIW-405', name: 'Aiwa Commercial Audio Matrix Switcher 8x8', quantity: 1 }
+    ],
+    courierCarrier: 'Delhivery Surface',
+    trackingNumber: 'DLV-5541092',
+    ewayBillNumber: '2410-1123-9988',
+    dispatchDate: '2026-08-26',
+    estimatedDelivery: '2026-08-30',
+    packageCount: '1 Specialized AV Crate',
+    packageWeight: '12.0 kg',
+    vehicleNumber: 'DL-01-AB-9821',
+    dispatchedBy: 'Sneha Kulkarni',
+    dispatchStatus: 'Dispatched',
+    notes: 'Fragile acoustic matrix unit. Shock-indicator label affixed on outer box.'
+  },
+  {
+    id: 'DSP-2026-004',
+    brand: 'AIWA',
+    challanNumber: 'DC-2026-004',
+    orderId: 'ORD-1004',
+    clientId: 'CLN-007',
+    clientName: 'Cyberabad Tech Parks AV Facilities',
+    companyName: 'Cyberabad Tech Parks AV Facilities',
+    contactPerson: 'Naveen Reddy (AV Lead)',
+    phone: '+91 98490 66789',
+    email: 'naveen.r@cyberabadparks.com',
+    shippingAddress: 'HITEC City, Madhapur, Hyderabad, Telangana - 500081',
+    items: [
+      { productCode: 'AIW-301', name: 'Aiwa High-Precision Sound Calibration Kit', quantity: 1 },
+      { productCode: 'AIW-405', name: 'Aiwa Commercial Audio Matrix Switcher 8x8', quantity: 1 }
+    ],
+    courierCarrier: 'Safexpress Logistics',
+    trackingNumber: 'SFX-7719203',
+    ewayBillNumber: '2410-3301-4455',
+    dispatchDate: '2026-08-19',
+    estimatedDelivery: '2026-08-21',
+    actualDeliveryDate: '2026-08-21',
+    packageCount: '2 Flight Cases',
+    packageWeight: '22.0 kg',
+    vehicleNumber: 'TS-09-UB-3310',
+    dispatchedBy: 'Rahul Verma',
+    dispatchStatus: 'Delivered',
+    notes: 'Received and verified on site. Training session completed on 22nd Aug.'
+  },
+  {
+    id: 'DSP-2026-005',
+    brand: 'AUCO',
+    challanNumber: 'DC-2026-005',
+    orderId: 'ORD-1005',
+    clientId: 'CLN-008',
+    clientName: 'Gujarat Precision Tools & Dies',
+    companyName: 'Gujarat Precision Tools & Dies',
+    contactPerson: 'Bhavin Shah (Partner)',
+    phone: '+91 98250 88912',
+    email: 'bhavin@gjprecision.com',
+    shippingAddress: 'GIDC Vatva Industrial Area, Ahmedabad, Gujarat - 382445',
+    items: [
+      { productCode: 'AUC-202', name: 'Auco Smart Sensor Array - Dual Channel', quantity: 6 }
+    ],
+    courierCarrier: 'V-Trans Freight',
+    trackingNumber: 'VTR-3391820',
+    ewayBillNumber: '2410-6677-1122',
+    dispatchDate: '2026-08-06',
+    estimatedDelivery: '2026-08-08',
+    actualDeliveryDate: '2026-08-08',
+    packageCount: '1 Box',
+    packageWeight: '4.8 kg',
+    vehicleNumber: 'GJ-01-TX-8874',
+    dispatchedBy: 'Sneha Kulkarni',
+    dispatchStatus: 'Delivered',
+    notes: 'Direct factory delivery. Signed challan uploaded.'
   }
 ];
 
 export const initialInvoices = [
   {
     id: 'INV-2026-001',
+    brand: 'AUCO',
     invoiceNumber: 'INV-2026-001',
     orderId: 'ORD-1001',
     clientId: 'CLN-001',
@@ -661,6 +926,7 @@ export const initialInvoices = [
   },
   {
     id: 'INV-2026-002',
+    brand: 'AUCO',
     invoiceNumber: 'INV-2026-002',
     orderId: 'ORD-1002',
     clientId: 'CLN-003',
@@ -687,6 +953,7 @@ export const initialInvoices = [
   },
   {
     id: 'INV-2026-003',
+    brand: 'AIWA',
     invoiceNumber: 'INV-2026-003',
     orderId: 'ORD-1003',
     clientId: 'CLN-005',
@@ -712,6 +979,7 @@ export const initialInvoices = [
   },
   {
     id: 'INV-2026-004',
+    brand: 'AIWA',
     invoiceNumber: 'INV-2026-004',
     orderId: 'ORD-1004',
     clientId: 'CLN-007',
@@ -738,6 +1006,7 @@ export const initialInvoices = [
   },
   {
     id: 'INV-2026-005',
+    brand: 'AUCO',
     invoiceNumber: 'INV-2026-005',
     orderId: 'ORD-1005',
     clientId: 'CLN-008',
@@ -766,6 +1035,7 @@ export const initialInvoices = [
 export const initialPayments = [
   {
     id: 'PAY-001',
+    brand: 'AUCO',
     invoiceId: 'INV-2026-001',
     invoiceNumber: 'INV-2026-001',
     clientId: 'CLN-001',
@@ -781,6 +1051,7 @@ export const initialPayments = [
   },
   {
     id: 'PAY-002',
+    brand: 'AUCO',
     invoiceId: 'INV-2026-002',
     invoiceNumber: 'INV-2026-002',
     clientId: 'CLN-003',
@@ -796,6 +1067,7 @@ export const initialPayments = [
   },
   {
     id: 'PAY-003',
+    brand: 'AIWA',
     invoiceId: 'INV-2026-003',
     invoiceNumber: 'INV-2026-003',
     clientId: 'CLN-005',
@@ -811,6 +1083,7 @@ export const initialPayments = [
   },
   {
     id: 'PAY-004',
+    brand: 'AIWA',
     invoiceId: 'INV-2026-004',
     invoiceNumber: 'INV-2026-004',
     clientId: 'CLN-007',
@@ -826,6 +1099,7 @@ export const initialPayments = [
   },
   {
     id: 'PAY-005',
+    brand: 'AUCO',
     invoiceId: 'INV-2026-005',
     invoiceNumber: 'INV-2026-005',
     clientId: 'CLN-008',
@@ -844,6 +1118,7 @@ export const initialPayments = [
 export const initialFollowUps = [
   {
     id: 'FLW-001',
+    brand: 'AIWA',
     clientId: 'LEAD-001',
     clientName: 'Bangalore Aero & Defense Dynamics',
     contactPerson: 'Nandini Swaminathan',
@@ -857,6 +1132,7 @@ export const initialFollowUps = [
   },
   {
     id: 'FLW-002',
+    brand: 'AUCO',
     clientId: 'LEAD-002',
     clientName: 'Noida Electronics Assembly Line',
     contactPerson: 'Deepak Chawla',
@@ -870,6 +1146,7 @@ export const initialFollowUps = [
   },
   {
     id: 'FLW-003',
+    brand: 'AUCO',
     clientId: 'CLN-003',
     clientName: 'Deccan Automations & Robotics',
     contactPerson: 'Karthik Ramanathan',
@@ -883,6 +1160,7 @@ export const initialFollowUps = [
   },
   {
     id: 'FLW-004',
+    brand: 'AUCO',
     clientId: 'CLN-001',
     clientName: 'Mehta Precision Engineering Ltd',
     contactPerson: 'Sunil Mehta',
@@ -899,6 +1177,7 @@ export const initialFollowUps = [
 export const initialTasks = [
   {
     id: 'TSK-001',
+    brand: 'AUCO',
     taskName: 'Deploy On-site Commissioning Team at Bhosari',
     description: 'Install and configure 2x Auco X1 controllers for automated stamping line.',
     assignedPerson: 'Sneha Kulkarni',
@@ -912,6 +1191,7 @@ export const initialTasks = [
   },
   {
     id: 'TSK-002',
+    brand: 'AUCO',
     taskName: 'Dispatch Urgent Stock to Chennai Facility',
     description: 'Ensure 2x AUC-101 and 1x AUC-550 are packed with test certificates and shipped via BlueDart.',
     assignedPerson: 'Rahul Verma',
@@ -925,6 +1205,7 @@ export const initialTasks = [
   },
   {
     id: 'TSK-003',
+    brand: 'ALL',
     taskName: 'Accounts Reconciliation for August Invoices',
     description: 'Review bank settlements for NEFT and UPI receipts, reconcile GST returns.',
     assignedPerson: 'Amit Patel',
@@ -938,6 +1219,7 @@ export const initialTasks = [
   },
   {
     id: 'TSK-004',
+    brand: 'AIWA',
     taskName: 'Deliver Aiwa Acoustic Matrix Training Session',
     description: 'Conduct remote video training with AV engineers at Cyberabad Tech Park.',
     assignedPerson: 'Sneha Kulkarni',
@@ -951,6 +1233,7 @@ export const initialTasks = [
   },
   {
     id: 'TSK-005',
+    brand: 'AUCO',
     taskName: 'Collect Overdue Payment & Re-issue Statement',
     description: 'Call finance desk at Deccan Automations for pending ₹1,39,240 settlement.',
     assignedPerson: 'Amit Patel',

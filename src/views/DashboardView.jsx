@@ -25,53 +25,85 @@ import {
 import { formatCurrency, formatDate, getStatusBadgeClass, getWhatsAppUrl } from '../utils/formatters';
 
 export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, onOpenInvoiceModal, onOpenTaskModal }) => {
-  const { currentRole, currentUser, clients, leads, orders, inventory, invoices, payments, tasks, followUps, users } = useApp();
+  const {
+    currentRole,
+    currentUser,
+    clients,
+    leads,
+    orders,
+    inventory,
+    invoices,
+    payments,
+    tasks,
+    followUps,
+    users,
+    companyBrands,
+    selectedCompany,
+    setSelectedCompany,
+    matchesCompany
+  } = useApp();
+
+  const activeBrand = companyBrands.find((b) => b.id === selectedCompany) || companyBrands[0];
+
+  // Scoped collections based on selected company
+  const scopedClients = clients.filter(matchesCompany);
+  const scopedLeads = leads.filter(matchesCompany);
+  const scopedOrders = orders.filter(matchesCompany);
+  const scopedInventory = inventory.filter(matchesCompany);
+  const scopedInvoices = invoices.filter(matchesCompany);
+  const scopedPayments = payments.filter(matchesCompany);
+  const scopedTasks = tasks.filter(matchesCompany);
+  const scopedFollowUps = followUps.filter(matchesCompany);
 
   // Admin / General Aggregates
-  const totalClients = clients.length;
-  const totalLeads = leads.length;
-  const convertedLeads = leads.filter((l) => l.conversionStatus === 'Converted').length;
+  const totalClients = scopedClients.length;
+  const totalLeads = scopedLeads.length;
+  const convertedLeads = scopedLeads.filter((l) => l.conversionStatus === 'Converted').length;
   const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
-  const totalOrders = orders.length;
-  const totalOrderRevenue = orders.reduce((acc, o) => acc + Number(o.orderValue || 0), 0);
+  const totalOrders = scopedOrders.length;
+  const totalOrderRevenue = scopedOrders.reduce((acc, o) => acc + Number(o.orderValue || 0), 0);
   
-  const pendingInvoices = invoices.filter((i) => i.balance > 0);
-  const totalOutstanding = invoices.reduce((acc, i) => acc + Number(i.balance || 0), 0);
-  const overdueInvoices = invoices.filter((i) => i.paymentStatus === 'Overdue');
+  const pendingInvoices = scopedInvoices.filter((i) => i.balance > 0);
+  const totalOutstanding = scopedInvoices.reduce((acc, i) => acc + Number(i.balance || 0), 0);
+  const overdueInvoices = scopedInvoices.filter((i) => i.paymentStatus === 'Overdue');
   const overdueAmount = overdueInvoices.reduce((acc, i) => acc + Number(i.balance || 0), 0);
 
-  const activeTasks = tasks.filter((t) => t.status !== 'Completed');
-  const completedTasks = tasks.filter((t) => t.status === 'Completed');
-  const urgentTasks = tasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed');
+  const activeTasks = scopedTasks.filter((t) => t.status !== 'Completed');
+  const completedTasks = scopedTasks.filter((t) => t.status === 'Completed');
+  const urgentTasks = scopedTasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed');
 
-  const lowStockProducts = inventory.filter((p) => p.availableStock <= p.minStockLevel);
+  const lowStockProducts = scopedInventory.filter((p) => p.availableStock <= p.minStockLevel);
 
   // Sales-specific aggregates
-  const myLeads = leads.filter((l) => !l.assignedSalesperson || l.assignedSalesperson.includes(currentUser.name) || currentRole === 'Admin');
+  const myLeads = scopedLeads.filter((l) => !l.assignedSalesperson || l.assignedSalesperson.includes(currentUser.name) || currentRole === 'Admin');
   const pipelineValue = myLeads.filter(l => l.conversionStatus !== 'Converted' && l.stage !== 'Lost').reduce((acc, l) => acc + Number(l.expectedValue || 0), 0);
-  const upcomingFollowUps = followUps.filter((f) => f.status === 'Pending').slice(0, 5);
+  const upcomingFollowUps = scopedFollowUps.filter((f) => f.status === 'Pending').slice(0, 5);
 
   // Accounts-specific aggregates
-  const totalCollected = invoices.reduce((acc, i) => acc + Number(i.amountPaid || 0), 0);
-  const totalInvoiced = invoices.reduce((acc, i) => acc + Number(i.totalAmount || 0), 0);
+  const totalCollected = scopedInvoices.reduce((acc, i) => acc + Number(i.amountPaid || 0), 0);
+  const totalInvoiced = scopedInvoices.reduce((acc, i) => acc + Number(i.totalAmount || 0), 0);
 
   // Services-specific aggregates
-  const activeServiceOrders = orders.filter((o) => o.deliveryStatus !== 'Delivered');
-  const myTasks = tasks.filter((t) => !t.assignedPerson || t.assignedPerson.includes(currentUser.name) || currentRole === 'Admin');
+  const activeServiceOrders = scopedOrders.filter((o) => o.deliveryStatus !== 'Delivered');
+  const myTasks = scopedTasks.filter((t) => !t.assignedPerson || t.assignedPerson.includes(currentUser.name) || currentRole === 'Admin');
 
   // Lead stages distribution
   const leadStages = ['New Lead', 'Contacted', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost'];
   const leadStageCounts = leadStages.reduce((acc, stage) => {
-    acc[stage] = leads.filter((l) => l.stage === stage).length;
+    acc[stage] = scopedLeads.filter((l) => l.stage === stage).length;
     return acc;
   }, {});
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Banner / Welcome Bar */}
+      {/* Top Banner / Welcome Bar with Company Tabs */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
+          background: selectedCompany === 'AUCO'
+            ? 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #0369a1 100%)'
+            : (selectedCompany === 'AIWA'
+              ? 'linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #be185d 100%)'
+              : 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)'),
           borderRadius: 'var(--radius-xl)',
           padding: '28px 32px',
           color: '#ffffff',
@@ -90,20 +122,49 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
             <span className="badge badge-purple" style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}>
               {currentRole} Dashboard
             </span>
-            <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.75)', fontWeight: 500 }}>
-              Live Operations Core
+            <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>
+              🏢 Workspace: {activeBrand.name}
             </span>
           </div>
 
           <h1 style={{ color: '#ffffff', fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
             Welcome, {currentUser?.name || 'User'}
           </h1>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.86rem', margin: '6px 0 0 0' }}>
+            {activeBrand.tagline} • Real-time sales, inventory, orders & accounts tracking.
+          </p>
           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.88rem', marginTop: '4px', maxWidth: '640px', lineHeight: 1.4 }}>
             {currentRole === 'Admin' && 'Unified business management: Control sales pipeline, inventory stock levels, invoice billing, and team task delivery.'}
             {currentRole === 'Sales' && 'Pipeline command: Manage active leads, follow-ups, quotes, and 1-click client conversions.'}
             {currentRole === 'Accounts' && 'Finance command: Manage GST tax invoices, track overdue payments, and calculate outstanding receivables.'}
             {currentRole === 'Services' && 'Service & delivery command: Manage hardware deployments, client requirements, and field operations.'}
           </p>
+        </div>
+
+        {/* Company Quick-Switch Tabs in Header */}
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.22)', padding: '6px', borderRadius: 'var(--radius-lg)', backdropFilter: 'blur(10px)' }}>
+          {companyBrands.map((b) => {
+            const isSelected = selectedCompany === b.id;
+            return (
+              <button
+                key={b.id}
+                onClick={() => setSelectedCompany(b.id)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  background: isSelected ? '#ffffff' : 'transparent',
+                  color: isSelected ? '#0f172a' : 'rgba(255,255,255,0.8)',
+                  fontWeight: isSelected ? 700 : 500,
+                  fontSize: '0.78rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                {b.shortName}
+              </button>
+            );
+          })}
         </div>
 
         {/* Quick actions for current role */}
@@ -277,7 +338,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {users.map((u) => {
-                  const userTasks = tasks.filter((t) => t.assignedPerson.includes(u.name));
+                  const userTasks = scopedTasks.filter((t) => t.assignedPerson.includes(u.name));
                   const userCompleted = userTasks.filter((t) => t.status === 'Completed').length;
                   const userPending = userTasks.length - userCompleted;
                   return (
@@ -339,7 +400,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.slice(0, 4).map((o) => (
+                    {scopedOrders.slice(0, 4).map((o) => (
                       <tr key={o.id}>
                         <td><strong>{o.id}</strong></td>
                         <td>{o.clientName}</td>
@@ -366,7 +427,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {inventory.slice(0, 4).map((p) => {
+                {scopedInventory.slice(0, 4).map((p) => {
                   const isLow = p.availableStock <= p.minStockLevel;
                   return (
                     <div
@@ -581,7 +642,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 <FileText size={18} style={{ color: 'var(--primary-600)' }} />
               </div>
               <div className="stat-value">{formatCurrency(totalInvoiced)}</div>
-              <div className="stat-subtext">{invoices.length} tax invoices generated</div>
+              <div className="stat-subtext">{scopedInvoices.length} tax invoices generated</div>
             </div>
           </div>
 
@@ -635,7 +696,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {payments.filter(p => p.amountPaid > 0).map((pay) => (
+                {scopedPayments.filter(p => p.amountPaid > 0).map((pay) => (
                   <div
                     key={pay.id}
                     style={{
@@ -705,7 +766,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 <span className="stat-title">Delivery Completion</span>
                 <ShoppingCart size={18} style={{ color: '#10b981' }} />
               </div>
-              <div className="stat-value">{orders.filter(o => o.deliveryStatus === 'Delivered').length} Delivered</div>
+              <div className="stat-value">{scopedOrders.filter(o => o.deliveryStatus === 'Delivered').length} Delivered</div>
               <div className="stat-subtext">Out of {totalOrders} total client orders</div>
             </div>
           </div>
@@ -734,7 +795,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((o) => (
+                    {scopedOrders.map((o) => (
                       <tr key={o.id}>
                         <td><strong>{o.id}</strong></td>
                         <td>{o.clientName}</td>

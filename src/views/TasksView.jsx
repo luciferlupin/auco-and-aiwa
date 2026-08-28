@@ -11,22 +11,26 @@ import {
   Building2,
   Calendar,
   Filter,
-  MessageSquare
+  MessageSquare,
+  Trash2
 } from 'lucide-react';
 import { formatDate, getStatusBadgeClass } from '../utils/formatters';
 
 export const TasksView = ({ onOpenTaskModal }) => {
-  const { tasks, updateTask, currentRole, currentUser } = useApp();
+  const { tasks, updateTask, deleteTask, currentRole, currentUser, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [assigneeFilter, setAssigneeFilter] = useState('ALL');
 
-  // Unique assignees
-  const assignees = Array.from(new Set(tasks.map((t) => t.assignedPerson).filter(Boolean)));
+  // Scoped tasks by company
+  const scopedTasks = tasks.filter(matchesCompany);
+
+  // Unique assignees from scoped tasks
+  const assignees = Array.from(new Set(scopedTasks.map((t) => t.assignedPerson).filter(Boolean)));
 
   // Filter tasks
-  const filteredTasks = tasks.filter((t) => {
+  const filteredTasks = scopedTasks.filter((t) => {
     const matchesSearch =
       t.taskName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,10 +44,16 @@ export const TasksView = ({ onOpenTaskModal }) => {
     return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
   });
 
-  const todoCount = tasks.filter((t) => t.status === 'To Do').length;
-  const inProgressCount = tasks.filter((t) => t.status === 'In Progress').length;
-  const completedCount = tasks.filter((t) => t.status === 'Completed').length;
-  const urgentCount = tasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed').length;
+  const todoCount = scopedTasks.filter((t) => t.status === 'To Do').length;
+  const inProgressCount = scopedTasks.filter((t) => t.status === 'In Progress').length;
+  const completedCount = scopedTasks.filter((t) => t.status === 'Completed').length;
+  const urgentCount = scopedTasks.filter((t) => t.priority === 'Urgent' && t.status !== 'Completed').length;
+
+  const handleDeleteTask = (task) => {
+    if (window.confirm(`Are you sure you want to delete task "${task.taskName}"?`)) {
+      deleteTask(task.id);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -101,18 +111,18 @@ export const TasksView = ({ onOpenTaskModal }) => {
         </div>
       </div>
 
-      {/* Filter & Search */}
+      {/* Filter and Search Bar */}
       <div className="card" style={{ padding: '14px 18px' }}>
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
               className="form-input"
-              placeholder="Search task name, client, team member..."
+              placeholder="Search task, client, description, assignee..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '36px' }}
+              style={{ paddingLeft: '32px' }}
             />
           </div>
 
@@ -122,7 +132,7 @@ export const TasksView = ({ onOpenTaskModal }) => {
               className="form-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              style={{ width: '140px' }}
+              style={{ width: '130px' }}
             >
               <option value="ALL">All Statuses</option>
               <option value="To Do">To Do</option>
@@ -138,7 +148,7 @@ export const TasksView = ({ onOpenTaskModal }) => {
               className="form-select"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              style={{ width: '130px' }}
+              style={{ width: '120px' }}
             >
               <option value="ALL">All Priorities</option>
               <option value="Urgent">Urgent</option>
@@ -178,6 +188,7 @@ export const TasksView = ({ onOpenTaskModal }) => {
               <th>Status</th>
               <th>Created By</th>
               <th>Update Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -233,8 +244,27 @@ export const TasksView = ({ onOpenTaskModal }) => {
                     <option value="Overdue">Overdue</option>
                   </select>
                 </td>
+                <td>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleDeleteTask(t)}
+                    title="Delete Task"
+                    style={{ color: 'var(--danger-text)', padding: '4px 8px' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </td>
               </tr>
             ))}
+            {filteredTasks.length === 0 && (
+              <tr>
+                <td colSpan="9" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                  <CheckSquare size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No tasks found</div>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, priority, or assignee filter.</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -29,6 +29,8 @@ import {
   CreateInvoiceModal,
   CreateTaskModal
 } from './components/QuickActionModal';
+import { DispatchOrderModal } from './components/DispatchOrderModal';
+import { DeliveryChallanModal } from './components/DeliveryChallanModal';
 
 export const App = () => {
   const { isAuthenticated, currentRole } = useApp();
@@ -40,6 +42,9 @@ export const App = () => {
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
+  const [isChallanModalOpen, setIsChallanModalOpen] = useState(false);
+  const [selectedChallanDispatch, setSelectedChallanDispatch] = useState(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
@@ -83,6 +88,7 @@ export const App = () => {
           onOpenLeadModal={() => setIsLeadModalOpen(true)}
           onOpenClientModal={() => setIsClientModalOpen(true)}
           onOpenOrderModal={() => setIsOrderModalOpen(true)}
+          onOpenDispatchModal={() => setIsDispatchModalOpen(true)}
           onOpenInvoiceModal={() => setIsInvoiceModalOpen(true)}
           onOpenTaskModal={() => setIsTaskModalOpen(true)}
         />
@@ -164,6 +170,19 @@ export const App = () => {
       <CreateTaskModal
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
+      />
+      <DispatchOrderModal
+        isOpen={isDispatchModalOpen}
+        onClose={() => setIsDispatchModalOpen(false)}
+        onDispatchSuccess={(d) => {
+          setSelectedChallanDispatch(d);
+          setIsChallanModalOpen(true);
+        }}
+      />
+      <DeliveryChallanModal
+        isOpen={isChallanModalOpen}
+        onClose={() => setIsChallanModalOpen(false)}
+        dispatch={selectedChallanDispatch}
       />
 
       {/* Reactive System Notifications */}

@@ -11,22 +11,28 @@ import {
   Sliders,
   CheckCircle2,
   Package,
-  Layers
+  Layers,
+  Edit2,
+  Trash2,
+  X
 } from 'lucide-react';
 import { formatCurrency, getStatusBadgeClass } from '../utils/formatters';
 
 export const InventoryView = () => {
-  const { inventory, addProduct, adjustProductStock } = useApp();
+  const { inventory, addProduct, updateProduct, deleteProduct, adjustProductStock, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(null); // Product object
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editProductData, setEditProductData] = useState({});
   const [adjustAmount, setAdjustAmount] = useState(10);
   const [adjustType, setAdjustType] = useState('ADD'); // 'ADD' | 'REMOVE'
 
   // New product form state
   const [newProduct, setNewProduct] = useState({
     name: '',
+    brand: selectedCompany !== 'ALL' ? selectedCompany : 'AUCO',
     productCode: '',
     sku: '',
     category: 'Automation Hardware',
@@ -36,11 +42,14 @@ export const InventoryView = () => {
     price: 35000
   });
 
-  // Extract categories
-  const categories = Array.from(new Set(inventory.map((p) => p.category).filter(Boolean)));
+  // Scoped inventory
+  const scopedInventory = inventory.filter(matchesCompany);
+
+  // Extract categories from scoped inventory
+  const categories = Array.from(new Set(scopedInventory.map((p) => p.category).filter(Boolean)));
 
   // Filter inventory
-  const filteredProducts = inventory.filter((p) => {
+  const filteredProducts = scopedInventory.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.productCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -52,10 +61,10 @@ export const InventoryView = () => {
   });
 
   // Aggregates
-  const totalSKUs = inventory.length;
-  const totalStockUnits = inventory.reduce((acc, p) => acc + Number(p.currentStock || 0), 0);
-  const totalInventoryValuation = inventory.reduce((acc, p) => acc + (Number(p.currentStock || 0) * Number(p.price || 0)), 0);
-  const lowStockItems = inventory.filter((p) => p.availableStock <= p.minStockLevel);
+  const totalSKUs = scopedInventory.length;
+  const totalStockUnits = scopedInventory.reduce((acc, p) => acc + Number(p.currentStock || 0), 0);
+  const totalInventoryValuation = scopedInventory.reduce((acc, p) => acc + (Number(p.currentStock || 0) * Number(p.price || 0)), 0);
+  const lowStockItems = scopedInventory.filter((p) => p.availableStock <= p.minStockLevel);
 
   const handleCreateProduct = (e) => {
     e.preventDefault();
@@ -80,6 +89,30 @@ export const InventoryView = () => {
     const delta = adjustType === 'ADD' ? Number(adjustAmount) : -Math.abs(Number(adjustAmount));
     adjustProductStock(showAdjustModal.productCode, delta, `Manual ${adjustType}`);
     setShowAdjustModal(null);
+  };
+
+  const handleStartEditProduct = (p) => {
+    setEditingProduct(p);
+    setEditProductData({
+      name: p.name,
+      price: p.price,
+      minStockLevel: p.minStockLevel,
+      supplier: p.supplier,
+      category: p.category
+    });
+  };
+
+  const handleSaveProductEdit = (e) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    updateProduct(editingProduct.id || editingProduct.productCode, editProductData);
+    setEditingProduct(null);
+  };
+
+  const handleDeleteProduct = (p) => {
+    if (window.confirm(`Are you sure you want to delete SKU [${p.productCode}] "${p.name}"?`)) {
+      deleteProduct(p.id || p.productCode);
+    }
   };
 
   return (
@@ -262,17 +295,45 @@ export const InventoryView = () => {
                     {p.supplier}
                   </td>
                   <td>
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => setShowAdjustModal(p)}
-                      title="Adjust Stock In / Out"
-                    >
-                      <Sliders size={13} /> Stock Adjust
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setShowAdjustModal(p)}
+                        title="Adjust Stock In / Out"
+                        style={{ padding: '4px 8px' }}
+                      >
+                        <Sliders size={13} /> Stock
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => handleStartEditProduct(p)}
+                        title="Edit SKU"
+                        style={{ padding: '4px 8px' }}
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => handleDeleteProduct(p)}
+                        title="Delete SKU"
+                        style={{ padding: '4px 8px', color: 'var(--danger-text)' }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
             })}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                  <Boxes size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No inventory products found</div>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or category filter.</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -462,6 +523,101 @@ export const InventoryView = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(null)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Apply Stock Update</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          EDIT PRODUCT MODAL
+          ========================================================================= */}
+      {editingProduct && (
+        <div className="modal-backdrop" onClick={() => setEditingProduct(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
+            <form onSubmit={handleSaveProductEdit}>
+              <div className="modal-header">
+                <div>
+                  <span className="badge badge-purple">{editingProduct.productCode}</span>
+                  <h3 style={{ marginTop: '4px' }}>Edit Product SKU</h3>
+                </div>
+                <button type="button" className="btn btn-ghost btn-icon" onClick={() => setEditingProduct(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label className="form-label">Product Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="form-input"
+                    value={editProductData.name || ''}
+                    onChange={(e) => setEditProductData({ ...editProductData, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Unit Price (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      className="form-input"
+                      value={editProductData.price || 0}
+                      onChange={(e) => setEditProductData({ ...editProductData, price: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Min Safety Stock Level *</label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      className="form-input"
+                      value={editProductData.minStockLevel || 5}
+                      onChange={(e) => setEditProductData({ ...editProductData, minStockLevel: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Category</label>
+                    <select
+                      className="form-select"
+                      value={editProductData.category || 'Automation Hardware'}
+                      onChange={(e) => setEditProductData({ ...editProductData, category: e.target.value })}
+                    >
+                      <option value="Automation Hardware">Automation Hardware</option>
+                      <option value="Sensors & IOT">Sensors & IOT</option>
+                      <option value="Commercial AV">Commercial AV</option>
+                      <option value="Acoustics & Testing">Acoustics & Testing</option>
+                      <option value="Edge Computing">Edge Computing</option>
+                      <option value="Services">Services</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Supplier Hub</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editProductData.supplier || ''}
+                      onChange={(e) => setEditProductData({ ...editProductData, supplier: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingProduct(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes
+                </button>
               </div>
             </form>
           </div>

@@ -270,41 +270,125 @@ export const SettingsView = () => {
       )}
 
       {/* =========================================================================
-          TAB 3: COMPANY PROFILE
+          TAB 3: COMPANY PROFILE (AUCO & AIWA DUAL-BRAND DIVISIONS)
           ========================================================================= */}
       {activeTab === 'company' && (
-        <div className="card" style={{ maxWidth: '800px' }}>
-          <h3 style={{ marginBottom: '14px' }}>Auco & Aiwa Enterprise Profile</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Dual Brand Division Cards */}
+          <div className="grid-2">
+            {/* Auco Automation Card */}
+            <div className="card" style={{ borderTop: '4px solid #2563eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    AU
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Auco Automation</h3>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Industrial & Robotics Division</span>
+                  </div>
+                </div>
+                <span className="badge badge-info">Code: AUC</span>
+              </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.85rem' }}>
-            <div className="form-group">
-              <label className="form-label">Legal Business Entity</label>
-              <input type="text" className="form-input" defaultValue="AUCO & AIWA TECHNOLOGIES PVT LTD" readOnly />
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                Specialized in Industrial Automation Controllers, Smart Sensor Arrays, PLC Panels, IoT Gateways, and Servo Drives.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', background: 'var(--bg-subtle)', padding: '10px', borderRadius: 'var(--radius-md)' }}>
+                <div><strong>Catalog Prefix:</strong> AUC-101, AUC-202, AUC-550, AUC-900</div>
+                <div><strong>Primary Market:</strong> Automotive, Manufacturing Plants & Machinery OEMs</div>
+                <div><strong>GSTIN:</strong> 27AABCA1234F1Z8</div>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">GSTIN / Tax ID</label>
-              <input type="text" className="form-input" defaultValue="27AABCA1234F1Z8" readOnly />
-            </div>
+            {/* Aiwa India Card */}
+            <div className="card" style={{ borderTop: '4px solid #7c3aed' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.85rem'
+                    }}
+                  >
+                    AW
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Aiwa India</h3>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Commercial AV & Acoustics Division</span>
+                  </div>
+                </div>
+                <span className="badge badge-purple">Code: AIW</span>
+              </div>
 
-            <div className="form-group">
-              <label className="form-label">Corporate Headquarters</label>
-              <input type="text" className="form-input" defaultValue="MIDC Industrial Area, Pune, Maharashtra - 411026" readOnly />
-            </div>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                Specialized in Commercial Audio Arrays, DSP Matrix Mixers, Ceiling Speaker Systems, and Power Amplifiers.
+              </p>
 
-            <div className="form-group">
-              <label className="form-label">Support Email</label>
-              <input type="text" className="form-input" defaultValue="operations@auco-aiwa.com" readOnly />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', background: 'var(--bg-subtle)', padding: '10px', borderRadius: 'var(--radius-md)' }}>
+                <div><strong>Catalog Prefix:</strong> AIW-301, AIW-405, AIW-800</div>
+                <div><strong>Primary Market:</strong> Auditoriums, Hospitality, IT Tech Parks & Retail Chains</div>
+                <div><strong>GSTIN:</strong> 27AABCA1234F1Z8</div>
+              </div>
             </div>
+          </div>
 
-            <div className="form-group">
-              <label className="form-label">Default Tax Rate (GST)</label>
-              <input type="text" className="form-input" defaultValue="18% (CGST 9% + SGST 9%)" readOnly />
-            </div>
+          {/* Legal Business Details */}
+          <div className="card" style={{ maxWidth: '100%' }}>
+            <h3 style={{ marginBottom: '14px' }}>Unified Legal Entity Profile</h3>
 
-            <div className="form-group">
-              <label className="form-label">Default Payment Terms</label>
-              <input type="text" className="form-input" defaultValue="Net 30 Days" readOnly />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.85rem' }}>
+              <div className="form-group">
+                <label className="form-label">Legal Business Entity</label>
+                <input type="text" className="form-input" defaultValue="AUCO & AIWA TECHNOLOGIES PVT LTD" readOnly />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">GSTIN / Tax ID</label>
+                <input type="text" className="form-input" defaultValue="27AABCA1234F1Z8" readOnly />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Corporate Headquarters</label>
+                <input type="text" className="form-input" defaultValue="MIDC Industrial Area, Pune, Maharashtra - 411026" readOnly />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Support Email</label>
+                <input type="text" className="form-input" defaultValue="operations@auco-aiwa.com" readOnly />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Default Tax Rate (GST)</label>
+                <input type="text" className="form-input" defaultValue="18% (CGST 9% + SGST 9%)" readOnly />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Default Payment Terms</label>
+                <input type="text" className="form-input" defaultValue="Net 30 Days" readOnly />
+              </div>
             </div>
           </div>
         </div>

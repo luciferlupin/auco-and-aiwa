@@ -11,13 +11,15 @@ import {
   CheckCircle2,
   Clock,
   Eye,
-  CreditCard
+  CreditCard,
+  Trash2,
+  X
 } from 'lucide-react';
 import { formatCurrency, formatDate, getStatusBadgeClass } from '../utils/formatters';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
 
 export const InvoicesView = ({ onOpenInvoiceModal }) => {
-  const { invoices, recordPayment } = useApp();
+  const { invoices, recordPayment, deleteInvoice, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [previewInvoice, setPreviewInvoice] = useState(null);
@@ -25,8 +27,11 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMode, setPaymentMode] = useState('NEFT');
 
+  // Scoped invoices by company
+  const scopedInvoices = invoices.filter(matchesCompany);
+
   // Filter invoices
-  const filteredInvoices = invoices.filter((inv) => {
+  const filteredInvoices = scopedInvoices.filter((inv) => {
     const matchesSearch =
       inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -37,10 +42,10 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
   });
 
   // Financial aggregates
-  const totalInvoiced = invoices.reduce((acc, i) => acc + Number(i.totalAmount || 0), 0);
-  const totalPaid = invoices.reduce((acc, i) => acc + Number(i.amountPaid || 0), 0);
-  const totalOutstanding = invoices.reduce((acc, i) => acc + Number(i.balance || 0), 0);
-  const overdueCount = invoices.filter((i) => i.paymentStatus === 'Overdue').length;
+  const totalInvoiced = scopedInvoices.reduce((acc, i) => acc + Number(i.totalAmount || 0), 0);
+  const totalPaid = scopedInvoices.reduce((acc, i) => acc + Number(i.amountPaid || 0), 0);
+  const totalOutstanding = scopedInvoices.reduce((acc, i) => acc + Number(i.balance || 0), 0);
+  const overdueCount = scopedInvoices.filter((i) => i.paymentStatus === 'Overdue').length;
 
   const handleRecordPaymentSubmit = (e) => {
     e.preventDefault();
@@ -48,6 +53,15 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
     recordPayment(recordPaymentInvoice.invoiceNumber, paymentAmount, paymentMode);
     setRecordPaymentInvoice(null);
     setPaymentAmount('');
+  };
+
+  const handleDeleteInvoice = (inv) => {
+    if (window.confirm(`Are you sure you want to delete invoice "${inv.invoiceNumber}" for ${inv.clientName}?`)) {
+      deleteInvoice(inv.invoiceNumber);
+      if (previewInvoice && previewInvoice.invoiceNumber === inv.invoiceNumber) {
+        setPreviewInvoice(null);
+      }
+    }
   };
 
   return (
@@ -208,14 +222,32 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
                           setPaymentAmount(String(inv.balance));
                         }}
                         title="Record Payment"
+                        style={{ padding: '4px 8px' }}
                       >
                         <CreditCard size={13} /> Pay
                       </button>
                     )}
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => handleDeleteInvoice(inv)}
+                      title="Delete Invoice"
+                      style={{ padding: '4px 8px', color: 'var(--danger-text)' }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                 </td>
               </tr>
             ))}
+            {filteredInvoices.length === 0 && (
+              <tr>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                  <FileText size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No invoices found</div>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or status filter.</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -235,12 +267,26 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => window.print()}
+                >
+                  <Printer size={14} /> Print
+                </button>
+                <button
                   className="btn btn-primary btn-sm"
                   onClick={() => generateInvoicePDF(previewInvoice)}
                 >
                   <Download size={14} /> Download PDF
                 </button>
-                <button className="btn btn-ghost btn-icon" onClick={() => setPreviewInvoice(null)}>✕</button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteInvoice(previewInvoice)}
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+                <button className="btn btn-ghost btn-icon" onClick={() => setPreviewInvoice(null)}>
+                  <X size={18} />
+                </button>
               </div>
             </div>
 

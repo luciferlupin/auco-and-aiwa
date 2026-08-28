@@ -16,6 +16,7 @@ import {
   X,
   ExternalLink,
   Edit2,
+  Trash2,
   CheckCircle2,
   Clock,
   Copy,
@@ -24,20 +25,25 @@ import {
 import { formatCurrency, formatDate, getStatusBadgeClass, getWhatsAppUrl } from '../utils/formatters';
 
 export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
-  const { clients, orders, invoices, payments, followUps, updateClient } = useApp();
+  const { clients, orders, invoices, payments, followUps, updateClient, deleteClient, selectedCompany, companyBrands, matchesCompany, addToast } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [stateFilter, setStateFilter] = useState('ALL');
   const [selectedClient, setSelectedClient] = useState(null);
+  const [editingClient, setEditingClient] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
   const [activeDrawerTab, setActiveDrawerTab] = useState('overview'); // 'overview' | 'orders' | 'invoices' | 'payments' | 'followups'
   const [quickNote, setQuickNote] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
+  // Scoped clients by company
+  const scopedClients = clients.filter(matchesCompany);
+
   // Extract unique states for filter
-  const uniqueStates = Array.from(new Set(clients.map((c) => c.state).filter(Boolean)));
+  const uniqueStates = Array.from(new Set(scopedClients.map((c) => c.state).filter(Boolean)));
 
   // Filter clients
-  const filteredClients = clients.filter((client) => {
+  const filteredClients = scopedClients.filter((client) => {
     const matchesSearch =
       client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -68,6 +74,41 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
     updateClient(selectedClient.id, { notes: updatedNotes });
     setSelectedClient((prev) => ({ ...prev, notes: updatedNotes }));
     setQuickNote('');
+  };
+
+  const handleStartEdit = (client) => {
+    setEditingClient(client);
+    setEditFormData({
+      companyName: client.companyName || '',
+      contactPerson: client.contactPerson || '',
+      phone: client.phone || '',
+      email: client.email || '',
+      address: client.address || '',
+      city: client.city || '',
+      state: client.state || '',
+      clientType: client.clientType || 'Enterprise',
+      clientStatus: client.clientStatus || 'Active',
+      paymentTerms: client.paymentTerms || 'Net 30'
+    });
+  };
+
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (!editingClient) return;
+    updateClient(editingClient.id, editFormData);
+    if (selectedClient && selectedClient.id === editingClient.id) {
+      setSelectedClient((prev) => ({ ...prev, ...editFormData }));
+    }
+    setEditingClient(null);
+  };
+
+  const handleDeleteClient = (client) => {
+    if (window.confirm(`Are you sure you want to delete client account "${client.companyName}" (${client.id})?`)) {
+      deleteClient(client.id);
+      if (selectedClient && selectedClient.id === client.id) {
+        setSelectedClient(null);
+      }
+    }
   };
 
   return (
@@ -240,6 +281,15 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
                 </tr>
               );
             })}
+            {filteredClients.length === 0 && (
+              <tr>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                  <Building2 size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No clients found</div>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, type filter, or state filter.</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -268,7 +318,7 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
             </div>
 
             {/* Quick Action Toolbar */}
-            <div style={{ padding: '10px 24px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-default)', display: 'flex', gap: '10px' }}>
+            <div style={{ padding: '10px 24px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-default)', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
               <a
                 href={getWhatsAppUrl(selectedClient.phone, `Hello ${selectedClient.contactPerson}, following up from Auco & Aiwa regarding your orders.`)}
                 target="_blank"
@@ -288,6 +338,19 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
                 }}
               >
                 <ShoppingCart size={14} /> New Order
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => handleStartEdit(selectedClient)}
+              >
+                <Edit2 size={13} /> Edit Details
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteClient(selectedClient)}
+                style={{ marginLeft: 'auto' }}
+              >
+                <Trash2 size={13} /> Delete Account
               </button>
             </div>
 
@@ -527,6 +590,162 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
           </div>
         </div>
       )}
+
+      {/* =========================================================================
+          EDIT CLIENT MODAL
+          ========================================================================= */}
+      {editingClient && (
+        <div className="modal-backdrop" onClick={() => setEditingClient(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <div>
+                <span className="badge badge-purple">{editingClient.id}</span>
+                <h3 style={{ marginTop: '4px' }}>Edit Client Account</h3>
+              </div>
+              <button className="btn btn-ghost btn-icon" onClick={() => setEditingClient(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label className="form-label">Company / Account Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="form-input"
+                    value={editFormData.companyName || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, companyName: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Contact Person *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.contactPerson || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, contactPerson: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone Number *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.phone || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Email Address</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      value={editFormData.email || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Client Type</label>
+                    <select
+                      className="form-select"
+                      value={editFormData.clientType || 'Enterprise'}
+                      onChange={(e) => setEditFormData({ ...editFormData, clientType: e.target.value })}
+                    >
+                      <option value="Enterprise">Enterprise</option>
+                      <option value="OEM Partner">OEM Partner</option>
+                      <option value="Government / PSU">Government / PSU</option>
+                      <option value="System Integrator">System Integrator</option>
+                      <option value="Distributor">Distributor</option>
+                      <option value="SME">SME</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Street / Facility Address</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editFormData.address || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">City *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.city || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">State *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.state || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, state: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Account Status</label>
+                    <select
+                      className="form-select"
+                      value={editFormData.clientStatus || 'Active'}
+                      onChange={(e) => setEditFormData({ ...editFormData, clientStatus: e.target.value })}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Pending KYC">Pending KYC</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Payment Terms</label>
+                    <select
+                      className="form-select"
+                      value={editFormData.paymentTerms || 'Net 30'}
+                      onChange={(e) => setEditFormData({ ...editFormData, paymentTerms: e.target.value })}
+                    >
+                      <option value="Immediate">Immediate / Advance</option>
+                      <option value="Net 15">Net 15 Days</option>
+                      <option value="Net 30">Net 30 Days</option>
+                      <option value="Net 45">Net 45 Days</option>
+                      <option value="Net 60">Net 60 Days</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingClient(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

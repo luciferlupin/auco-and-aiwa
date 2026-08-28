@@ -74,13 +74,13 @@ export const getStatusBadgeClass = (status) => {
   if (['won', 'paid', 'completed', 'delivered', 'qualified', 'converted', 'active', 'in stock', 'received'].includes(s)) {
     return 'badge-success';
   }
-  if (['in progress', 'sent', 'proposal', 'negotiation', 'partially paid', 'contacted', 'pending', 'reserved'].includes(s)) {
+  if (['in progress', 'dispatched', 'in transit', 'out for delivery', 'sent', 'proposal', 'negotiation', 'partially paid', 'contacted', 'pending', 'reserved'].includes(s)) {
     return 'badge-warning';
   }
-  if (['lost', 'overdue', 'cancelled', 'out of stock', 'missed', 'inactive', 'high', 'urgent'].includes(s)) {
+  if (['lost', 'overdue', 'cancelled', 'out of stock', 'missed', 'inactive', 'high', 'urgent', 'delayed', 'returned'].includes(s)) {
     return 'badge-danger';
   }
-  if (['new lead', 'to do', 'draft', 'new'].includes(s)) {
+  if (['new lead', 'to do', 'draft', 'new', 'scheduled', 'ready for dispatch'].includes(s)) {
     return 'badge-info';
   }
   return 'badge-neutral';

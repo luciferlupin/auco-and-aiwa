@@ -13,15 +13,18 @@ import {
 import { formatCurrency, formatDate, getStatusBadgeClass } from '../utils/formatters';
 
 export const PaymentsView = ({ onNavigate }) => {
-  const { payments, recordPayment } = useApp();
+  const { payments, recordPayment, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [recordPaymentModal, setRecordPaymentModal] = useState(null);
   const [amountInput, setAmountInput] = useState('');
   const [modeInput, setModeInput] = useState('NEFT');
 
+  // Scoped payments by company
+  const scopedPayments = payments.filter(matchesCompany);
+
   // Filter payments
-  const filteredPayments = payments.filter((p) => {
+  const filteredPayments = scopedPayments.filter((p) => {
     const matchesSearch =
       p.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -32,10 +35,10 @@ export const PaymentsView = ({ onNavigate }) => {
   });
 
   // Financial aggregates
-  const totalBilled = payments.reduce((acc, p) => acc + Number(p.invoiceAmount || 0), 0);
-  const totalReceived = payments.reduce((acc, p) => acc + Number(p.amountPaid || 0), 0);
-  const totalOutstanding = payments.reduce((acc, p) => acc + Number(p.balance || 0), 0);
-  const overduePayments = payments.filter((p) => p.paymentStatus === 'Overdue');
+  const totalBilled = scopedPayments.reduce((acc, p) => acc + Number(p.invoiceAmount || 0), 0);
+  const totalReceived = scopedPayments.reduce((acc, p) => acc + Number(p.amountPaid || 0), 0);
+  const totalOutstanding = scopedPayments.reduce((acc, p) => acc + Number(p.balance || 0), 0);
+  const overduePayments = scopedPayments.filter((p) => p.paymentStatus === 'Overdue');
   const overdueBalance = overduePayments.reduce((acc, p) => acc + Number(p.balance || 0), 0);
 
   const handleRecordPayment = (e) => {
@@ -210,6 +213,15 @@ export const PaymentsView = ({ onNavigate }) => {
                 </tr>
               );
             })}
+            {filteredPayments.length === 0 && (
+              <tr>
+                <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                  <CreditCard size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No payment records found</div>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or payment status filter.</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -704,3 +704,64 @@ p { color: var(--text-secondary); }
     padding: 14px 16px;
   }
 }
+
+/* ==========================================================================
+   PRINT MEDIA STYLES (Clean GST Invoices & Delivery Challans)
+   ========================================================================== */
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt !important;
+  }
+
+  .sidebar,
+  .navbar,
+  .mobile-bottom-nav,
+  .toast-container,
+  .btn,
+  button,
+  .modal-backdrop > div:not(.modal-content),
+  .no-print {
+    display: none !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .modal-backdrop {
+    position: static !important;
+    background: none !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .modal-content {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .page-body {
+    padding: 0 !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 12mm;
+    size: A4 portrait;
+  }
+}

@@ -25,14 +25,31 @@ export const Navbar = ({
   onOpenLeadModal,
   onOpenClientModal,
   onOpenOrderModal,
+  onOpenDispatchModal,
   onOpenInvoiceModal,
   onOpenTaskModal
 }) => {
-  const { currentRole, currentUser, switchRole, logout, isCloudSynced, isSyncing, inventory, invoices, tasks } = useApp();
+  const {
+    currentRole,
+    currentUser,
+    switchRole,
+    logout,
+    isCloudSynced,
+    isSyncing,
+    inventory,
+    invoices,
+    tasks,
+    companyBrands,
+    selectedCompany,
+    setSelectedCompany
+  } = useApp();
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const activeBrand = companyBrands.find((b) => b.id === selectedCompany) || companyBrands[0];
 
   // Derive system alerts for notification bell
   const lowStockCount = inventory.filter((p) => p.availableStock <= p.minStockLevel).length;
@@ -122,8 +139,81 @@ export const Navbar = ({
         </button>
       </div>
 
-      {/* Right: Cloud Sync Pill, Quick Add, Alerts, Role Switcher, Profile */}
+      {/* Right: Company Switcher Pill, Cloud Sync Pill, Quick Add, Alerts, Role Switcher, Profile */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Company Brand Workspace Switcher Dropdown */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              background: `${activeBrand.color}12`,
+              border: `1px solid ${activeBrand.color}35`,
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.75rem',
+              color: activeBrand.color,
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+            title="Switch Workspace Company Brand (Auco vs Aiwa)"
+          >
+            <span>🏢</span>
+            <span>{activeBrand.shortName}</span>
+            <ChevronDown size={13} style={{ transform: showCompanyDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+
+          {showCompanyDropdown && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 150 }} onClick={() => setShowCompanyDropdown(false)} />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '6px',
+                  width: '240px',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-xl)',
+                  padding: '6px',
+                  zIndex: 200,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}
+              >
+                <div style={{ padding: '6px 10px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Select Company Workspace
+                </div>
+                {companyBrands.map((brand) => (
+                  <button
+                    key={brand.id}
+                    className="btn btn-ghost btn-sm"
+                    style={{
+                      width: '100%',
+                      justifyContent: 'space-between',
+                      fontWeight: selectedCompany === brand.id ? 700 : 500,
+                      background: selectedCompany === brand.id ? 'var(--primary-50)' : 'transparent',
+                      color: selectedCompany === brand.id ? 'var(--primary-700)' : 'inherit'
+                    }}
+                    onClick={() => {
+                      setSelectedCompany(brand.id);
+                      setShowCompanyDropdown(false);
+                    }}
+                  >
+                    <span>{brand.name}</span>
+                    {selectedCompany === brand.id && <span>✓</span>}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Supabase Sync Pill */}
         <div
           title={isCloudSynced ? "Live Cloud Synced to Supabase (ktrqhmzaesllajbowymt)" : "Connected to Supabase Cloud Core"}
@@ -205,6 +295,13 @@ export const Navbar = ({
                 onClick={() => { setShowQuickMenu(false); onOpenOrderModal(); }}
               >
                 + New Order (Auto-stock)
+              </button>
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--primary-600)', fontWeight: 600 }}
+                onClick={() => { setShowQuickMenu(false); if (onOpenDispatchModal) onOpenDispatchModal(); }}
+              >
+                🚀 Dispatch Order (Challan)
               </button>
               <button
                 className="btn btn-ghost btn-sm"

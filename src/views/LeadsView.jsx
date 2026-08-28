@@ -15,7 +15,9 @@ import {
   Calendar,
   DollarSign,
   ChevronRight,
-  Zap
+  Zap,
+  Trash2,
+  Edit2
 } from 'lucide-react';
 import { formatCurrency, formatDate, getStatusBadgeClass, getWhatsAppUrl } from '../utils/formatters';
 
@@ -30,14 +32,19 @@ const PIPELINE_STAGES = [
 ];
 
 export const LeadsView = ({ onOpenLeadModal }) => {
-  const { leads, updateLead, convertLeadToClient } = useApp();
+  const { leads, updateLead, deleteLead, convertLeadToClient, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
   const [searchQuery, setSearchQuery] = useState('');
   const [sourceFilter, setSourceFilter] = useState('ALL');
   const [selectedLead, setSelectedLead] = useState(null);
+  const [editingLead, setEditingLead] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
+
+  // Scoped leads by company
+  const scopedLeads = leads.filter(matchesCompany);
 
   // Filter leads
-  const filteredLeads = leads.filter((lead) => {
+  const filteredLeads = scopedLeads.filter((lead) => {
     const matchesSearch =
       lead.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lead.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,6 +69,45 @@ export const LeadsView = ({ onOpenLeadModal }) => {
           newStage === 'Proposal' ? 60 : newStage === 'Negotiation' ? 80 : newStage === 'Qualified' ? 40 : 20
       });
     }
+  };
+
+  const handleDeleteLead = (lead) => {
+    if (window.confirm(`Are you sure you want to delete lead "${lead.company}" (${lead.id})?`)) {
+      deleteLead(lead.id);
+      if (selectedLead && selectedLead.id === lead.id) {
+        setSelectedLead(null);
+      }
+    }
+  };
+
+  const handleStartEdit = (lead) => {
+    setEditingLead(lead);
+    setEditFormData({
+      company: lead.company || '',
+      client: lead.client || '',
+      phone: lead.phone || '',
+      email: lead.email || '',
+      city: lead.city || '',
+      state: lead.state || '',
+      expectedValue: lead.expectedValue || 0,
+      stage: lead.stage || 'New Lead',
+      nextAction: lead.nextAction || '',
+      followUpDate: lead.followUpDate || '',
+      notes: lead.notes || ''
+    });
+  };
+
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (!editingLead) return;
+    updateLead(editingLead.id, {
+      ...editFormData,
+      expectedValue: Number(editFormData.expectedValue) || 0
+    });
+    if (selectedLead && selectedLead.id === editingLead.id) {
+      setSelectedLead((prev) => ({ ...prev, ...editFormData, expectedValue: Number(editFormData.expectedValue) || 0 }));
+    }
+    setEditingLead(null);
   };
 
   return (
@@ -324,6 +370,15 @@ export const LeadsView = ({ onOpenLeadModal }) => {
                   </td>
                 </tr>
               ))}
+              {filteredLeads.length === 0 && (
+                <tr>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                    <Users size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No leads found</div>
+                    <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, stage, or rep filter.</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -371,7 +426,7 @@ export const LeadsView = ({ onOpenLeadModal }) => {
               )}
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <a
                 href={getWhatsAppUrl(selectedLead.phone, `Hello ${selectedLead.client}, following up on behalf of Auco & Aiwa.`)}
                 target="_blank"
@@ -391,10 +446,176 @@ export const LeadsView = ({ onOpenLeadModal }) => {
                   <Zap size={14} /> Convert to Active Client
                 </button>
               )}
-              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedLead(null)}>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => handleStartEdit(selectedLead)}
+              >
+                <Edit2 size={13} /> Edit Lead
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteLead(selectedLead)}
+              >
+                <Trash2 size={13} /> Delete
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedLead(null)} style={{ marginLeft: 'auto' }}>
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          EDIT LEAD MODAL
+          ========================================================================= */}
+      {editingLead && (
+        <div className="modal-backdrop" onClick={() => setEditingLead(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px' }}>
+            <div className="modal-header">
+              <div>
+                <span className="badge badge-purple">{editingLead.id}</span>
+                <h3 style={{ marginTop: '4px' }}>Edit Lead Record</h3>
+              </div>
+              <button className="btn btn-ghost btn-icon" onClick={() => setEditingLead(null)}>
+                <XCircle size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group">
+                  <label className="form-label">Company / Prospect Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="form-input"
+                    value={editFormData.company || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, company: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Contact Person *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.client || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, client: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone Number *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.phone || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">City *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editFormData.city || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">State</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editFormData.state || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, state: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Pipeline Stage</label>
+                    <select
+                      className="form-select"
+                      value={editFormData.stage || 'New Lead'}
+                      onChange={(e) => setEditFormData({ ...editFormData, stage: e.target.value })}
+                    >
+                      {PIPELINE_STAGES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Expected Deal Value (₹)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="form-input"
+                      value={editFormData.expectedValue || 0}
+                      onChange={(e) => setEditFormData({ ...editFormData, expectedValue: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Next Action / Follow-up Strategy</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editFormData.nextAction || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, nextAction: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Follow-up Date</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={editFormData.followUpDate || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, followUpDate: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email Address</label>
+                    <input
+                      type="email"
+                      className="form-input"
+                      value={editFormData.email || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Notes</label>
+                  <textarea
+                    rows={2}
+                    className="form-input"
+                    value={editFormData.notes || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setEditingLead(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

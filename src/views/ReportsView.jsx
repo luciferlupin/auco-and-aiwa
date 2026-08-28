@@ -14,14 +14,25 @@ import {
   CreditCard,
   ShoppingCart,
   MapPin,
-  CheckSquare
+  CheckSquare,
+  Truck
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 export const ReportsView = () => {
-  const { clients, leads, orders, inventory, invoices, payments, tasks, users } = useApp();
+  const { clients, leads, orders, inventory, invoices, payments, tasks, dispatches, users, selectedCompany, companyBrands, matchesCompany } = useApp();
   const [selectedReport, setSelectedReport] = useState('sales');
   const [dateRange, setDateRange] = useState('all'); // 'all' | 'month' | 'quarter' | 'year'
+
+  // Scoped datasets by company
+  const scopedClients = clients.filter(matchesCompany);
+  const scopedLeads = leads.filter(matchesCompany);
+  const scopedOrders = orders.filter(matchesCompany);
+  const scopedInventory = inventory.filter(matchesCompany);
+  const scopedInvoices = invoices.filter(matchesCompany);
+  const scopedPayments = payments.filter(matchesCompany);
+  const scopedTasks = tasks.filter(matchesCompany);
+  const scopedDispatches = dispatches.filter(matchesCompany);
 
   // Report Types
   const reportTypes = [
@@ -29,11 +40,12 @@ export const ReportsView = () => {
     { id: 'leads', label: '2. Lead Conversion Report', icon: Users },
     { id: 'clients', label: '3. Client Performance Report', icon: FileText },
     { id: 'orders', label: '4. Order Fulfillment Report', icon: ShoppingCart },
-    { id: 'payments', label: '5. Payment & Collections Report', icon: CreditCard },
-    { id: 'outstanding', label: '6. Outstanding Balance Report', icon: CreditCard },
-    { id: 'inventory', label: '7. Inventory Stock Valuation', icon: Boxes },
-    { id: 'tasks', label: '8. Team Task Execution Report', icon: CheckSquare },
-    { id: 'statewise', label: '9. State-wise Client Report', icon: MapPin }
+    { id: 'dispatches', label: '5. Dispatches & Logistics Challans', icon: Truck },
+    { id: 'payments', label: '6. Payment & Collections Report', icon: CreditCard },
+    { id: 'outstanding', label: '7. Outstanding Balance Report', icon: CreditCard },
+    { id: 'inventory', label: '8. Inventory Stock Valuation', icon: Boxes },
+    { id: 'tasks', label: '9. Team Task Execution Report', icon: CheckSquare },
+    { id: 'statewise', label: '10. State-wise Client Report', icon: MapPin }
   ];
 
   // Export Table to CSV
@@ -42,27 +54,32 @@ export const ReportsView = () => {
     
     if (selectedReport === 'sales' || selectedReport === 'orders') {
       csvContent += 'Order ID,Client Name,Products,Quantity,Order Value,Date,Delivery Status,Payment Status\n';
-      orders.forEach(o => {
+      scopedOrders.forEach(o => {
         csvContent += `"${o.id}","${o.clientName}","${o.productCode}",${o.quantity},${o.orderValue},"${o.orderDate}","${o.deliveryStatus}","${o.paymentStatus}"\n`;
       });
     } else if (selectedReport === 'leads') {
       csvContent += 'Lead ID,Company,Contact,City,State,Source,Rep,Expected Value,Stage,Conversion Status\n';
-      leads.forEach(l => {
+      scopedLeads.forEach(l => {
         csvContent += `"${l.id}","${l.company}","${l.client}","${l.city}","${l.state}","${l.leadSource}","${l.assignedSalesperson}",${l.expectedValue},"${l.stage}","${l.conversionStatus}"\n`;
       });
     } else if (selectedReport === 'inventory') {
       csvContent += 'Product Code,Name,SKU,Category,Price,Current Stock,Available,Reserved,Min Level,Supplier\n';
-      inventory.forEach(p => {
+      scopedInventory.forEach(p => {
         csvContent += `"${p.productCode}","${p.name}","${p.sku}","${p.category}",${p.price},${p.currentStock},${p.availableStock},${p.reservedStock},${p.minStockLevel},"${p.supplier}"\n`;
+      });
+    } else if (selectedReport === 'dispatches') {
+      csvContent += 'Challan #,Order ID,Client Name,Carrier,Tracking AWB,E-Way Bill,Dispatch Date,Est Delivery,Packages,Weight,Status\n';
+      scopedDispatches.forEach(d => {
+        csvContent += `"${d.challanNumber}","${d.orderId}","${d.clientName}","${d.courierCarrier}","${d.trackingNumber}","${d.ewayBillNumber}","${d.dispatchDate}","${d.estimatedDelivery}","${d.packageCount}","${d.packageWeight}","${d.dispatchStatus}"\n`;
       });
     } else if (selectedReport === 'outstanding' || selectedReport === 'payments') {
       csvContent += 'Invoice #,Client Name,Invoice Amount,Amount Paid,Balance Due,Due Date,Status\n';
-      invoices.forEach(i => {
+      scopedInvoices.forEach(i => {
         csvContent += `"${i.invoiceNumber}","${i.clientName}",${i.totalAmount},${i.amountPaid},${i.balance},"${i.paymentDueDate}","${i.paymentStatus}"\n`;
       });
     } else {
       csvContent += 'ID,Name,Details,Value,Status\n';
-      clients.forEach(c => {
+      scopedClients.forEach(c => {
         csvContent += `"${c.id}","${c.companyName}","${c.city}, ${c.state}",${c.totalBusinessValue},"${c.clientStatus}"\n`;
       });
     }
@@ -486,7 +503,7 @@ export const ReportsView = () => {
         </div>
       )}
 
-      {/* 9. STATE-WISE REPORT */}
+      {/* 10. STATE-WISE REPORT */}
       {selectedReport === 'statewise' && (
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="flex-between">
@@ -522,6 +539,51 @@ export const ReportsView = () => {
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* DISPATCHES REPORT */}
+      {selectedReport === 'dispatches' && (
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="flex-between">
+            <div>
+              <h3>Dispatches & Logistics Challans Report</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>AWB carrier tracking and delivery challan status</p>
+            </div>
+          </div>
+
+          <div className="table-container">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Challan #</th>
+                  <th>Order Ref</th>
+                  <th>Client Name</th>
+                  <th>Carrier</th>
+                  <th>AWB / Tracking #</th>
+                  <th>Dispatch Date</th>
+                  <th>Est Delivery</th>
+                  <th>Packages</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dispatches.map((d) => (
+                  <tr key={d.id}>
+                    <td><strong style={{ color: 'var(--primary-600)' }}>{d.challanNumber}</strong></td>
+                    <td>{d.orderId}</td>
+                    <td><strong>{d.clientName}</strong></td>
+                    <td><span className="badge badge-purple">{d.courierCarrier}</span></td>
+                    <td style={{ fontFamily: 'monospace' }}>{d.trackingNumber}</td>
+                    <td>{formatDate(d.dispatchDate)}</td>
+                    <td>{formatDate(d.estimatedDelivery)}</td>
+                    <td>{d.packageCount} ({d.packageWeight})</td>
+                    <td><span className="badge badge-info">{d.dispatchStatus}</span></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
