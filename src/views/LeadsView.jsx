@@ -281,7 +281,7 @@ export const LeadsView = ({ onOpenLeadModal }) => {
                       {/* Footer Actions */}
                       <div className="flex-between" style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
                         <a
-                          href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with Auco & Aiwa.`)}
+                          href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
                           target="_blank"
                           rel="noreferrer"
                           className="badge badge-whatsapp"
@@ -428,12 +428,13 @@ export const LeadsView = ({ onOpenLeadModal }) => {
 
             <div className="modal-footer" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <a
-                href={getWhatsAppUrl(selectedLead.phone, `Hello ${selectedLead.client}, following up on behalf of Auco & Aiwa.`)}
+                href={getWhatsAppUrl(selectedLead.phone, `Hello ${selectedLead.client}, following up on behalf of ${selectedLead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-sm badge-whatsapp"
+                className="btn btn-whatsapp"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                <MessageSquare size={14} /> Open WhatsApp
+                <MessageSquare size={14} /> Open WhatsApp Chat
               </a>
               {selectedLead.stage !== 'Won' && (
                 <button

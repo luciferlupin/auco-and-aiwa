@@ -547,7 +547,7 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                         <td><span className={`badge ${getStatusBadgeClass(l.stage)}`}>{l.stage}</span></td>
                         <td>
                           <a
-                            href={getWhatsAppUrl(l.phone, `Hi ${l.client}, following up on your inquiry with Auco & Aiwa.`)}
+                            href={getWhatsAppUrl(l.phone, `Hi ${l.client}, following up on your inquiry with ${l.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
                             target="_blank"
                             rel="noreferrer"
                             className="badge badge-whatsapp"

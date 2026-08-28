@@ -307,7 +307,7 @@ export const IndiaMap = ({ onSelectClient }) => {
                       {/* WhatsApp / Call Actions */}
                       <div style={{ display: 'flex', gap: '8px', marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
                         <a
-                          href={getWhatsAppUrl(c.phone, `Hello ${c.contactPerson}, reaching out from Auco & Aiwa regarding your recent orders.`)}
+                          href={getWhatsAppUrl(c.phone, `Hello ${c.contactPerson}, reaching out from ${c.brand === 'AIWA' ? 'Aiwa India' : 'Auco Automation'} regarding your recent orders.`)}
                           target="_blank"
                           rel="noreferrer"
                           className="btn btn-sm badge-whatsapp"

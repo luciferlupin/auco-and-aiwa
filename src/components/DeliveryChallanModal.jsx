@@ -250,7 +250,7 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
                       width: '28px',
                       height: '28px',
                       borderRadius: '8px',
-                      background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+                      background: isAiwa ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' : 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -259,17 +259,17 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
                   >
                     <Layers size={16} />
                   </div>
-                  <h2 style={{ fontSize: '1.4rem', color: 'var(--primary-600)', margin: 0, letterSpacing: '-0.02em' }}>
-                    AUCO & AIWA
+                  <h2 style={{ fontSize: '1.4rem', color: isAiwa ? '#7c3aed' : 'var(--primary-600)', margin: 0, letterSpacing: '-0.02em' }}>
+                    {brandTitle}
                   </h2>
                 </div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  Auco & Aiwa Technologies Pvt Ltd
+                  {brandLegal}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.4 }}>
-                  Industrial Automation & Precision AV Systems<br />
-                  Plot 42, MIDC Bhosari Industrial Area, Pune, Maharashtra - 411026<br />
-                  <strong>GSTIN: 27AABCA1234F1Z8</strong> • contact@auco-aiwa.com
+                  {brandTagline}<br />
+                  {brandAddress}<br />
+                  <strong>GSTIN: {brandGstin}</strong> • {brandEmail}
                 </div>
               </div>
 
@@ -481,14 +481,14 @@ export const DeliveryChallanModal = ({ isOpen, onClose, dispatch }) => {
 
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '45px' }}>
-                  For AUCO & AIWA TECHNOLOGIES PVT LTD
+                  {brandSign}
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-strong)', paddingTop: '6px' }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Authorized Dispatch / Logistics Officer
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    Warehouse Logistics Hub, Pune
+                    {brandHub}
                   </div>
                 </div>
               </div>

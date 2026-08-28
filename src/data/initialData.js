@@ -3,33 +3,36 @@
 export const companyBrands = [
   {
     id: 'ALL',
-    name: 'All Companies',
-    tagline: 'Auco & Aiwa Enterprise Group',
-    shortName: 'Auco & Aiwa',
+    name: 'All Brands (Portal Overview)',
+    legalName: 'Auco & Aiwa Dual-Brand Operations Portal',
+    tagline: 'Multi-Brand Operations Management Portal',
+    shortName: 'Auco & Aiwa Portal',
     logoLetter: 'A&A',
     color: '#4f46e5',
     accentColor: '#06b6d4',
-    industry: 'Industrial Automation & Commercial AV'
+    industry: 'Unified Management Portal for Auco & Aiwa Brands'
   },
   {
     id: 'AUCO',
     name: 'Auco Automation',
+    legalName: 'Auco Automation India Pvt Ltd',
     tagline: 'Industrial Automation, Sensors & Robotics',
     shortName: 'Auco',
     logoLetter: 'AU',
     color: '#2563eb',
     accentColor: '#0ea5e9',
-    industry: 'Industrial Automation & IoT'
+    industry: 'Industrial Automation, PLCs & Edge IoT'
   },
   {
     id: 'AIWA',
     name: 'Aiwa India',
-    tagline: 'Commercial AV, Acoustics & Studio Testing',
+    legalName: 'Aiwa Commercial AV India Pvt Ltd',
+    tagline: 'Commercial AV, Sound Calibration & Matrix Systems',
     shortName: 'Aiwa',
     logoLetter: 'AW',
     color: '#7c3aed',
     accentColor: '#d946ef',
-    industry: 'Commercial AV & Acoustics'
+    industry: 'Commercial Sound, Matrix Switchers & Acoustic Systems'
   }
 ];
 

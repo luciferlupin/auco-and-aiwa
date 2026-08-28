@@ -147,7 +147,7 @@ export const LoginView = () => {
               margin: 0
             }}
           >
-            AUCO & AIWA
+            AUCO & AIWA PORTAL
           </h1>
           <p
             style={{
@@ -157,13 +157,13 @@ export const LoginView = () => {
               fontWeight: 500
             }}
           >
-            Enterprise Operations & Internal Management System
+            Dual-Brand Operations Portal for Auco Automation & Aiwa India
           </p>
 
           {/* Supabase status badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f1f5f9', padding: '4px 10px', borderRadius: '9999px', fontSize: '0.72rem', color: '#475569', marginTop: '10px', fontWeight: 600 }}>
             <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-            <span>Supabase Cloud Connected (ktrqhmzaesllajbowymt)</span>
+            <span>Dual-Brand Workspace • Supabase Cloud Connected</span>
           </div>
         </div>
 

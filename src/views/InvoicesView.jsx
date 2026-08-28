@@ -292,20 +292,30 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
 
             <div className="modal-body">
               {/* Company Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border-default)' }}>
-                <div>
-                  <h2 style={{ color: 'var(--primary-600)', margin: 0 }}>AUCO & AIWA</h2>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Industrial Automation & Commercial AV Systems<br />
-                    GSTIN: 27AABCA1234F1Z8 • Pune, Maharashtra
+              {(() => {
+                const isAiwa = previewInvoice.brand === 'AIWA' || (previewInvoice.items && previewInvoice.items[0]?.productCode?.startsWith('AIW'));
+                const brandTitle = isAiwa ? 'AIWA INDIA' : 'AUCO AUTOMATION';
+                const brandLegal = isAiwa ? 'Aiwa Commercial AV India Pvt Ltd' : 'Auco Automation India Pvt Ltd';
+                const brandGstin = isAiwa ? '07AAACA5678G2Z1 • New Delhi' : '27AABCA1234F1Z8 • Pune, Maharashtra';
+                const brandTag = isAiwa ? 'Commercial AV, Sound & Acoustic Calibration' : 'Industrial Automation, Sensors & IoT Division';
+
+                return (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border-default)' }}>
+                    <div>
+                      <h2 style={{ color: isAiwa ? '#7c3aed' : '#2563eb', margin: 0 }}>{brandTitle}</h2>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {brandLegal} • {brandTag}<br />
+                        GSTIN: {brandGstin}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Invoice Date: <strong>{formatDate(previewInvoice.issueDate)}</strong></div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Due Date: <strong>{formatDate(previewInvoice.paymentDueDate)}</strong></div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Terms: <strong>{previewInvoice.paymentTerms}</strong></div>
+                    </div>
                   </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Invoice Date: <strong>{formatDate(previewInvoice.issueDate)}</strong></div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Due Date: <strong>{formatDate(previewInvoice.paymentDueDate)}</strong></div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Terms: <strong>{previewInvoice.paymentTerms}</strong></div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Bill To */}
               <div style={{ margin: '16px 0', padding: '12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>

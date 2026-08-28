@@ -257,7 +257,7 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <a
-                      href={getWhatsAppUrl(client.phone, `Hello ${client.contactPerson}, greetings from Auco & Aiwa.`)}
+                      href={getWhatsAppUrl(client.phone, `Hello ${client.contactPerson}, greetings from ${client.brand === 'AIWA' ? 'Aiwa India' : 'Auco Automation'}.`)}
                       target="_blank"
                       rel="noreferrer"
                       className="badge badge-whatsapp"
@@ -320,7 +320,7 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
             {/* Quick Action Toolbar */}
             <div style={{ padding: '10px 24px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-default)', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
               <a
-                href={getWhatsAppUrl(selectedClient.phone, `Hello ${selectedClient.contactPerson}, following up from Auco & Aiwa regarding your orders.`)}
+                href={getWhatsAppUrl(selectedClient.phone, `Hello ${selectedClient.contactPerson}, following up from ${selectedClient.brand === 'AIWA' ? 'Aiwa India' : 'Auco Automation'} regarding your orders.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-sm badge-whatsapp"

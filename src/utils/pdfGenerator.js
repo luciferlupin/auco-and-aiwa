@@ -13,7 +13,17 @@ export const generateInvoicePDF = (invoice) => {
       format: 'a4'
     });
 
-    const primaryColor = [79, 70, 229]; // #4f46e5
+    const isAiwa = invoice.brand === 'AIWA' || (invoice.items && invoice.items[0]?.productCode?.startsWith('AIW'));
+    const brandTitle = isAiwa ? 'AIWA INDIA' : 'AUCO AUTOMATION';
+    const brandLegal = isAiwa ? 'Aiwa Commercial AV India Pvt Ltd' : 'Auco Automation India Pvt Ltd';
+    const brandTagline = isAiwa ? 'Commercial AV, Sound Calibration & Matrix Systems' : 'Industrial Automation, Sensors & Robotics Division';
+    const brandGstin = isAiwa ? '07AAACA5678G2Z1' : '27AABCA1234F1Z8';
+    const brandEmail = isAiwa ? 'billing@aiwa-india.com' : 'billing@auco-automation.com';
+    const brandPhone = isAiwa ? '+91 11 4567 8900' : '+91 20 6789 0000';
+    const brandAddress = isAiwa ? 'Aiwa House, Okhla Industrial Area Phase III, New Delhi - 110020' : 'Plot 42, MIDC Industrial Area, Bhosari, Pune, MH - 411026';
+    const brandAccount = isAiwa ? 'Aiwa Commercial AV India Pvt Ltd' : 'Auco Automation India Pvt Ltd';
+    const brandSign = isAiwa ? 'For AIWA COMMERCIAL AV INDIA PVT LTD' : 'For AUCO AUTOMATION INDIA PVT LTD';
+    const primaryColor = isAiwa ? [124, 58, 237] : [37, 99, 235]; // Purple for Aiwa, Blue for Auco
     const slateDark = [15, 23, 42]; // #0f172a
     const slateMuted = [100, 116, 139]; // #64748b
 
@@ -25,13 +35,13 @@ export const generateInvoicePDF = (invoice) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text('AUCO & AIWA', 16, 18);
+    doc.text(brandTitle, 16, 18);
 
     doc.setFontSize(9);
     doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
     doc.setFont('helvetica', 'normal');
-    doc.text('Industrial Automation & Precision AV Systems', 16, 24);
-    doc.text('GSTIN: 27AABCA1234F1Z8 • contact@auco-aiwa.com • +91 20 6789 0000', 16, 30);
+    doc.text(`${brandLegal} • ${brandTagline}`, 16, 24);
+    doc.text(`GSTIN: ${brandGstin} • ${brandEmail} • ${brandPhone}`, 16, 30);
 
     // Invoice Title
     doc.setFont('helvetica', 'bold');
@@ -197,15 +207,14 @@ export const generateInvoicePDF = (invoice) => {
     doc.setFontSize(8.5);
     doc.setTextColor(slateDark[0], slateDark[1], slateDark[2]);
     doc.text('BANK TRANSFER / PAYMENT DETAILS:', 16, summaryY);
-
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
     doc.text('Bank Name: HDFC Bank Ltd', 16, summaryY + 5);
-    doc.text('Account Name: Auco & Aiwa Technologies Pvt Ltd', 16, summaryY + 10);
-    doc.text('Account Number: 50200084920192', 16, summaryY + 15);
-    doc.text('IFSC Code: HDFC0000182  |  Branch: Shivaji Nagar, Pune', 16, summaryY + 20);
-    doc.text('UPI ID: aucoaiwa@hdfcbank', 16, summaryY + 25);
+    doc.text(`Account Name: ${brandAccount}`, 16, summaryY + 10);
+    doc.text(`Account Number: ${isAiwa ? '50200091827364' : '50200084920192'}`, 16, summaryY + 15);
+    doc.text(`IFSC Code: ${isAiwa ? 'HDFC0000240  |  Branch: Okhla, New Delhi' : 'HDFC0000182  |  Branch: Shivaji Nagar, Pune'}`, 16, summaryY + 20);
+    doc.text(`UPI ID: ${isAiwa ? 'aiwaindia@hdfcbank' : 'aucoautomation@hdfcbank'}`, 16, summaryY + 25);
 
     // Footer & Authorized Signatory
     const footerY = 265;
@@ -219,12 +228,12 @@ export const generateInvoicePDF = (invoice) => {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(slateDark[0], slateDark[1], slateDark[2]);
-    doc.text('For AUCO & AIWA TECHNOLOGIES PVT LTD', 194, footerY + 6, { align: 'right' });
+    doc.text(brandSign, 194, footerY + 6, { align: 'right' });
     doc.setFont('helvetica', 'normal');
     doc.text('Authorized Signatory', 194, footerY + 18, { align: 'right' });
 
     // Save the PDF
-    doc.save(`${invoice.invoiceNumber || 'Invoice'}_Auco_Aiwa.pdf`);
+    doc.save(`${invoice.invoiceNumber || 'Invoice'}_${isAiwa ? 'Aiwa' : 'Auco'}.pdf`);
     return true;
   } catch (err) {
     console.error('PDF Generation failed, falling back to print:', err);
@@ -246,7 +255,16 @@ export const generateDeliveryChallanPDF = (dispatch) => {
       format: 'a4'
     });
 
-    const primaryColor = [79, 70, 229]; // #4f46e5 Indigo
+    const isAiwa = dispatch.brand === 'AIWA' || (dispatch.items && dispatch.items[0]?.productCode?.startsWith('AIW'));
+    const brandTitle = isAiwa ? 'AIWA INDIA' : 'AUCO AUTOMATION';
+    const brandLegal = isAiwa ? 'Aiwa Commercial AV India Pvt Ltd' : 'Auco Automation India Pvt Ltd';
+    const brandTagline = isAiwa ? 'Commercial AV, Sound Calibration & Matrix Systems' : 'Industrial Automation, Sensors & Robotics Division';
+    const brandGstin = isAiwa ? '07AAACA5678G2Z1' : '27AABCA1234F1Z8';
+    const brandEmail = isAiwa ? 'logistics@aiwa-india.com' : 'logistics@auco-automation.com';
+    const brandPhone = isAiwa ? '+91 11 4567 8900' : '+91 20 6789 0044';
+    const brandAddress = isAiwa ? 'Aiwa House, Okhla Industrial Area Phase III, New Delhi - 110020' : 'Plot 42, MIDC Industrial Area, Bhosari, Pune, MH - 411026';
+    const brandSign = isAiwa ? 'For AIWA COMMERCIAL AV INDIA PVT LTD' : 'For AUCO AUTOMATION INDIA PVT LTD';
+    const primaryColor = isAiwa ? [124, 58, 237] : [37, 99, 235]; // Purple for Aiwa, Blue for Auco
     const slateDark = [15, 23, 42]; // #0f172a
     const slateMuted = [100, 116, 139]; // #64748b
 
@@ -258,14 +276,14 @@ export const generateDeliveryChallanPDF = (dispatch) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text('AUCO & AIWA', 16, 18);
+    doc.text(brandTitle, 16, 18);
 
     doc.setFontSize(9);
     doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
     doc.setFont('helvetica', 'normal');
-    doc.text('Industrial Automation & Precision AV Systems', 16, 24);
-    doc.text('GSTIN: 27AABCA1234F1Z8 • MIDC Industrial Estate, Pune, Maharashtra - 411026', 16, 30);
-    doc.text('Dispatch Ops: logistics@auco-aiwa.com • +91 20 6789 0044', 16, 35);
+    doc.text(`${brandLegal} • ${brandTagline}`, 16, 24);
+    doc.text(`GSTIN: ${brandGstin} • ${brandAddress}`, 16, 30);
+    doc.text(`Dispatch Ops: ${brandEmail} • ${brandPhone}`, 16, 35);
 
     // Document Title
     doc.setFont('helvetica', 'bold');
@@ -288,38 +306,11 @@ export const generateDeliveryChallanPDF = (dispatch) => {
     doc.setFont('helvetica', 'normal');
     doc.text(`Status: ${(dispatch.dispatchStatus || 'IN TRANSIT').toUpperCase()}`, 194, 34, { align: 'right' });
 
-    // Divider line
+    // Divider
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.5);
     doc.line(16, 44, 194, 44);
 
-    // Section 1: Consignee (Left) & Dispatch Logistics (Right)
-    let startY = 52;
-
-    // Consignee / Ship To Box
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
-    doc.text('CONSIGNEE (DELIVERY ADDRESS):', 16, startY);
-
-    doc.setFontSize(11);
-    doc.setTextColor(slateDark[0], slateDark[1], slateDark[2]);
-    doc.text(dispatch.companyName || dispatch.clientName || 'Client Company', 16, startY + 6);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
-    doc.text(`Attn / Contact: ${dispatch.contactPerson || dispatch.clientName || 'Store Incharge'}`, 16, startY + 11);
-
-    const splitAddress = doc.splitTextToSize(dispatch.shippingAddress || 'Client Facility Address, India', 85);
-    doc.text(splitAddress, 16, startY + 16);
-    doc.text(`Phone: ${dispatch.phone || '—'}  |  Email: ${dispatch.email || '—'}`, 16, startY + 16 + (splitAddress.length * 4));
-
-    // Logistics & Dispatch Meta Box (Right)
-    const metaX = 120;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
     doc.text('TRANSPORT & SHIPMENT DETAILS:', metaX, startY);
 
     doc.setFont('helvetica', 'normal');
@@ -465,11 +456,11 @@ export const generateDeliveryChallanPDF = (dispatch) => {
     doc.setTextColor(slateMuted[0], slateMuted[1], slateMuted[2]);
     doc.text("Receiver's Signature, Seal & Date", 16, signY + 26);
 
-    // Right Signature: Auco & Aiwa Authorized Signatory
+    // Right Signature: Brand Authorized Signatory
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(slateDark[0], slateDark[1], slateDark[2]);
-    doc.text('For AUCO & AIWA TECHNOLOGIES PVT LTD', 194, signY + 6, { align: 'right' });
+    doc.text(brandSign, 194, signY + 6, { align: 'right' });
     doc.line(125, signY + 22, 194, signY + 22);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
@@ -481,7 +472,7 @@ export const generateDeliveryChallanPDF = (dispatch) => {
     doc.text('Computer-generated Delivery Challan & Dispatch Manifest • Valid without physical seal when verified electronically.', 105, 286, { align: 'center' });
 
     // Save the PDF
-    doc.save(`${dispatch.challanNumber || dispatch.id || 'Delivery_Challan'}_Auco_Aiwa.pdf`);
+    doc.save(`${dispatch.challanNumber || dispatch.id || 'Delivery_Challan'}_${isAiwa ? 'Aiwa' : 'Auco'}.pdf`);
     return true;
   } catch (err) {
     console.error('Delivery Challan PDF Generation failed:', err);

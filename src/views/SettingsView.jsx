@@ -350,46 +350,53 @@ export const SettingsView = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', background: 'var(--bg-subtle)', padding: '10px', borderRadius: 'var(--radius-md)' }}>
                 <div><strong>Catalog Prefix:</strong> AIW-301, AIW-405, AIW-800</div>
                 <div><strong>Primary Market:</strong> Auditoriums, Hospitality, IT Tech Parks & Retail Chains</div>
-                <div><strong>GSTIN:</strong> 27AABCA1234F1Z8</div>
+                <div><strong>Legal Entity:</strong> Aiwa Commercial AV India Pvt Ltd</div>
+                <div><strong>GSTIN:</strong> 07AAACA5678G2Z1 • New Delhi</div>
               </div>
             </div>
           </div>
 
-          {/* Legal Business Details */}
-          <div className="card" style={{ maxWidth: '100%' }}>
-            <h3 style={{ marginBottom: '14px' }}>Unified Legal Entity Profile</h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.85rem' }}>
-              <div className="form-group">
-                <label className="form-label">Legal Business Entity</label>
-                <input type="text" className="form-input" defaultValue="AUCO & AIWA TECHNOLOGIES PVT LTD" readOnly />
+          {/* Legal Business Details for both brands */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span className="badge badge-info">Brand 1</span>
+                <h3 style={{ margin: 0, fontSize: '1rem' }}>Auco Automation Legal Profile</h3>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">GSTIN / Tax ID</label>
-                <input type="text" className="form-input" defaultValue="27AABCA1234F1Z8" readOnly />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Corporate Headquarters</label>
-                <input type="text" className="form-input" defaultValue="MIDC Industrial Area, Pune, Maharashtra - 411026" readOnly />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Support Email</label>
-                <input type="text" className="form-input" defaultValue="operations@auco-aiwa.com" readOnly />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Default Tax Rate (GST)</label>
-                <input type="text" className="form-input" defaultValue="18% (CGST 9% + SGST 9%)" readOnly />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Default Payment Terms</label>
-                <input type="text" className="form-input" defaultValue="Net 30 Days" readOnly />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.82rem' }}>
+                <div><span style={{ color: 'var(--text-muted)' }}>Company Name:</span> <strong>Auco Automation India Pvt Ltd</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>GSTIN / Tax ID:</span> <strong>27AABCA1234F1Z8</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Registered Office:</span> <strong>Plot 42, MIDC Bhosari, Pune, MH - 411026</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Official Email:</span> <strong>contact@auco-automation.com</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Default Tax Rate:</span> <strong>18% GST (CGST 9% + SGST 9%)</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Payment Terms:</span> <strong>Net 30 Days</strong></div>
               </div>
             </div>
+
+            <div className="card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span className="badge badge-purple">Brand 2</span>
+                <h3 style={{ margin: 0, fontSize: '1rem' }}>Aiwa India Legal Profile</h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.82rem' }}>
+                <div><span style={{ color: 'var(--text-muted)' }}>Company Name:</span> <strong>Aiwa Commercial AV India Pvt Ltd</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>GSTIN / Tax ID:</span> <strong>07AAACA5678G2Z1</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Registered Office:</span> <strong>Aiwa House, Okhla Phase III, New Delhi - 110020</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Official Email:</span> <strong>contact@aiwa-india.com</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Default Tax Rate:</span> <strong>18% GST (CGST 9% + SGST 9%)</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Payment Terms:</span> <strong>Net 30 Days</strong></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Portal Architecture Notice */}
+          <div className="card" style={{ background: 'var(--bg-subtle)', borderLeft: '4px solid var(--primary-600)' }}>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9rem' }}>Dual-Brand Portal Architecture</h4>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              <strong>Auco</strong> and <strong>Aiwa</strong> operate as two independent brands with isolated product catalogs, delivery challans, GST billing details, and customer registries. This software serves as a unified multi-brand operations portal enabling management to toggle between brands or view combined enterprise metrics.
+            </p>
           </div>
         </div>
       )}
