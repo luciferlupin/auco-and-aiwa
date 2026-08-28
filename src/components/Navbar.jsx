@@ -84,6 +84,7 @@ export const Navbar = ({
 
   return (
     <header
+      className="app-header"
       style={{
         height: '64px',
         background: 'rgba(255, 255, 255, 0.88)',
@@ -99,75 +100,9 @@ export const Navbar = ({
         zIndex: 100
       }}
     >
-      {/* Left: Mobile Menu Toggle & Global Search Trigger */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '460px' }}>
-        {/* Mobile Hamburger Button */}
-        <button
-          onClick={onToggleMobileSidebar}
-          className="btn btn-secondary btn-icon mobile-only"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', flexShrink: 0 }}
-          title="Toggle Navigation Menu"
-        >
-          <Menu size={18} />
-        </button>
-
-        {/* Global Search Bar (Desktop) */}
-        <button
-          onClick={onOpenSearch}
-          className="desktop-only"
-          style={{
-            width: '100%',
-            height: '38px',
-            background: 'var(--bg-subtle)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '0 12px',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            fontSize: '0.82rem',
-            transition: 'all 0.15s ease'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-strong)'}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-default)'}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-            <Search size={15} style={{ flexShrink: 0 }} />
-            <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              Search clients, products, orders, invoices...
-            </span>
-          </div>
-          <kbd
-            style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: '4px',
-              padding: '2px 6px',
-              fontSize: '0.7rem',
-              fontWeight: 600,
-              color: 'var(--text-secondary)',
-              flexShrink: 0
-            }}
-          >
-            ⌘K
-          </kbd>
-        </button>
-
-        {/* Mobile Quick Search Icon Button */}
-        <button
-          onClick={onOpenSearch}
-          className="btn btn-secondary btn-icon mobile-only"
-          style={{ width: '38px', height: '38px', flexShrink: 0 }}
-          title="Quick Search"
-        >
-          <Search size={17} />
-        </button>
-      </div>
-
-      {/* Right: Company Switcher Pill, Cloud Sync Pill, Quick Add, Alerts, Role Switcher, Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        {/* Company Brand Workspace Switcher Dropdown */}
+      {/* Left: Brand Switcher (Mobile) or Search + Brand (Desktop) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, maxWidth: '480px' }}>
+        {/* Company Brand Workspace Switcher */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
@@ -175,14 +110,15 @@ export const Navbar = ({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '4px 10px',
-              background: `${activeBrand.color}12`,
-              border: `1px solid ${activeBrand.color}35`,
+              padding: '6px 12px',
+              background: `${activeBrand.color}14`,
+              border: `1.5px solid ${activeBrand.color}40`,
               borderRadius: 'var(--radius-full)',
-              fontSize: '0.75rem',
+              fontSize: '0.78rem',
               color: activeBrand.color,
-              fontWeight: 700,
-              cursor: 'pointer'
+              fontWeight: 800,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
             }}
             title="Switch Workspace Company Brand (Auco vs Aiwa)"
           >
@@ -198,7 +134,7 @@ export const Navbar = ({
                 style={{
                   position: 'absolute',
                   top: '100%',
-                  right: 0,
+                  left: 0,
                   marginTop: '6px',
                   width: '240px',
                   background: 'var(--bg-surface)',
@@ -240,6 +176,52 @@ export const Navbar = ({
           )}
         </div>
 
+        {/* Global Search Bar (Desktop Only) */}
+        <button
+          onClick={onOpenSearch}
+          className="desktop-only"
+          style={{
+            width: '100%',
+            height: '38px',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0 12px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            fontSize: '0.82rem',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--border-strong)'}
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-default)'}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+            <Search size={15} style={{ flexShrink: 0 }} />
+            <span style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              Search clients, products, orders, invoices...
+            </span>
+          </div>
+          <kbd
+            style={{
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              color: 'var(--text-secondary)',
+              flexShrink: 0
+            }}
+          >
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+
+      {/* Right: Duty Pill, Quick Create, Notifications (Desktop), Role (Desktop), Profile */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Staff Attendance / Shift Status Pill */}
         <button
           onClick={() => setIsCheckInModalOpen(true)}
@@ -247,7 +229,7 @@ export const Navbar = ({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '4px 10px',
+            padding: '5px 11px',
             background: isCheckedIn ? '#ecfdf5' : '#f8fafc',
             border: isCheckedIn ? '1px solid #6ee7b7' : '1px dashed #cbd5e1',
             borderRadius: 'var(--radius-full)',
@@ -255,7 +237,8 @@ export const Navbar = ({
             color: isCheckedIn ? '#065f46' : 'var(--text-secondary)',
             fontWeight: 700,
             cursor: 'pointer',
-            transition: 'all 0.15s ease'
+            transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap'
           }}
           title={isCheckedIn ? `On Duty (${userTodayAttendance.workMode}) - Click to Check Out` : "Click to Clock In for shift"}
         >
@@ -268,88 +251,102 @@ export const Navbar = ({
               boxShadow: isCheckedIn ? '0 0 6px #10b981' : 'none'
             }}
           />
-          <span>{isCheckedIn ? `On Duty (${userTodayAttendance.workMode.split(' ')[0]})` : 'Clock In'}</span>
+          <span>{isCheckedIn ? 'On Duty' : 'Clock In'}</span>
         </button>
 
-        {/* Quick Add Dropdown */}
+        {/* Quick Add Button */}
         <div style={{ position: 'relative' }}>
+          {/* Desktop Create Button */}
           <button
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary btn-sm desktop-only"
             onClick={() => setShowQuickMenu(!showQuickMenu)}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+            style={{ alignItems: 'center', gap: '5px' }}
           >
             <Plus size={15} />
             <span>Create</span>
             <ChevronDown size={13} />
           </button>
 
+          {/* Mobile Create Icon Button */}
+          <button
+            className="btn btn-primary btn-icon mobile-only"
+            onClick={() => setShowQuickMenu(!showQuickMenu)}
+            style={{ width: '34px', height: '34px', borderRadius: '50%' }}
+            title="Quick Create"
+          >
+            <Plus size={18} />
+          </button>
+
           {showQuickMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '6px',
-                width: '210px',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-xl)',
-                padding: '6px',
-                zIndex: 200
-              }}
-            >
-              <div style={{ padding: '6px 10px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                Quick Actions
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 150 }} onClick={() => setShowQuickMenu(false)} />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '6px',
+                  width: '210px',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-xl)',
+                  padding: '6px',
+                  zIndex: 200
+                }}
+              >
+                <div style={{ padding: '6px 10px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Quick Actions
+                </div>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  onClick={() => { setShowQuickMenu(false); onOpenLeadModal(); }}
+                >
+                  + New Lead
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  onClick={() => { setShowQuickMenu(false); onOpenClientModal(); }}
+                >
+                  + New Client
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  onClick={() => { setShowQuickMenu(false); onOpenOrderModal(); }}
+                >
+                  + New Order (Auto-stock)
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--primary-600)', fontWeight: 600 }}
+                  onClick={() => { setShowQuickMenu(false); if (onOpenDispatchModal) onOpenDispatchModal(); }}
+                >
+                  🚀 Dispatch Shipment
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  onClick={() => { setShowQuickMenu(false); onOpenInvoiceModal(); }}
+                >
+                  + New Invoice
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start' }}
+                  onClick={() => { setShowQuickMenu(false); onOpenTaskModal(); }}
+                >
+                  + Assign Task
+                </button>
               </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start' }}
-                onClick={() => { setShowQuickMenu(false); onOpenLeadModal(); }}
-              >
-                + New Lead
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start' }}
-                onClick={() => { setShowQuickMenu(false); onOpenClientModal(); }}
-              >
-                + New Client
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start' }}
-                onClick={() => { setShowQuickMenu(false); onOpenOrderModal(); }}
-              >
-                + New Order (Auto-stock)
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--primary-600)', fontWeight: 600 }}
-                onClick={() => { setShowQuickMenu(false); if (onOpenDispatchModal) onOpenDispatchModal(); }}
-              >
-                🚀 Dispatch Shipment
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start' }}
-                onClick={() => { setShowQuickMenu(false); onOpenInvoiceModal(); }}
-              >
-                + New Invoice
-              </button>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start' }}
-                onClick={() => { setShowQuickMenu(false); onOpenTaskModal(); }}
-              >
-                + Assign Task
-              </button>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Notifications Popover */}
-        <div style={{ position: 'relative' }}>
+        {/* Notifications Popover (Desktop Only) */}
+        <div className="desktop-only" style={{ position: 'relative' }}>
           <button
             className="btn btn-secondary btn-icon"
             onClick={() => setShowNotifications(!showNotifications)}
@@ -430,8 +427,8 @@ export const Navbar = ({
           )}
         </div>
 
-        {/* ROLE SWITCHER */}
-        <div style={{ position: 'relative' }}>
+        {/* ROLE SWITCHER (Desktop Only) */}
+        <div className="desktop-only" style={{ position: 'relative' }}>
           <button
             onClick={() => setShowRoleDropdown(!showRoleDropdown)}
             style={{
@@ -519,13 +516,11 @@ export const Navbar = ({
                       <div style={{ fontSize: '0.84rem', fontWeight: 600, color: isSelected ? 'var(--primary-700)' : 'var(--text-primary)' }}>
                         {rc.role} Account
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {rc.role === 'Admin' && 'Full access & task assignment'}
-                        {rc.role === 'Sales' && 'Leads, pipeline & orders'}
-                        {rc.role === 'Accounts' && 'Invoices, payments & AR'}
-                        {rc.role === 'Services' && 'Service tasks & delivery'}
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {rc.desc}
                       </div>
                     </div>
+                    {isSelected && <Check size={16} style={{ color: 'var(--primary-600)' }} />}
                   </button>
                 );
               })}
@@ -567,34 +562,75 @@ export const Navbar = ({
           </button>
 
           {showUserMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '6px',
-                width: '220px',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-xl)',
-                padding: '8px',
-                zIndex: 200
-              }}
-            >
-              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-default)', marginBottom: '6px' }}>
-                <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>{currentUser?.name}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{currentUser?.email}</div>
-                <span className="badge badge-purple" style={{ marginTop: '4px', fontSize: '0.65rem' }}>{currentRole} Role</span>
-              </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger-text)' }}
-                onClick={() => { setShowUserMenu(false); logout(); }}
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 150 }} onClick={() => setShowUserMenu(false)} />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '6px',
+                  width: '260px',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-xl)',
+                  padding: '8px',
+                  zIndex: 200
+                }}
               >
-                <LogOut size={14} /> Sign Out Session
-              </button>
-            </div>
+                <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-default)', marginBottom: '6px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>{currentUser?.name}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{currentUser?.email}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                    <span className="badge badge-purple" style={{ fontSize: '0.68rem', fontWeight: 700 }}>{currentRole} Role</span>
+                    <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>{currentUser?.department}</span>
+                  </div>
+                </div>
+
+                {/* Mobile Quick Role Switcher */}
+                <div className="mobile-only" style={{ flexDirection: 'column', gap: '4px', padding: '4px 0', borderBottom: '1px solid var(--border-default)', marginBottom: '6px' }}>
+                  <div style={{ padding: '4px 8px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    Switch Role
+                  </div>
+                  {roleConfigs.map((rc) => {
+                    const Icon = rc.icon;
+                    const isSelected = rc.role === currentRole;
+                    return (
+                      <button
+                        key={rc.role}
+                        onClick={() => {
+                          switchRole(rc.role);
+                          setShowUserMenu(false);
+                        }}
+                        className="btn btn-ghost btn-sm"
+                        style={{
+                          width: '100%',
+                          justifyContent: 'space-between',
+                          background: isSelected ? 'var(--primary-50)' : 'transparent',
+                          color: isSelected ? 'var(--primary-700)' : 'var(--text-primary)',
+                          fontWeight: isSelected ? 700 : 500
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Icon size={14} style={{ color: rc.color }} />
+                          <span>{rc.role} Account</span>
+                        </div>
+                        {isSelected && <Check size={14} style={{ color: 'var(--primary-600)' }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger-text)' }}
+                  onClick={() => { setShowUserMenu(false); logout(); }}
+                >
+                  <LogOut size={14} /> Sign Out Session
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>

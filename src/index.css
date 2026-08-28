@@ -699,6 +699,11 @@ p { color: var(--text-secondary); }
     display: flex !important;
   }
 
+  .app-header {
+    height: 56px !important;
+    padding: 0 12px !important;
+  }
+
   .mobile-bottom-bar {
     display: flex;
   }
