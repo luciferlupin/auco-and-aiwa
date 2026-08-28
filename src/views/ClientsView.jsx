@@ -57,9 +57,9 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
     return matchesSearch && matchesType && matchesState;
   });
 
-  const clientOrders = selectedClient ? orders.filter((o) => o.clientId === selectedClient.id) : [];
-  const clientInvoices = selectedClient ? invoices.filter((i) => i.clientId === selectedClient.id) : [];
-  const clientPayments = selectedClient ? payments.filter((p) => p.clientId === selectedClient.id) : [];
+  const clientOrders = selectedClient ? orders.filter((o) => o.clientId === selectedClient.id || o.clientName === selectedClient.companyName) : [];
+  const clientInvoices = selectedClient ? invoices.filter((i) => i.clientId === selectedClient.id || i.clientName === selectedClient.companyName) : [];
+  const clientPayments = selectedClient ? payments.filter((p) => p.clientId === selectedClient.id || p.clientName === selectedClient.companyName) : [];
   const clientFollowUps = selectedClient ? followUps.filter((f) => f.clientId === selectedClient.id || f.clientName === selectedClient.companyName) : [];
 
   const handleCopy = (text, id) => {

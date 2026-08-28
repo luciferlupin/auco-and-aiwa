@@ -975,7 +975,6 @@ export const CreateTaskModal = ({ isOpen, onClose }) => {
                 >
                   <option value="AUCO">Auco Automation</option>
                   <option value="AIWA">Aiwa Commercial AV</option>
-                  <option value="ALL">All Companies</option>
                 </select>
               </div>
 

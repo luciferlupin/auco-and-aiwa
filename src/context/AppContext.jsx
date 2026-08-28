@@ -728,6 +728,7 @@ export const AppProvider = ({ children }) => {
     // Auto-create / log field delivery task in tasks
     const newTask = {
       id: generateId('TSK'),
+      brand: newDispatch.brand || 'AUCO',
       taskName: `Deliver Order ${order.id} (${newDispatch.courierCarrier} AWB #${newDispatch.trackingNumber})`,
       description: `Track shipment & coordinate receipt with ${order.clientName}. Delivery Challan: ${newDispatch.challanNumber}.`,
       assignedPerson: dispatchPayload.dispatchedBy || currentUser.name,
@@ -1104,6 +1105,34 @@ export const AppProvider = ({ children }) => {
           client_status: newClient.clientStatus
         });
       } catch (e) {}
+    } else {
+      // Existing client converted with additional lead business value
+      const addedValue = Number(initialOrderValue) || Number(lead.expectedValue) || 0;
+      setClients((prev) =>
+        prev.map((c) => {
+          if (c.id === existingClient.id) {
+            return {
+              ...c,
+              totalOrders: (c.totalOrders || 0) + (initialOrderValue > 0 ? 1 : 0),
+              totalBusinessValue: (c.totalBusinessValue || 0) + addedValue,
+              lastOrder: initialOrderValue > 0 ? new Date().toISOString().split('T')[0] : c.lastOrder,
+              notes: `${c.notes || ''}\n• [${new Date().toISOString().split('T')[0]}] Lead converted (${lead.id}): ${lead.notes || ''}`
+            };
+          }
+          return c;
+        })
+      );
+
+      try {
+        await supabase
+          .from('clients')
+          .update({
+            total_orders: (existingClient.totalOrders || 0) + (initialOrderValue > 0 ? 1 : 0),
+            total_business_value: (existingClient.totalBusinessValue || 0) + addedValue,
+            last_order: initialOrderValue > 0 ? new Date().toISOString().split('T')[0] : existingClient.lastOrder
+          })
+          .eq('id', existingClient.id);
+      } catch (e) {}
     }
 
     setLeads((prev) =>
@@ -1321,15 +1350,42 @@ export const AppProvider = ({ children }) => {
     addToast('Lead Deleted', `Lead ${leadId} removed from pipeline.`, 'info');
   };
 
-  // Order Deletion
+  // Order Deletion (With Automated Stock & Client Metric Restoration)
   const deleteOrder = async (orderId) => {
+    const orderToDelete = orders.find((o) => o.id === orderId);
+
+    // Restore inventory stock for each line item
+    if (orderToDelete && orderToDelete.items && orderToDelete.items.length > 0) {
+      orderToDelete.items.forEach((item) => {
+        if (item.productCode && item.quantity) {
+          adjustProductStock(item.productCode, Math.abs(Number(item.quantity)), `Reverted Order ${orderId}`);
+        }
+      });
+    }
+
+    // Revert client order statistics
+    if (orderToDelete && orderToDelete.clientId) {
+      setClients((prev) =>
+        prev.map((c) => {
+          if (c.id === orderToDelete.clientId) {
+            return {
+              ...c,
+              totalOrders: Math.max(0, (c.totalOrders || 0) - 1),
+              totalBusinessValue: Math.max(0, (c.totalBusinessValue || 0) - (Number(orderToDelete.orderValue) || 0))
+            };
+          }
+          return c;
+        })
+      );
+    }
+
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
     setDispatches((prev) => prev.filter((d) => d.orderId !== orderId));
     try {
       await supabase.from('orders').delete().eq('id', orderId);
       await supabase.from('dispatches').delete().eq('order_id', orderId);
     } catch (e) {}
-    addToast('Order Deleted', `Order ${orderId} removed.`, 'info');
+    addToast('Order Deleted', `Order ${orderId} removed and reserved inventory stock restored.`, 'info');
   };
 
   // Tasks CRUD
@@ -1527,6 +1583,21 @@ export const AppProvider = ({ children }) => {
   };
 
   const deleteInvoice = async (invoiceNumber) => {
+    const invoiceToDelete = invoices.find((i) => i.invoiceNumber === invoiceNumber || i.id === invoiceNumber);
+    if (invoiceToDelete && invoiceToDelete.clientId && invoiceToDelete.balance > 0) {
+      setClients((prev) =>
+        prev.map((c) => {
+          if (c.id === invoiceToDelete.clientId) {
+            return {
+              ...c,
+              pendingAmount: Math.max(0, (c.pendingAmount || 0) - invoiceToDelete.balance)
+            };
+          }
+          return c;
+        })
+      );
+    }
+
     setInvoices((prev) => prev.filter((i) => i.invoiceNumber !== invoiceNumber && i.id !== invoiceNumber));
     setPayments((prev) => prev.filter((p) => p.invoiceNumber !== invoiceNumber));
     try {
