@@ -333,161 +333,211 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
 
       {/* TAB 1: ORDERS DIRECTORY */}
       {activeTab === 'orders' && (
-        <div className="table-container">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Client Name</th>
-                <th>Products / Codes</th>
-                <th>Qty</th>
-                <th>Order Value</th>
-                <th>Order Date</th>
-                <th>Fulfillment & Dispatch</th>
-                <th>Payment</th>
-                <th>Assigned Rep</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map((order) => {
-                const hasDispatch = !!order.dispatchDetails;
-                const isDelivered = order.deliveryStatus === 'Delivered';
-
-                return (
-                  <tr key={order.id}>
-                    <td>
-                      <strong style={{ color: 'var(--primary-600)' }}>{order.id}</strong>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{order.clientName}</div>
-                      {order.dispatchDetails?.challanNumber && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                          Dispatch: <span style={{ fontWeight: 600 }}>{order.dispatchDetails.challanNumber}</span>
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
-                        {order.productCode}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span style={{ fontWeight: 700 }}>{order.quantity}</span>
-                    </td>
-                    <td>
-                      <strong>{formatCurrency(order.orderValue)}</strong>
-                    </td>
-                    <td style={{ fontSize: '0.8rem' }}>
-                      {formatDate(order.orderDate)}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span className={`badge ${getStatusBadgeClass(order.deliveryStatus)}`} style={{ fontSize: '0.72rem' }}>
+        <>
+          {/* Desktop Orders Table */}
+          <div className="table-container desktop-only">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Client Name</th>
+                  <th>Products / Codes</th>
+                  <th>Qty</th>
+                  <th>Order Value</th>
+                  <th>Order Date</th>
+                  <th>Fulfillment & Dispatch</th>
+                  <th>Payment</th>
+                  <th>Assigned Rep</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.map((order) => {
+                  const hasDispatch = !!order.dispatchDetails;
+                  return (
+                    <tr key={order.id}>
+                      <td>
+                        <strong style={{ color: 'var(--primary-600)' }}>{order.id}</strong>
+                      </td>
+                      <td>
+                        <strong style={{ color: 'var(--text-primary)' }}>{order.clientName}</strong>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>{order.productCode}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{order.productName}</div>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{ fontWeight: 700 }}>{order.quantity}</span>
+                      </td>
+                      <td>
+                        <strong>{formatCurrency(order.orderValue)}</strong>
+                      </td>
+                      <td style={{ fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+                        {formatDate(order.orderDate)}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className={`badge ${getStatusBadgeClass(order.deliveryStatus)}`}>
                             {order.deliveryStatus}
                           </span>
+                          {hasDispatch && (
+                            <button
+                              onClick={() => handleOpenChallanForOrder(order)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                color: 'var(--primary-600)',
+                                fontSize: '0.72rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                textDecoration: 'underline'
+                              }}
+                            >
+                              🚚 {order.dispatchDetails.courierCarrier} ({order.dispatchDetails.trackingNumber})
+                            </button>
+                          )}
                         </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${getStatusBadgeClass(order.paymentStatus)}`}>
+                          {order.paymentStatus}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '0.82rem' }}>{order.assignedTeamMember}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                          {hasDispatch ? (
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => handleOpenChallanForOrder(order)}
+                              title="View Shipment Dispatch Note"
+                              style={{ padding: '4px 8px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              <FileText size={13} /> Dispatch Note
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => handleOpenDispatchForOrder(order.id)}
+                              title="Dispatch Shipment"
+                              style={{ padding: '4px 8px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              <Truck size={13} /> Dispatch
+                            </button>
+                          )}
 
-                        {order.dispatchDetails?.courierCarrier ? (
-                          <div
-                            onClick={() => handleOpenChallanForOrder(order)}
-                            style={{
-                              fontSize: '0.72rem',
-                              color: 'var(--primary-700)',
-                              background: 'var(--primary-50)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              width: 'fit-content'
-                            }}
-                            title="Click to view Delivery Challan & Tracking"
-                          >
-                            <Truck size={11} />
-                            <span>{order.dispatchDetails.courierCarrier.split(' ')[0]}</span> •
-                            <span style={{ fontFamily: 'monospace' }}>{order.dispatchDetails.trackingNumber}</span>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                            Awaiting Dispatch
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`badge ${getStatusBadgeClass(order.paymentStatus)}`}>
-                        {order.paymentStatus}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                      {order.assignedTeamMember}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                        {/* Dispatch or Tracking Action */}
-                        {hasDispatch ? (
                           <button
                             className="btn btn-secondary btn-sm"
-                            onClick={() => handleOpenChallanForOrder(order)}
-                            title="View Shipment Details & Tracking"
-                            style={{ padding: '4px 8px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            onClick={() => onNavigate('invoices')}
+                            title="View Invoice"
+                            style={{ padding: '4px 8px', fontSize: '0.76rem' }}
                           >
-                            <Truck size={13} style={{ color: 'var(--primary-600)' }} /> Track
+                            <FileText size={13} />
                           </button>
-                        ) : (
+
                           <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleOpenDispatchForOrder(order.id)}
-                            title="Dispatch Shipment"
-                            style={{ padding: '4px 8px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleDeleteOrder(order)}
+                            title="Delete Order"
+                            style={{ padding: '4px 8px', fontSize: '0.76rem', color: 'var(--danger-text)' }}
                           >
-                            <Truck size={13} /> Dispatch
+                            <Trash2 size={13} />
                           </button>
-                        )}
-
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => onNavigate('invoices')}
-                          title="View Invoice"
-                          style={{ padding: '4px 8px', fontSize: '0.76rem' }}
-                        >
-                          <FileText size={13} />
-                        </button>
-
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => handleDeleteOrder(order)}
-                          title="Delete Order"
-                          style={{ padding: '4px 8px', fontSize: '0.76rem', color: 'var(--danger-text)' }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredOrders.length === 0 && (
+                  <tr>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
+                      <ShoppingCart size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No orders found</div>
+                      <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or status filter.</p>
                     </td>
                   </tr>
-                );
-              })}
-              {filteredOrders.length === 0 && (
-                <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
-                    <ShoppingCart size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No orders found</div>
-                    <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or status filter.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Orders Card Feed */}
+          <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+            {filteredOrders.map((order) => {
+              const hasDispatch = !!order.dispatchDetails;
+              return (
+                <div key={order.id} className="card" style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.9rem' }}>{order.id}</strong>
+                        <span className={`badge ${getStatusBadgeClass(order.deliveryStatus)}`} style={{ fontSize: '0.68rem' }}>
+                          {order.deliveryStatus}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '2px' }}>{order.clientName}</div>
+                    </div>
+                    <span className="badge badge-purple" style={{ fontWeight: 800, fontSize: '0.82rem' }}>
+                      {formatCurrency(order.orderValue)}
+                    </span>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem', marginBottom: '10px' }}>
+                    <div><strong>{order.productCode}</strong> — {order.productName} (Qty: {order.quantity})</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: '2px' }}>
+                      Date: {formatDate(order.orderDate)} • Rep: {order.assignedTeamMember}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+                    {hasDispatch ? (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
+                        onClick={() => handleOpenChallanForOrder(order)}
+                      >
+                        <FileText size={13} />
+                        <span>Dispatch Note</span>
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
+                        onClick={() => handleOpenDispatchForOrder(order.id)}
+                      >
+                        <Truck size={13} />
+                        <span>Dispatch</span>
+                      </button>
+                    )}
+
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      style={{ height: '32px', padding: '0 10px' }}
+                      onClick={() => onNavigate('invoices')}
+                    >
+                      <FileText size={13} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            {filteredOrders.length === 0 && (
+              <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <ShoppingCart size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+                <div style={{ fontWeight: 700 }}>No orders found</div>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* TAB 2: SHIPMENTS & DISPATCHES */}
       {activeTab === 'dispatches' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="table-container">
+          {/* Desktop Dispatches Table */}
+          <div className="table-container desktop-only">
             <table className="custom-table">
               <thead>
                 <tr>
@@ -520,42 +570,33 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
                     </td>
                     <td>
                       <div>
-                        <span style={{ fontWeight: 600, color: 'var(--primary-700)' }}>{disp.courierCarrier}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                        <span style={{ fontFamily: 'monospace', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                          {disp.trackingNumber}
-                        </span>
-                        <button
-                          onClick={() => handleCopyText(disp.trackingNumber, 'AWB Number')}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', color: 'var(--text-muted)' }}
-                          title="Copy AWB Tracking #"
-                        >
-                          <Copy size={11} />
-                        </button>
+                        <strong style={{ fontSize: '0.82rem' }}>{disp.courierCarrier}</strong>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>AWB: {disp.trackingNumber}</span>
+                          <button
+                            onClick={() => handleCopy(disp.trackingNumber, `awb-${disp.id}`)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--text-muted)' }}
+                            title="Copy AWB"
+                          >
+                            <Copy size={11} />
+                          </button>
+                        </div>
                       </div>
                     </td>
-                    <td>
-                      <span style={{ fontFamily: 'monospace', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                        {disp.ewayBillNumber || '—'}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: '0.8rem' }}>
-                      {formatDate(disp.dispatchDate)}
-                    </td>
-                    <td style={{ fontSize: '0.8rem' }}>
+                    <td style={{ fontSize: '0.78rem' }}>{disp.ewayBillNumber || '—'}</td>
+                    <td style={{ fontSize: '0.78rem' }}>{formatDate(disp.dispatchDate)}</td>
+                    <td style={{ fontSize: '0.78rem', color: 'var(--primary-600)', fontWeight: 600 }}>
                       {formatDate(disp.estimatedDelivery)}
                     </td>
-                    <td>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{disp.packageCount || '1 Carton'}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{disp.packageWeight || '5 kg'}</div>
+                    <td style={{ fontSize: '0.78rem' }}>
+                      {disp.packageCount} ({disp.packageWeight})
                     </td>
                     <td>
                       <select
                         className="form-select"
+                        style={{ fontSize: '0.74rem', padding: '2px 6px', height: '26px', fontWeight: 600 }}
                         value={disp.dispatchStatus}
                         onChange={(e) => updateDispatchStatus(disp.id, e.target.value)}
-                        style={{ width: '135px', padding: '3px 6px', fontSize: '0.76rem', fontWeight: 600 }}
                       >
                         <option value="Dispatched">Dispatched</option>
                         <option value="In Transit">In Transit</option>
@@ -610,6 +651,59 @@ export const OrdersView = ({ onOpenOrderModal, onNavigate }) => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Dispatches Card Feed */}
+          <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+            {filteredDispatches.map((disp) => (
+              <div key={disp.id} className="card" style={{ padding: '14px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                  <div>
+                    <strong style={{ color: 'var(--primary-600)', fontSize: '0.9rem' }}>{disp.challanNumber || disp.id}</strong>
+                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{disp.companyName || disp.clientName}</div>
+                  </div>
+                  <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>
+                    Order: {disp.orderId}
+                  </span>
+                </div>
+
+                <div style={{ background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem', marginBottom: '10px' }}>
+                  <div>🚚 <strong>{disp.courierCarrier}</strong> • AWB: {disp.trackingNumber}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: '2px' }}>
+                    Dispatched: {formatDate(disp.dispatchDate)} • Est. Arrival: {formatDate(disp.estimatedDelivery)}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+                  <select
+                    className="form-select"
+                    style={{ fontSize: '0.76rem', padding: '4px 8px', height: '32px', fontWeight: 700, flex: 1 }}
+                    value={disp.dispatchStatus}
+                    onChange={(e) => updateDispatchStatus(disp.id, e.target.value)}
+                  >
+                    <option value="Dispatched">Dispatched</option>
+                    <option value="In Transit">In Transit</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => { setSelectedChallanDispatch(disp); setIsChallanModalOpen(true); }}
+                  >
+                    <FileText size={13} />
+                    <span>View Note</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filteredDispatches.length === 0 && (
+              <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Truck size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+                <div style={{ fontWeight: 700 }}>No dispatches found</div>
+              </div>
+            )}
           </div>
         </div>
       )}

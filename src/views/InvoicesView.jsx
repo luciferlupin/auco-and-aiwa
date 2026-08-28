@@ -154,8 +154,10 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
         </div>
       </div>
 
-      {/* Invoices Table */}
-      <div className="table-container">
+      {/* =========================================================================
+          DESKTOP INVOICES TABLE
+          ========================================================================= */}
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -250,6 +252,82 @@ export const InvoicesView = ({ onOpenInvoiceModal }) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE INVOICE CARDS FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredInvoices.map((inv) => (
+          <div key={inv.id} className="card" style={{ padding: '14px 16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace', fontSize: '0.9rem' }}>{inv.invoiceNumber}</strong>
+                  <span className={`badge ${getStatusBadgeClass(inv.paymentStatus)}`} style={{ fontSize: '0.68rem' }}>
+                    {inv.paymentStatus}
+                  </span>
+                </div>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '2px' }}>{inv.clientName}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{formatCurrency(inv.totalAmount)}</div>
+                {inv.balance > 0 ? (
+                  <div style={{ fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 700 }}>
+                    Due: {formatCurrency(inv.balance)}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.72rem', color: 'var(--success-text)' }}>Paid in Full</div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', marginBottom: '10px' }}>
+              <span>Issued: {formatDate(inv.issueDate)}</span>
+              <span style={{ color: 'var(--text-muted)' }}>•</span>
+              <span style={{ color: inv.paymentStatus === 'Overdue' ? 'var(--danger-text)' : 'inherit', fontWeight: inv.paymentStatus === 'Overdue' ? 700 : 'normal' }}>
+                Due: {formatDate(inv.paymentDueDate)}
+              </span>
+              {inv.orderId && (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>•</span>
+                  <span>Ref: {inv.orderId}</span>
+                </>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+              <button
+                className="btn btn-secondary btn-sm"
+                style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
+                onClick={() => setPreviewInvoice(inv)}
+              >
+                <Eye size={13} />
+                <span>View & Print</span>
+              </button>
+
+              {inv.balance > 0 && (
+                <button
+                  className="btn btn-success btn-sm"
+                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => {
+                    setRecordPaymentInvoice(inv);
+                    setPaymentAmount(String(inv.balance));
+                  }}
+                >
+                  <CreditCard size={13} />
+                  <span>Collect</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {filteredInvoices.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <FileText size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No invoices found</div>
+          </div>
+        )}
       </div>
 
       {/* =========================================================================

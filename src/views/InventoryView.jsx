@@ -230,8 +230,10 @@ export const InventoryView = () => {
         </div>
       </div>
 
-      {/* Inventory Table */}
-      <div className="table-container">
+      {/* =========================================================================
+          DESKTOP INVENTORY TABLE
+          ========================================================================= */}
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -330,13 +332,76 @@ export const InventoryView = () => {
               <tr>
                 <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
                   <Boxes size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No inventory products found</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No products found</div>
                   <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or category filter.</p>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE PRODUCT CARDS FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredProducts.map((p) => {
+          const isLow = p.availableStock <= p.minStockLevel;
+          return (
+            <div key={p.id} className="card" style={{ padding: '14px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace', fontSize: '0.95rem' }}>[{p.productCode}]</strong>
+                    {isLow ? (
+                      <span className="badge badge-danger" style={{ fontSize: '0.68rem', fontWeight: 700 }}>Low Stock</span>
+                    ) : (
+                      <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>In Stock</span>
+                    )}
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '2px' }}>{p.name}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{formatCurrency(p.price)}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>per unit</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem', marginBottom: '10px' }}>
+                <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>{p.category}</span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <span>Available: <strong style={{ color: isLow ? 'var(--danger-text)' : 'inherit', fontSize: '0.85rem' }}>{p.availableStock}</strong> units</span>
+                <span style={{ color: 'var(--text-muted)' }}>(Min: {p.minStockLevel})</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+                <button
+                  className="btn btn-primary btn-sm"
+                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
+                  onClick={() => setShowAdjustModal(p)}
+                >
+                  <Sliders size={13} />
+                  <span>Adjust Stock</span>
+                </button>
+
+                <button
+                  className="btn btn-secondary btn-sm"
+                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => handleStartEditProduct(p)}
+                >
+                  <Edit2 size={13} />
+                  <span>Edit</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {filteredProducts.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <Boxes size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No products found</div>
+          </div>
+        )}
       </div>
 
       {/* =========================================================================

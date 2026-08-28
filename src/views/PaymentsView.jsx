@@ -142,8 +142,10 @@ export const PaymentsView = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Payments Table */}
-      <div className="table-container">
+      {/* =========================================================================
+          DESKTOP PAYMENTS TABLE
+          ========================================================================= */}
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -218,12 +220,80 @@ export const PaymentsView = ({ onNavigate }) => {
                 <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
                   <CreditCard size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
                   <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No payment records found</div>
-                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or payment status filter.</p>
+                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or status filter.</p>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE PAYMENT CARDS FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredPayments.map((p) => {
+          const isOverdue = p.paymentStatus === 'Overdue';
+          return (
+            <div key={p.id} className="card" style={{ padding: '14px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace', fontSize: '0.9rem' }}>{p.invoiceNumber}</strong>
+                    <span className={`badge ${getStatusBadgeClass(p.paymentStatus)}`} style={{ fontSize: '0.68rem' }}>
+                      {p.paymentStatus}
+                    </span>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '2px' }}>{p.clientName}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{formatCurrency(p.invoiceAmount)}</div>
+                  {p.balance > 0 ? (
+                    <div style={{ fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 700 }}>
+                      Pending: {formatCurrency(p.balance)}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.72rem', color: 'var(--success-text)' }}>Settled</div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', marginBottom: '10px' }}>
+                <span>Paid: <strong style={{ color: 'var(--success-text)' }}>{formatCurrency(p.amountPaid)}</strong></span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <span style={{ color: isOverdue ? 'var(--danger-text)' : 'inherit', fontWeight: isOverdue ? 700 : 'normal' }}>
+                  Due: {formatDate(p.paymentDueDate)}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+                {p.balance > 0 ? (
+                  <button
+                    className="btn btn-success btn-sm"
+                    style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
+                    onClick={() => {
+                      setRecordPaymentModal(p);
+                      setAmountInput(String(p.balance));
+                    }}
+                  >
+                    <CreditCard size={13} />
+                    <span>Collect Payment ({formatCurrency(p.balance)})</span>
+                  </button>
+                ) : (
+                  <span className="badge badge-success" style={{ width: '100%', textAlign: 'center', padding: '8px', fontSize: '0.78rem' }}>
+                    Payment Complete
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {filteredPayments.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <CreditCard size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No payment records found</div>
+          </div>
+        )}
       </div>
 
       {/* Collect Payment Modal */}

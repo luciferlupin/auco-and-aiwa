@@ -165,8 +165,10 @@ export const FollowUpsView = () => {
         </div>
       </div>
 
-      {/* Follow-ups Table */}
-      <div className="table-container">
+      {/* =========================================================================
+          DESKTOP FOLLOW-UPS TABLE
+          ========================================================================= */}
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -260,6 +262,88 @@ export const FollowUpsView = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE FOLLOW-UPS CARD FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredFollowUps.map((flw) => {
+          const resolvedPhone = flw.phone || clients.find(c => c.companyName === flw.clientName || c.clientName === flw.clientName)?.phone || leads.find(l => l.company === flw.clientName || l.client === flw.clientName)?.phone;
+
+          return (
+            <div key={flw.id} className="card" style={{ padding: '14px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <div>
+                  <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{flw.clientName}</strong>
+                  {flw.contactPerson && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Attn: {flw.contactPerson}</div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {getFollowUpTypeIcon(flw.followUpType)}
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>{flw.followUpType}</span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 8px 0', lineHeight: 1.35 }}>
+                {flw.notes}
+              </p>
+
+              {flw.nextAction && (
+                <div style={{ fontSize: '0.74rem', color: 'var(--primary-600)', marginBottom: '8px', fontWeight: 600 }}>
+                  👉 Next: {flw.nextAction}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-subtle)', padding: '6px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', marginBottom: '10px' }}>
+                <span>📅 Due: <strong>{formatDate(flw.followUpDate)}</strong></span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <span>Rep: {flw.assignedSalesperson}</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+                <select
+                  className="form-select"
+                  style={{ fontSize: '0.76rem', padding: '4px 8px', height: '32px', fontWeight: 700, flex: 1 }}
+                  value={flw.status}
+                  onChange={(e) => updateFollowUp(flw.id, { status: e.target.value })}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Missed">Missed</option>
+                </select>
+
+                {resolvedPhone && (
+                  <a
+                    href={getWhatsAppUrl(resolvedPhone, `Hello ${flw.clientName}, following up from ${flw.brand === 'AIWA' ? 'Aiwa India' : 'Auco Automation'} on our scheduled discussion.`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ height: '32px', padding: '0 10px', color: '#16a34a', borderColor: '#86efac', background: '#f0fdf4', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                  >
+                    <MessageSquare size={13} />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ color: 'var(--danger-text)', height: '32px', padding: '0 8px' }}
+                  onClick={() => handleDeleteFollowUp(flw)}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {filteredFollowUps.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <MessageSquare size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No follow-ups scheduled</div>
+          </div>
+        )}
       </div>
 
       {/* Add Follow-Up Modal */}

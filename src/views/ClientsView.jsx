@@ -175,7 +175,10 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
       </div>
 
       {/* Clients Table */}
-      <div className="table-container">
+      {/* =========================================================================
+          DESKTOP TABLE VIEW
+          ========================================================================= */}
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -292,6 +295,76 @@ export const ClientsView = ({ onOpenClientModal, onOpenOrderModal }) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE CLIENT CARDS FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredClients.map((client) => {
+          const hasPending = (client.pendingAmount || 0) > 0;
+          return (
+            <div
+              key={client.id}
+              className="card"
+              style={{ padding: '14px 16px', cursor: 'pointer' }}
+              onClick={() => { setSelectedClient(client); setActiveDrawerTab('overview'); }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{client.companyName}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{client.contactPerson} • {client.city}, {client.state}</div>
+                </div>
+                <span className="badge badge-purple" style={{ fontWeight: 800, fontSize: '0.82rem' }}>
+                  {formatCurrency(client.totalBusinessValue)}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>{client.clientType}</span>
+                <span className="badge badge-info" style={{ fontSize: '0.68rem' }}>{client.totalOrders || 0} Orders</span>
+                {hasPending ? (
+                  <span className="badge badge-danger" style={{ fontSize: '0.68rem', fontWeight: 700 }}>
+                    Pending: {formatCurrency(client.pendingAmount)}
+                  </span>
+                ) : (
+                  <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>Settled</span>
+                )}
+              </div>
+
+              <div
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-default)' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <a
+                  href={getWhatsAppUrl(client.phone, `Hello ${client.contactPerson}, greetings from ${client.brand === 'AIWA' ? 'Aiwa India' : 'Auco Automation'}.`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-secondary btn-sm"
+                  style={{ height: '32px', padding: '0 10px', color: '#16a34a', borderColor: '#86efac', background: '#f0fdf4', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                >
+                  <MessageSquare size={13} />
+                  <span>WhatsApp</span>
+                </a>
+
+                <button
+                  className="btn btn-secondary btn-sm"
+                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => { setSelectedClient(client); setActiveDrawerTab('overview'); }}
+                >
+                  <span>Details</span>
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {filteredClients.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <Building2 size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No clients found</div>
+          </div>
+        )}
       </div>
 
       {/* =========================================================================

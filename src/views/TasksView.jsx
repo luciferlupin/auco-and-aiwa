@@ -175,8 +175,10 @@ export const TasksView = ({ onOpenTaskModal }) => {
         </div>
       </div>
 
-      {/* Tasks Table */}
-      <div className="table-container">
+      {/* =========================================================================
+          DESKTOP TASKS TABLE
+          ========================================================================= */}
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -267,6 +269,63 @@ export const TasksView = ({ onOpenTaskModal }) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE TASK CARDS FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredTasks.map((t) => (
+          <div key={t.id} className="card" style={{ padding: '14px 16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+              <div>
+                <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{t.taskName}</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Client: {t.client}</div>
+              </div>
+              <span className={`badge ${t.priority === 'Urgent' || t.priority === 'High' ? 'badge-danger' : (t.priority === 'Medium' ? 'badge-warning' : 'badge-neutral')}`} style={{ fontSize: '0.68rem', fontWeight: 700 }}>
+                {t.priority}
+              </span>
+            </div>
+
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.35 }}>
+              {t.description}
+            </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', marginBottom: '10px' }}>
+              <span>Assignee: <strong>{t.assignedPerson}</strong></span>
+              <span style={{ color: 'var(--text-muted)' }}>•</span>
+              <span>Due: {formatDate(t.dueDate)}</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
+              <select
+                className="form-select"
+                style={{ fontSize: '0.76rem', padding: '4px 8px', height: '32px', fontWeight: 700, flex: 1 }}
+                value={t.status}
+                onChange={(e) => updateTask(t.id, { status: e.target.value })}
+              >
+                <option value="To Do">To Do</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ color: 'var(--danger-text)', height: '32px', padding: '0 8px' }}
+                onClick={() => handleDeleteTask(t)}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+        {filteredTasks.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <CheckSquare size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No tasks found</div>
+          </div>
+        )}
       </div>
     </div>
   );

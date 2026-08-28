@@ -192,9 +192,9 @@ export const LeadsView = ({ onOpenLeadModal }) => {
       </div>
 
       {/* =========================================================================
-          LEADS DIRECTORY TABLE VIEW
+          DESKTOP TABLE VIEW
           ========================================================================= */}
-      <div className="table-container">
+      <div className="table-container desktop-only">
         <table className="custom-table">
           <thead>
             <tr>
@@ -314,6 +314,90 @@ export const LeadsView = ({ onOpenLeadModal }) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* =========================================================================
+          MOBILE CARDS FEED (Phone Screens)
+          ========================================================================= */}
+      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+        {filteredLeads.map((lead) => (
+          <div
+            key={lead.id}
+            className="card"
+            style={{ padding: '14px 16px', cursor: 'pointer' }}
+            onClick={() => setSelectedLead(lead)}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{lead.company}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{lead.client} • {lead.city}, {lead.state}</div>
+              </div>
+              <span className="badge badge-purple" style={{ fontWeight: 800, fontSize: '0.82rem' }}>
+                {formatCurrency(lead.expectedValue)}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>{lead.leadSource}</span>
+              <span className="badge badge-info" style={{ fontSize: '0.68rem' }}>Rep: {lead.assignedSalesperson}</span>
+              {lead.followUpDate && (
+                <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>📅 {formatDate(lead.followUpDate)}</span>
+              )}
+            </div>
+
+            {/* Quick Actions Row */}
+            <div
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-default)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <select
+                className="form-select"
+                style={{
+                  fontSize: '0.76rem',
+                  padding: '4px 8px',
+                  height: '32px',
+                  fontWeight: 700,
+                  flex: 1,
+                  borderColor: lead.stage === 'Won' ? '#10b981' : (lead.stage === 'Lost' ? '#ef4444' : 'var(--border-default)')
+                }}
+                value={lead.stage}
+                onChange={(e) => handleMoveStage(lead.id, e.target.value)}
+              >
+                {PIPELINE_STAGES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+
+              <a
+                href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-secondary btn-sm"
+                style={{ height: '32px', padding: '0 10px', color: '#16a34a', borderColor: '#86efac', background: '#f0fdf4', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+              >
+                <MessageSquare size={13} />
+                <span>WhatsApp</span>
+              </a>
+
+              {lead.stage !== 'Won' && (
+                <button
+                  className="btn btn-success btn-sm"
+                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => convertLeadToClient(lead.id)}
+                >
+                  <Zap size={13} />
+                  <span>Won</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {filteredLeads.length === 0 && (
+          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <Users size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+            <div style={{ fontWeight: 700 }}>No leads found</div>
+          </div>
+        )}
       </div>
 
       {/* =========================================================================
