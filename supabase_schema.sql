@@ -456,3 +456,55 @@ VALUES
     ('DSP-2026-003', 'AIWA', 'DC-2026-003', 'ORD-1003', 'CLN-005', 'NCR Logistics & Warehousing Hub', 'NCR Logistics & Warehousing Hub', 'Gaurav Bhatia (Operations)', '+91 98100 44521', 'gbhatia@ncrlogistics.com', 'Udyog Vihar Phase IV, Gurugram, Haryana - 122015', '[{"name": "Aiwa Commercial Audio Matrix Switcher 8x8", "quantity": 1, "productCode": "AIW-405"}]'::jsonb, 'Delhivery Surface', 'DLV-5541092', '2410-1123-9988', '2026-08-26', '2026-08-30', null, '1 Specialized AV Crate', '12.0 kg', 'DL-01-AB-9821', 'Sneha Kulkarni', 'Dispatched', 'Fragile acoustic matrix unit. Shock-indicator label affixed on outer box.'),
     ('DSP-2026-004', 'AIWA', 'DC-2026-004', 'ORD-1004', 'CLN-007', 'Cyberabad Tech Parks AV Facilities', 'Cyberabad Tech Parks AV Facilities', 'Naveen Reddy (AV Lead)', '+91 98490 66789', 'naveen.r@cyberabadparks.com', 'HITEC City, Madhapur, Hyderabad, Telangana - 500081', '[{"name": "Aiwa High-Precision Sound Calibration Kit", "quantity": 1, "productCode": "AIW-301"}, {"name": "Aiwa Commercial Audio Matrix Switcher 8x8", "quantity": 1, "productCode": "AIW-405"}]'::jsonb, 'Safexpress Logistics', 'SFX-7719203', '2410-3301-4455', '2026-08-19', '2026-08-21', '2026-08-21', '2 Flight Cases', '22.0 kg', 'TS-09-UB-3310', 'Rahul Verma', 'Delivered', 'Received and verified on site. Training session completed on 22nd Aug.')
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- 10. ATTENDANCE & SHIFT REGISTER TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.attendance (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    user_role TEXT NOT NULL,
+    department TEXT,
+    date DATE DEFAULT CURRENT_DATE,
+    check_in_time TEXT,
+    check_out_time TEXT,
+    status TEXT DEFAULT 'Checked In' CHECK (status IN ('Checked In', 'Completed', 'Absent')),
+    work_mode TEXT DEFAULT 'Office HQ (Pune)',
+    location TEXT,
+    shift_duration TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. STAFF ACTIVITY AUDIT LOGS TABLE
+CREATE TABLE IF NOT EXISTS public.activity_logs (
+    id TEXT PRIMARY KEY,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    user_name TEXT NOT NULL,
+    user_role TEXT NOT NULL,
+    brand TEXT NOT NULL DEFAULT 'AUCO' CHECK (brand IN ('AUCO', 'AIWA')),
+    action_type TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT,
+    description TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_user ON public.attendance(user_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_date ON public.attendance(date);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_brand ON public.activity_logs(brand);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON public.activity_logs(user_name);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON public.activity_logs(action_type);
+
+-- Enable RLS for Attendance & Activities
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read attendance" ON public.attendance FOR SELECT USING (true);
+CREATE POLICY "Allow public insert attendance" ON public.attendance FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update attendance" ON public.attendance FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public read activity_logs" ON public.activity_logs FOR SELECT USING (true);
+CREATE POLICY "Allow public insert activity_logs" ON public.activity_logs FOR INSERT WITH CHECK (true);
+

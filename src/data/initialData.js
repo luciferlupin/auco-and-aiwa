@@ -1359,3 +1359,196 @@ export const indiaStateData = {
     clientCities: ['New Delhi', 'South Delhi', 'Dwarka']
   }
 };
+
+export const initialAttendance = [
+  {
+    id: 'ATT-2026-001',
+    userId: 'USR-001',
+    userName: 'Rajesh Sharma',
+    userRole: 'Admin',
+    department: 'Management',
+    date: '2026-08-28',
+    checkInTime: '09:00 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Office HQ (Pune)',
+    location: 'Auco Automation HQ, Pune',
+    shiftDuration: 'In Progress',
+    notes: 'Executive review & quarterly operations monitoring.'
+  },
+  {
+    id: 'ATT-2026-002',
+    userId: 'USR-002',
+    userName: 'Priya Iyer',
+    userRole: 'Sales',
+    department: 'Sales & Business Dev',
+    date: '2026-08-28',
+    checkInTime: '09:30 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Field Client Visit',
+    location: 'Client Site (MIDC Bhosari)',
+    shiftDuration: 'In Progress',
+    notes: 'On-site demo for Mehta Precision Engineering Ltd.'
+  },
+  {
+    id: 'ATT-2026-003',
+    userId: 'USR-003',
+    userName: 'Amit Deshmukh',
+    userRole: 'Sales',
+    department: 'Sales & Business Dev',
+    date: '2026-08-28',
+    checkInTime: '09:15 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Office HQ (Pune)',
+    location: 'Auco Automation HQ, Pune',
+    shiftDuration: 'In Progress',
+    notes: 'Outreach calls and proposal dispatch for Aiwa AV systems.'
+  },
+  {
+    id: 'ATT-2026-004',
+    userId: 'USR-004',
+    userName: 'Neha Verma',
+    userRole: 'Accounts',
+    department: 'Accounts & Finance',
+    date: '2026-08-28',
+    checkInTime: '09:00 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Office HQ (Pune)',
+    location: 'Auco Automation HQ, Pune',
+    shiftDuration: 'In Progress',
+    notes: 'GST tax invoice audit & AR collections follow-up.'
+  },
+  {
+    id: 'ATT-2026-005',
+    userId: 'USR-005',
+    userName: 'Vikram Singh',
+    userRole: 'Services',
+    department: 'Services & Operations',
+    date: '2026-08-28',
+    checkInTime: '08:45 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Field Client Visit',
+    location: 'Faridabad Industrial Site',
+    shiftDuration: 'In Progress',
+    notes: 'Hardware installation & telemetry unit calibration.'
+  },
+  {
+    id: 'ATT-2026-006',
+    userId: 'USR-006',
+    userName: 'Sneha Kulkarni',
+    userRole: 'Services',
+    department: 'Services & Operations',
+    date: '2026-08-28',
+    checkInTime: '08:30 AM',
+    checkOutTime: null,
+    status: 'Checked In',
+    workMode: 'Office / Warehouse',
+    location: 'Logistics Dock, Bhosari',
+    shiftDuration: 'In Progress',
+    notes: 'Carrier dispatch packing and BlueDart AWB generation.'
+  },
+  {
+    id: 'ATT-2026-007',
+    userId: 'USR-002',
+    userName: 'Priya Iyer',
+    userRole: 'Sales',
+    department: 'Sales & Business Dev',
+    date: '2026-08-27',
+    checkInTime: '09:15 AM',
+    checkOutTime: '06:45 PM',
+    status: 'Completed',
+    workMode: 'Office HQ (Pune)',
+    location: 'Auco Automation HQ, Pune',
+    shiftDuration: '9 hrs 30 mins',
+    notes: 'Completed 12 prospect calls, converted Pune Robotics deal.'
+  },
+  {
+    id: 'ATT-2026-008',
+    userId: 'USR-004',
+    userName: 'Neha Verma',
+    userRole: 'Accounts',
+    department: 'Accounts & Finance',
+    date: '2026-08-27',
+    checkInTime: '09:00 AM',
+    checkOutTime: '06:15 PM',
+    status: 'Completed',
+    workMode: 'Office HQ (Pune)',
+    location: 'Auco Automation HQ, Pune',
+    shiftDuration: '9 hrs 15 mins',
+    notes: 'Reconciled bank statement for NEFT receipts ₹2,00,000.'
+  }
+];
+
+export const initialActivities = [
+  {
+    id: 'ACT-1001',
+    timestamp: '2026-08-28T09:30:00Z',
+    userName: 'Priya Iyer',
+    userRole: 'Sales',
+    brand: 'AUCO',
+    actionType: 'LEAD_CONVERTED',
+    entityType: 'Lead',
+    entityId: 'LED-001',
+    description: 'Converted lead "Mehta Precision Engineering Ltd" to active Client (Deal value: ₹8,50,000)'
+  },
+  {
+    id: 'ACT-1002',
+    timestamp: '2026-08-28T09:45:00Z',
+    userName: 'Sneha Kulkarni',
+    userRole: 'Services',
+    brand: 'AUCO',
+    actionType: 'SHIPMENT_DISPATCHED',
+    entityType: 'Dispatch',
+    entityId: 'DSP-2026-001',
+    description: 'Dispatched 2 units of AUC-101 to Mehta Precision via BlueDart Express (AWB: BLU-9821034)'
+  },
+  {
+    id: 'ACT-1003',
+    timestamp: '2026-08-28T10:15:00Z',
+    userName: 'Neha Verma',
+    userRole: 'Accounts',
+    brand: 'AUCO',
+    actionType: 'PAYMENT_RECORDED',
+    entityType: 'Payment',
+    entityId: 'PAY-1001',
+    description: 'Recorded partial settlement ₹1,20,200 for Invoice INV-2026-001 via NEFT'
+  },
+  {
+    id: 'ACT-1004',
+    timestamp: '2026-08-28T10:40:00Z',
+    userName: 'Amit Deshmukh',
+    userRole: 'Sales',
+    brand: 'AIWA',
+    actionType: 'ORDER_CREATED',
+    entityType: 'Order',
+    entityId: 'ORD-1003',
+    description: 'Booked commercial AV order for NCR Logistics & Warehousing Hub (Value: ₹64,000)'
+  },
+  {
+    id: 'ACT-1005',
+    timestamp: '2026-08-28T11:10:00Z',
+    userName: 'Vikram Singh',
+    userRole: 'Services',
+    brand: 'AIWA',
+    actionType: 'TASK_COMPLETED',
+    entityType: 'Task',
+    entityId: 'TSK-003',
+    description: 'Completed field installation & acoustic calibration for Cyberabad Tech Parks'
+  },
+  {
+    id: 'ACT-1006',
+    timestamp: '2026-08-28T11:30:00Z',
+    userName: 'Rajesh Sharma',
+    userRole: 'Admin',
+    brand: 'AUCO',
+    actionType: 'STOCK_ADJUSTMENT',
+    entityType: 'Inventory',
+    entityId: 'AUC-101',
+    description: 'Received factory batch (+20 units) of Auco Industrial Automation Controller X1'
+  }
+];
+

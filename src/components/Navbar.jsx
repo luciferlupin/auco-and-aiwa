@@ -15,8 +15,10 @@ import {
   LogOut,
   Database,
   Cloud,
-  CheckCircle2
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
+import { CheckInModal } from './CheckInModal';
 
 export const Navbar = ({
   onToggleMobileSidebar,
@@ -42,13 +44,21 @@ export const Navbar = ({
     companyBrands,
     selectedCompany,
     setSelectedCompany,
-    matchesCompany
+    matchesCompany,
+    attendance
   } = useApp();
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
+  const userTodayAttendance = attendance.find(
+    (a) => a.userId === currentUser?.id && a.date === today && a.status === 'Checked In'
+  );
+  const isCheckedIn = !!userTodayAttendance;
 
   const activeBrand = companyBrands.find((b) => b.id === selectedCompany) || companyBrands[0];
 
@@ -218,6 +228,37 @@ export const Navbar = ({
             </>
           )}
         </div>
+
+        {/* Staff Attendance / Shift Status Pill */}
+        <button
+          onClick={() => setIsCheckInModalOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 10px',
+            background: isCheckedIn ? '#ecfdf5' : '#f8fafc',
+            border: isCheckedIn ? '1px solid #6ee7b7' : '1px dashed #cbd5e1',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.74rem',
+            color: isCheckedIn ? '#065f46' : 'var(--text-secondary)',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+          title={isCheckedIn ? `On Duty (${userTodayAttendance.workMode}) - Click to Check Out` : "Click to Clock In for shift"}
+        >
+          <span
+            style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              backgroundColor: isCheckedIn ? '#10b981' : '#94a3b8',
+              boxShadow: isCheckedIn ? '0 0 6px #10b981' : 'none'
+            }}
+          />
+          <span>{isCheckedIn ? `On Duty (${userTodayAttendance.workMode.split(' ')[0]})` : 'Clock In'}</span>
+        </button>
 
         {/* Supabase Sync Pill */}
         <div
@@ -576,6 +617,12 @@ export const Navbar = ({
           )}
         </div>
       </div>
+
+      {/* Check In / Check Out Modal */}
+      <CheckInModal
+        isOpen={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
+      />
     </header>
   );
 };

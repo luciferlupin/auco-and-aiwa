@@ -40,7 +40,9 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
     companyBrands,
     selectedCompany,
     setSelectedCompany,
-    matchesCompany
+    matchesCompany,
+    attendance,
+    activities
   } = useApp();
 
   const activeBrand = companyBrands.find((b) => b.id === selectedCompany) || companyBrands[0];
@@ -459,6 +461,166 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                         ) : (
                           <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>In Stock</span>
                         )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* =========================================================================
+              OWNER EXCLUSIVE: LIVE STAFF ATTENDANCE & REAL-TIME ACTIVITY AUDIT LOG
+              ========================================================================= */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1.3fr)', gap: '20px', marginTop: '4px' }}>
+            {/* Live Team Attendance & Shift Tracker */}
+            <div className="card">
+              <div className="flex-between" style={{ marginBottom: '14px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                    <h3 style={{ margin: 0 }}>Live Staff Attendance & Duty</h3>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                    Real-time team presence, field locations & active shifts
+                  </p>
+                </div>
+                <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('settings')}>
+                  Full Register <ArrowRight size={14} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {users.map((u) => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const userAtt = attendance.find((a) => a.userId === u.id && a.date === today);
+                  const isOnDuty = userAtt?.status === 'Checked In';
+
+                  return (
+                    <div
+                      key={u.id}
+                      style={{
+                        padding: '10px 12px',
+                        background: isOnDuty ? '#f8fafc' : 'var(--bg-subtle)',
+                        border: `1px solid ${isOnDuty ? '#e2e8f0' : 'transparent'}`,
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background: isOnDuty ? 'linear-gradient(135deg, #10b981 0%, #047857 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+                            color: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '0.76rem'
+                          }}
+                        >
+                          {u.avatar}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>{u.name}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            {userAtt?.workMode || `${u.department} (${u.role})`}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        {isOnDuty ? (
+                          <>
+                            <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
+                              🟢 In at {userAtt.checkInTime}
+                            </span>
+                            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              {userAtt.location?.split(',')[0]}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>
+                            ⚪ Off Duty
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Real-Time Staff Operations Audit Stream */}
+            <div className="card">
+              <div className="flex-between" style={{ marginBottom: '14px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Zap size={16} style={{ color: '#f59e0b' }} />
+                    <h3 style={{ margin: 0 }}>Real-Time Staff Activity Stream</h3>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                    Live audit trail of operations performed across both brands
+                  </p>
+                </div>
+                <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('settings')}>
+                  Audit Log <ArrowRight size={14} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '335px', overflowY: 'auto' }}>
+                {activities.slice(0, 7).map((act) => {
+                  const isAiwa = act.brand === 'AIWA';
+                  const timeAgo = new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                  return (
+                    <div
+                      key={act.id}
+                      style={{
+                        padding: '10px 12px',
+                        background: 'var(--bg-subtle)',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '10px'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '6px',
+                          background: isAiwa ? '#7c3aed' : 'var(--primary-600)',
+                          color: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '0.68rem',
+                          flexShrink: 0,
+                          marginTop: '2px'
+                        }}
+                      >
+                        {act.brand ? act.brand.slice(0, 3) : 'AUC'}
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-primary)' }}>
+                            {act.userName}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                            {timeAgo}
+                          </span>
+                        </div>
+                        <p style={{ margin: '3px 0 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+                          {act.description}
+                        </p>
                       </div>
                     </div>
                   );

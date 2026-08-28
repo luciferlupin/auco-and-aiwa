@@ -11,12 +11,30 @@ import {
   CheckCircle2,
   Lock,
   Building,
-  Sparkles
+  Sparkles,
+  Clock,
+  Zap,
+  Download,
+  Calendar,
+  Filter,
+  Search,
+  FileText,
+  MapPin
 } from 'lucide-react';
+import { formatDate } from '../utils/formatters';
 
 export const SettingsView = () => {
-  const { currentRole, currentUser, switchRole, users, resetDemoData } = useApp();
+  const { currentRole, currentUser, switchRole, users, resetDemoData, attendance, activities, companyBrands, addToast } = useApp();
   const [activeTab, setActiveTab] = useState('roles');
+  
+  // Attendance filters
+  const [attDateFilter, setAttDateFilter] = useState('ALL');
+  const [attUserFilter, setAttUserFilter] = useState('ALL');
+
+  // Activity log filters
+  const [actUserFilter, setActUserFilter] = useState('ALL');
+  const [actBrandFilter, setActBrandFilter] = useState('ALL');
+  const [actTypeFilter, setActTypeFilter] = useState('ALL');
 
   const roleDefinitions = [
     {
@@ -115,6 +133,18 @@ export const SettingsView = () => {
             onClick={() => setActiveTab('users')}
           >
             Team Members Directory ({users.length})
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'attendance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('attendance')}
+          >
+            Staff Attendance Register ({attendance.length})
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('audit')}
+          >
+            Activity Audit Trail ({activities.length})
           </button>
           <button
             className={`tab-btn ${activeTab === 'company' ? 'active' : ''}`}
@@ -270,7 +300,272 @@ export const SettingsView = () => {
       )}
 
       {/* =========================================================================
-          TAB 3: COMPANY PROFILE (AUCO & AIWA DUAL-BRAND DIVISIONS)
+          TAB 3: STAFF ATTENDANCE REGISTER & WORK LOGS
+          ========================================================================= */}
+      {activeTab === 'attendance' && (
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="flex-between">
+            <div>
+              <h3>Staff Attendance & Daily Shift Register</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Track real-time check-in, check-out, working modes, and on-duty durations
+              </p>
+            </div>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                let csv = 'Attendance ID,Date,Staff Name,Role,Department,Check-In,Check-Out,Work Mode,Location,Status,Shift Duration,Notes\n';
+                attendance.forEach((a) => {
+                  csv += `"${a.id}","${a.date}","${a.userName}","${a.userRole}","${a.department}","${a.checkInTime}","${a.checkOutTime || 'On Duty'}","${a.workMode}","${a.location}","${a.status}","${a.shiftDuration}","${(a.notes || '').replace(/"/g, '""')}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Staff_Attendance_Report_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                addToast('CSV Exported', 'Staff attendance register downloaded.', 'success');
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Download size={14} /> Export Attendance CSV
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-subtle)', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Staff:</span>
+              <select
+                className="form-select"
+                value={attUserFilter}
+                onChange={(e) => setAttUserFilter(e.target.value)}
+                style={{ width: '170px', padding: '4px 8px', fontSize: '0.78rem' }}
+              >
+                <option value="ALL">All Staff Members</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Date:</span>
+              <select
+                className="form-select"
+                value={attDateFilter}
+                onChange={(e) => setAttDateFilter(e.target.value)}
+                style={{ width: '160px', padding: '4px 8px', fontSize: '0.78rem' }}
+              >
+                <option value="ALL">All Recorded Dates</option>
+                {Array.from(new Set(attendance.map((a) => a.date))).map((d) => (
+                  <option key={d} value={d}>{formatDate(d)}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="table-container">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Staff Member</th>
+                  <th>Department / Role</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th>Work Mode & Location</th>
+                  <th>Status</th>
+                  <th>Shift Summary / Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendance
+                  .filter((a) => attUserFilter === 'ALL' || a.userName.includes(attUserFilter))
+                  .filter((a) => attDateFilter === 'ALL' || a.date === attDateFilter)
+                  .map((att) => {
+                    const isOnDuty = att.status === 'Checked In';
+                    return (
+                      <tr key={att.id}>
+                        <td><strong>{formatDate(att.date)}</strong></td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{att.userName}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {att.userId}</div>
+                        </td>
+                        <td>
+                          <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>
+                            {att.department}
+                          </span>
+                        </td>
+                        <td><strong style={{ color: 'var(--primary-600)' }}>{att.checkInTime}</strong></td>
+                        <td>{att.checkOutTime ? <strong>{att.checkOutTime}</strong> : <span style={{ color: 'var(--text-muted)' }}>— (Active)</span>}</td>
+                        <td>
+                          <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{att.workMode}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{att.location}</div>
+                        </td>
+                        <td>
+                          <span className={`badge ${isOnDuty ? 'badge-success' : 'badge-neutral'}`}>
+                            {isOnDuty ? '🟢 On Duty' : '⚪ Completed'}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', maxWidth: '240px' }}>
+                          {att.notes || 'Standard daily shift.'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 4: ACTIVITY AUDIT TRAIL
+          ========================================================================= */}
+      {activeTab === 'audit' && (
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="flex-between">
+            <div>
+              <h3>Real-Time Staff Activity Audit Log</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Immutable timeline of all operations performed across Auco and Aiwa
+              </p>
+            </div>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                let csv = 'Activity ID,Timestamp,Staff Name,Role,Brand,Action Type,Entity,Entity ID,Description\n';
+                activities.forEach((act) => {
+                  csv += `"${act.id}","${act.timestamp}","${act.userName}","${act.userRole}","${act.brand}","${act.actionType}","${act.entityType}","${act.entityId}","${(act.description || '').replace(/"/g, '""')}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Staff_Activity_Audit_Log_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                addToast('CSV Exported', 'Staff activity audit log downloaded.', 'success');
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Download size={14} /> Export Audit Log CSV
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', background: 'var(--bg-subtle)', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Brand:</span>
+              <select
+                className="form-select"
+                value={actBrandFilter}
+                onChange={(e) => setActBrandFilter(e.target.value)}
+                style={{ width: '130px', padding: '4px 8px', fontSize: '0.78rem' }}
+              >
+                <option value="ALL">All Brands</option>
+                <option value="AUCO">AUCO</option>
+                <option value="AIWA">AIWA</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Staff:</span>
+              <select
+                className="form-select"
+                value={actUserFilter}
+                onChange={(e) => setActUserFilter(e.target.value)}
+                style={{ width: '160px', padding: '4px 8px', fontSize: '0.78rem' }}
+              >
+                <option value="ALL">All Staff Members</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.name}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Action:</span>
+              <select
+                className="form-select"
+                value={actTypeFilter}
+                onChange={(e) => setActTypeFilter(e.target.value)}
+                style={{ width: '170px', padding: '4px 8px', fontSize: '0.78rem' }}
+              >
+                <option value="ALL">All Action Types</option>
+                <option value="LEAD_CREATED">Leads Created</option>
+                <option value="LEAD_CONVERTED">Leads Converted</option>
+                <option value="ORDER_CREATED">Orders Booked</option>
+                <option value="SHIPMENT_DISPATCHED">Dispatches</option>
+                <option value="INVOICE_GENERATED">Invoices Issued</option>
+                <option value="PAYMENT_RECORDED">Payments Collected</option>
+                <option value="STOCK_ADJUSTMENT">Stock Adjustments</option>
+                <option value="TASK_COMPLETED">Tasks Completed</option>
+                <option value="STAFF_CHECK_IN">Check-Ins</option>
+                <option value="STAFF_CHECK_OUT">Check-Outs</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="table-container">
+            <table className="custom-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Staff Member</th>
+                  <th>Brand</th>
+                  <th>Action Type</th>
+                  <th>Entity</th>
+                  <th>Activity Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities
+                  .filter((a) => actBrandFilter === 'ALL' || a.brand === actBrandFilter)
+                  .filter((a) => actUserFilter === 'ALL' || a.userName.includes(actUserFilter))
+                  .filter((a) => actTypeFilter === 'ALL' || a.actionType === actTypeFilter)
+                  .map((act) => {
+                    const isAiwa = act.brand === 'AIWA';
+                    const timeFormatted = new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + formatDate(act.timestamp);
+
+                    return (
+                      <tr key={act.id}>
+                        <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                          {timeFormatted}
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{act.userName}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{act.userRole}</div>
+                        </td>
+                        <td>
+                          <span className={`badge ${isAiwa ? 'badge-purple' : 'badge-info'}`} style={{ fontSize: '0.72rem' }}>
+                            {act.brand || 'AUCO'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="badge badge-neutral" style={{ fontSize: '0.72rem', fontFamily: 'monospace' }}>
+                            {act.actionType}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{act.entityType}</strong> {act.entityId && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>({act.entityId})</span>}
+                        </td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                          {act.description}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 5: COMPANY PROFILE (AUCO & AIWA DUAL-BRAND DIVISIONS)
           ========================================================================= */}
       {activeTab === 'company' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

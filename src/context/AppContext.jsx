@@ -11,7 +11,9 @@ import {
   initialPayments,
   initialFollowUps,
   initialTasks,
-  initialDispatches
+  initialDispatches,
+  initialAttendance,
+  initialActivities
 } from '../data/initialData';
 import { generateId } from '../utils/formatters';
 
@@ -167,6 +169,16 @@ export const AppProvider = ({ children }) => {
     return data ? enrichBrand(JSON.parse(data), 'dispatch') : initialDispatches;
   });
 
+  const [attendance, setAttendance] = useState(() => {
+    const data = localStorage.getItem('auco_attendance');
+    return data ? JSON.parse(data) : initialAttendance;
+  });
+
+  const [activities, setActivities] = useState(() => {
+    const data = localStorage.getItem('auco_activities');
+    return data ? JSON.parse(data) : initialActivities;
+  });
+
   // Sync to LocalStorage
   useEffect(() => {
     localStorage.setItem('auco_auth_session', isAuthenticated ? 'true' : 'false');
@@ -219,6 +231,14 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('auco_dispatches', JSON.stringify(dispatches));
   }, [dispatches]);
+
+  useEffect(() => {
+    localStorage.setItem('auco_attendance', JSON.stringify(attendance));
+  }, [attendance]);
+
+  useEffect(() => {
+    localStorage.setItem('auco_activities', JSON.stringify(activities));
+  }, [activities]);
 
   // Load from Supabase on start
   const fetchSupabaseData = useCallback(async () => {
@@ -525,6 +545,90 @@ export const AppProvider = ({ children }) => {
     );
   };
 
+  // Live Activity Logging Engine (Real-time immutable audit trail)
+  const logActivity = useCallback((actionType, entityType, entityId, description, brand = selectedCompany || 'AUCO', metadata = {}) => {
+    const newActivity = {
+      id: generateId('ACT'),
+      timestamp: new Date().toISOString(),
+      userName: currentUser?.name || 'Staff Member',
+      userRole: currentRole || 'Staff',
+      brand: brand || selectedCompany || 'AUCO',
+      actionType,
+      entityType,
+      entityId: String(entityId || ''),
+      description,
+      metadata
+    };
+    setActivities((prev) => [newActivity, ...prev.slice(0, 299)]);
+    try {
+      supabase.from('activity_logs').insert({
+        id: newActivity.id,
+        timestamp: newActivity.timestamp,
+        user_name: newActivity.userName,
+        user_role: newActivity.userRole,
+        brand: newActivity.brand,
+        action_type: actionType,
+        entity_type: entityType,
+        entity_id: String(entityId || ''),
+        description,
+        metadata
+      });
+    } catch(e) {}
+    return newActivity;
+  }, [currentUser, currentRole, selectedCompany]);
+
+  // Staff Shift Check-In & Check-Out Attendance
+  const checkIn = async (workMode = 'Office HQ (Pune)', siteLocation = 'Auco Automation HQ, Pune', notes = '') => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const today = now.toISOString().split('T')[0];
+
+    const newAttendance = {
+      id: generateId('ATT'),
+      userId: currentUser?.id || 'USR-001',
+      userName: currentUser?.name || 'Staff Member',
+      userRole: currentRole || 'Staff',
+      department: currentUser?.department || 'Operations',
+      date: today,
+      checkInTime: timeString,
+      checkOutTime: null,
+      status: 'Checked In',
+      workMode: workMode || 'Office HQ (Pune)',
+      location: siteLocation || 'Company Facility',
+      shiftDuration: 'In Progress',
+      notes: notes || 'Started work shift.'
+    };
+
+    setAttendance((prev) => [newAttendance, ...prev.filter(a => !(a.userId === newAttendance.userId && a.date === today))]);
+    logActivity('STAFF_CHECK_IN', 'Attendance', newAttendance.id, `${currentUser?.name} checked in (${workMode}) at ${timeString}`);
+    addToast('Checked In', `Good day, ${currentUser?.name}! Shift started at ${timeString} (${workMode}).`, 'success');
+    return newAttendance;
+  };
+
+  const checkOut = async (notes = '') => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const today = now.toISOString().split('T')[0];
+
+    setAttendance((prev) => {
+      return prev.map((att) => {
+        if (att.userId === currentUser?.id && (att.status === 'Checked In' || att.date === today)) {
+          return {
+            ...att,
+            checkOutTime: timeString,
+            status: 'Completed',
+            shiftDuration: 'Shift Concluded',
+            notes: notes ? `${att.notes ? att.notes + ' • ' : ''}EOD: ${notes}` : att.notes
+          };
+        }
+        return att;
+      });
+    });
+
+    logActivity('STAFF_CHECK_OUT', 'Attendance', currentUser?.id, `${currentUser?.name} checked out at ${timeString}. ${notes ? 'Notes: ' + notes : ''}`);
+    addToast('Checked Out', `Shift concluded at ${timeString}. Thank you for your work!`, 'info');
+  };
+
   // AUTOMATION 1: Inventory Stock Adjustments (Local + Supabase sync)
   const adjustProductStock = async (productCode, delta, reason = 'Adjustment') => {
     const cleanCode = productCode.toUpperCase();
@@ -568,6 +672,16 @@ export const AppProvider = ({ children }) => {
           })
           .eq('product_code', cleanCode);
       } catch (e) {}
+    }
+
+    if (updatedProduct) {
+      logActivity(
+        'STOCK_ADJUSTMENT',
+        'Inventory',
+        cleanCode,
+        `Adjusted stock for [${cleanCode}] by ${delta > 0 ? '+' : ''}${delta} units (${reason}). Current Stock: ${updatedProduct.currentStock}`,
+        updatedProduct.brand
+      );
     }
   };
 
@@ -638,6 +752,7 @@ export const AppProvider = ({ children }) => {
     } catch (e) {}
 
     addToast('Order Created', `Order ${newOrderId} placed successfully. Stock automatically deducted.`, 'success');
+    logActivity('ORDER_CREATED', 'Order', newOrder.id, `Placed order #${newOrder.id} for ${newOrder.clientName} (Value: ₹${newOrder.orderValue.toLocaleString('en-IN')})`, newOrder.brand);
     return newOrder;
   };
 
@@ -775,6 +890,7 @@ export const AppProvider = ({ children }) => {
     } catch (e) {}
 
     addToast('Order Dispatched', `Order ${orderId} dispatched via ${newDispatch.courierCarrier} (${newDispatch.trackingNumber}). Dispatch ref #${newDispatch.challanNumber} ready.`, 'success');
+    logActivity('SHIPMENT_DISPATCHED', 'Dispatch', newDispatch.id, `Dispatched shipment for ${newDispatch.clientName} via ${newDispatch.courierCarrier} (AWB: ${newDispatch.trackingNumber})`, newDispatch.brand);
     return newDispatch;
   };
 
@@ -945,7 +1061,8 @@ export const AppProvider = ({ children }) => {
       });
     } catch (e) {}
 
-    addToast('Invoice Created', `Invoice ${invNum} generated and synced to billing database.`, 'success');
+    addToast('Invoice Generated', `Tax Invoice ${invNum} generated (${formatCurrency(totalAmount)}).`, 'success');
+    logActivity('INVOICE_GENERATED', 'Invoice', newInvoice.id, `Issued tax invoice #${newInvoice.invoiceNumber} for ${newInvoice.clientName} (Total: ₹${newInvoice.totalAmount.toLocaleString('en-IN')})`, newInvoice.brand);
     return newInvoice;
   };
 
@@ -1036,6 +1153,7 @@ export const AppProvider = ({ children }) => {
     } catch (e) {}
 
     addToast('Payment Recorded', `Received ₹${amount.toLocaleString('en-IN')} for ${invoiceNumber}. Outstanding updated.`, 'success');
+    logActivity('PAYMENT_RECEIVED', 'Payment', invoiceNumber, `Recorded payment of ₹${amount.toLocaleString('en-IN')} for invoice ${invoiceNumber}`, 'AUCO');
   };
 
   // AUTOMATION 5: Lead to Client Conversion
@@ -1045,9 +1163,10 @@ export const AppProvider = ({ children }) => {
 
     let existingClient = clients.find((c) => c.companyName.toLowerCase() === lead.company.toLowerCase());
     let clientId = existingClient ? existingClient.id : generateId('CLN');
+    let targetClient = null;
 
     if (!existingClient) {
-      const newClient = {
+      targetClient = {
         id: clientId,
         brand: lead.brand || 'AUCO',
         clientName: lead.client,
@@ -1074,40 +1193,41 @@ export const AppProvider = ({ children }) => {
         notes: `Converted from lead (${lead.id}). ${lead.notes || ''}`,
         clientStatus: 'Active'
       };
-      setClients((prev) => [newClient, ...prev]);
+      setClients((prev) => [targetClient, ...prev]);
 
       try {
         await supabase.from('clients').insert({
-          id: newClient.id,
-          brand: newClient.brand,
-          client_name: newClient.clientName,
-          company_name: newClient.companyName,
-          contact_person: newClient.contactPerson,
-          phone: newClient.phone,
-          email: newClient.email,
-          address: newClient.address,
-          city: newClient.city,
-          state: newClient.state,
-          client_type: newClient.clientType,
-          lead_source: newClient.leadSource,
-          lead_type: newClient.leadType,
-          conversion_status: newClient.conversionStatus,
-          assigned_sales_person: newClient.assignedSalesPerson,
-          total_orders: newClient.totalOrders,
-          order_frequency: newClient.orderFrequency,
-          last_order: newClient.lastOrder,
-          next_expected_order: newClient.nextExpectedOrder,
-          payment_terms: newClient.paymentTerms,
-          payment_days: newClient.paymentDays,
-          pending_amount: newClient.pendingAmount,
-          total_business_value: newClient.totalBusinessValue,
-          notes: newClient.notes,
-          client_status: newClient.clientStatus
+          id: targetClient.id,
+          brand: targetClient.brand,
+          client_name: targetClient.clientName,
+          company_name: targetClient.companyName,
+          contact_person: targetClient.contactPerson,
+          phone: targetClient.phone,
+          email: targetClient.email,
+          address: targetClient.address,
+          city: targetClient.city,
+          state: targetClient.state,
+          client_type: targetClient.clientType,
+          lead_source: targetClient.leadSource,
+          lead_type: targetClient.leadType,
+          conversion_status: targetClient.conversionStatus,
+          assigned_sales_person: targetClient.assignedSalesPerson,
+          total_orders: targetClient.totalOrders,
+          order_frequency: targetClient.orderFrequency,
+          last_order: targetClient.lastOrder,
+          next_expected_order: targetClient.nextExpectedOrder,
+          payment_terms: targetClient.paymentTerms,
+          payment_days: targetClient.paymentDays,
+          pending_amount: targetClient.pendingAmount,
+          total_business_value: targetClient.totalBusinessValue,
+          notes: targetClient.notes,
+          client_status: targetClient.clientStatus
         });
       } catch (e) {}
     } else {
       // Existing client converted with additional lead business value
       const addedValue = Number(initialOrderValue) || Number(lead.expectedValue) || 0;
+      targetClient = existingClient;
       setClients((prev) =>
         prev.map((c) => {
           if (c.id === existingClient.id) {
@@ -1162,7 +1282,8 @@ export const AppProvider = ({ children }) => {
         .eq('id', leadId);
     } catch (e) {}
 
-    addToast('Lead Converted!', `Successfully converted "${lead.company}" to active client.`, 'success');
+    addToast('Client Converted', `Lead "${lead.company}" converted to Client directory!`, 'success');
+    logActivity('LEAD_CONVERTED', 'Lead', leadId, `Converted lead "${lead.company}" into active registered Client`, lead.brand);
     return clientId;
   };
 
@@ -1318,7 +1439,8 @@ export const AppProvider = ({ children }) => {
       });
     } catch (e) {}
 
-    addToast('Lead Added', `${newLead.company} added to pipeline.`, 'success');
+    addToast('Lead Added', `Lead for "${newLead.company}" added to pipeline.`, 'success');
+    logActivity('LEAD_CREATED', 'Lead', newLead.id, `Created new prospect lead for "${newLead.company}" (${newLead.city})`, newLead.brand);
     return newLead;
   };
 
@@ -1690,6 +1812,11 @@ export const AppProvider = ({ children }) => {
         selectedCompany,
         setSelectedCompany,
         matchesCompany,
+        attendance,
+        checkIn,
+        checkOut,
+        activities,
+        logActivity,
         resetDemoData
       }}
     >
