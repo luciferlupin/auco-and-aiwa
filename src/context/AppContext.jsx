@@ -28,9 +28,15 @@ export const AppProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     const savedUser = localStorage.getItem('auco_current_user');
     if (savedUser) {
-      try { return JSON.parse(savedUser); } catch(e) {}
+      try {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.name && parsed.name !== 'Rajesh Sharma') {
+          return parsed;
+        }
+      } catch(e) {}
     }
-    return initialUsers[0]; // Shrey Taneja (Admin - AUCO)
+    const savedCompany = localStorage.getItem('auco_selected_company');
+    return savedCompany === 'AIWA' ? initialUsers[1] : initialUsers[0]; // Shrey Taneja (AUCO) / Divyansh Taneja (AIWA)
   });
 
   const [currentRole, setCurrentRole] = useState(() => {
@@ -130,7 +136,15 @@ export const AppProvider = ({ children }) => {
 
   const [users, setUsers] = useState(() => {
     const data = localStorage.getItem('auco_users');
-    return data ? JSON.parse(data) : initialUsers;
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && !parsed.some((u) => u.name === 'Rajesh Sharma')) {
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    return initialUsers;
   });
 
   const [inventory, setInventory] = useState(() => {
@@ -165,7 +179,25 @@ export const AppProvider = ({ children }) => {
 
   const [tasks, setTasks] = useState(() => {
     const data = localStorage.getItem('auco_tasks');
-    return data ? enrichBrand(JSON.parse(data), 'task') : initialTasks;
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          return enrichBrand(
+            parsed.map((t) => ({
+              ...t,
+              createdBy: t.createdBy?.includes('Rajesh')
+                ? t.brand === 'AIWA'
+                  ? 'Divyansh Taneja (Admin)'
+                  : 'Shrey Taneja (Admin)'
+                : t.createdBy
+            })),
+            'task'
+          );
+        }
+      } catch (e) {}
+    }
+    return initialTasks;
   });
 
   const [followUps, setFollowUps] = useState(() => {
@@ -180,13 +212,50 @@ export const AppProvider = ({ children }) => {
 
   const [attendance, setAttendance] = useState(() => {
     const data = localStorage.getItem('auco_attendance');
-    return data ? JSON.parse(data) : initialAttendance;
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && !parsed.some((a) => a.userName === 'Rajesh Sharma')) {
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    return initialAttendance;
   });
 
   const [activities, setActivities] = useState(() => {
     const data = localStorage.getItem('auco_activities');
-    return data ? JSON.parse(data) : initialActivities;
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && !parsed.some((a) => a.userName === 'Rajesh Sharma')) {
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    return initialActivities;
   });
+
+  // Self-healing migration for existing cached browsers
+  useEffect(() => {
+    if (currentUser?.name === 'Rajesh Sharma') {
+      const properUser = selectedCompany === 'AIWA' ? initialUsers[1] : initialUsers[0];
+      setCurrentUser(properUser);
+      localStorage.setItem('auco_current_user', JSON.stringify(properUser));
+    }
+    if (users.some((u) => u.name === 'Rajesh Sharma')) {
+      setUsers(initialUsers);
+      localStorage.setItem('auco_users', JSON.stringify(initialUsers));
+    }
+    if (attendance.some((a) => a.userName === 'Rajesh Sharma')) {
+      setAttendance(initialAttendance);
+      localStorage.setItem('auco_attendance', JSON.stringify(initialAttendance));
+    }
+    if (activities.some((a) => a.userName === 'Rajesh Sharma')) {
+      setActivities(initialActivities);
+      localStorage.setItem('auco_activities', JSON.stringify(initialActivities));
+    }
+  }, [selectedCompany]);
 
   // Sync to LocalStorage
   useEffect(() => {

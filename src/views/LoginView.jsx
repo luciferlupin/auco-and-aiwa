@@ -17,21 +17,29 @@ import {
 
 export const LoginView = () => {
   const { login, quickLogin, users, isCloudSynced } = useApp();
-  const [email, setEmail] = useState('rajesh.sharma@auco-aiwa.com');
+  const [email, setEmail] = useState('shrey.taneja@auco-automation.com');
   const [password, setPassword] = useState('••••••••••••');
   const [activeTab, setActiveTab] = useState('quick'); // 'quick' | 'credentials'
 
   const roleProfiles = [
     {
-      user: users.find(u => u.role === 'Admin') || users[0],
-      role: 'Admin Account',
-      tag: 'Full Access & Command',
+      user: users.find(u => u.name === 'Shrey Taneja') || users[0],
+      role: 'Shrey Taneja (Auco MD)',
+      tag: 'Auco Automation Full Command',
       icon: ShieldCheck,
       color: '#4f46e5',
       gradient: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)'
     },
     {
-      user: users.find(u => u.role === 'Sales') || users[1],
+      user: users.find(u => u.name === 'Divyansh Taneja') || users[1] || users[0],
+      role: 'Divyansh Taneja (Aiwa MD)',
+      tag: 'Aiwa Commercial AV Full Command',
+      icon: ShieldCheck,
+      color: '#7c3aed',
+      gradient: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)'
+    },
+    {
+      user: users.find(u => u.role === 'Sales') || users[2],
       role: 'Sales Account',
       tag: 'Pipeline, Leads & Won Deals',
       icon: TrendingUp,
@@ -39,7 +47,7 @@ export const LoginView = () => {
       gradient: 'linear-gradient(135deg, #10b981 0%, #065f46 100%)'
     },
     {
-      user: users.find(u => u.role === 'Accounts') || users[3],
+      user: users.find(u => u.role === 'Accounts') || users[4],
       role: 'Accounts & Finance',
       tag: 'Billing, Invoices & Collections',
       icon: CreditCard,
@@ -47,12 +55,12 @@ export const LoginView = () => {
       gradient: 'linear-gradient(135deg, #f59e0b 0%, #92400e 100%)'
     },
     {
-      user: users.find(u => u.role === 'Services') || users[4],
+      user: users.find(u => u.role === 'Services') || users[5],
       role: 'Services & Operations',
-      tag: 'Field Delivery & Tasks',
+      tag: 'Field Delivery & Commissioning',
       icon: Wrench,
-      color: '#8b5cf6',
-      gradient: 'linear-gradient(135deg, #8b5cf6 0%, #4c1d95 100%)'
+      color: '#0284c7',
+      gradient: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)'
     }
   ];
 
@@ -311,7 +319,7 @@ export const LoginView = () => {
                   required
                   className="form-input"
                   style={{ paddingLeft: '38px', borderRadius: '12px', height: '42px' }}
-                  placeholder="e.g. rajesh.sharma@auco-aiwa.com"
+                  placeholder="e.g. shrey.taneja@auco-automation.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
