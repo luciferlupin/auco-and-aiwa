@@ -16,6 +16,7 @@ import {
   Database,
   Cloud,
   CheckCircle2,
+  Check,
   Clock
 } from 'lucide-react';
 
