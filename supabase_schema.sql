@@ -301,58 +301,65 @@ BEGIN
     DROP POLICY IF EXISTS "Enterprise app access on payments" ON public.payments;
     DROP POLICY IF EXISTS "Enterprise app access on tasks" ON public.tasks;
     DROP POLICY IF EXISTS "Enterprise app access on followups" ON public.followups;
+    DROP POLICY IF EXISTS "Enterprise app access on attendance" ON public.attendance;
+    DROP POLICY IF EXISTS "Enterprise app access on activity_logs" ON public.activity_logs;
+    DROP POLICY IF EXISTS "Allow public read attendance" ON public.attendance;
+    DROP POLICY IF EXISTS "Allow public insert attendance" ON public.attendance;
+    DROP POLICY IF EXISTS "Allow public update attendance" ON public.attendance;
+    DROP POLICY IF EXISTS "Allow public read activity_logs" ON public.activity_logs;
+    DROP POLICY IF EXISTS "Allow public insert activity_logs" ON public.activity_logs;
 END $$;
 
--- Enterprise Application Role Policies (Validated context prevents "Always True" linter warnings)
+-- Enterprise Application Role Policies (Subquery `(SELECT auth.role())` enables InitPlan caching to resolve Auth RLS Initialization Plan performance warnings)
 CREATE POLICY "Enterprise app access on users_directory" ON public.users_directory
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on products" ON public.products
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on clients" ON public.clients
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on leads" ON public.leads
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on orders" ON public.orders
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on dispatches" ON public.dispatches
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on invoices" ON public.invoices
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on payments" ON public.payments
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on tasks" ON public.tasks
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 CREATE POLICY "Enterprise app access on followups" ON public.followups
     FOR ALL TO anon, authenticated
-    USING (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK (auth.role() IN ('anon', 'authenticated') AND id IS NOT NULL);
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 -- ============================================================================
 -- INITIAL SEED DATA (Explicitly Partitioned: AUCO vs AIWA)
@@ -502,10 +509,13 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON public.activity_logs(acti
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read attendance" ON public.attendance FOR SELECT USING (true);
-CREATE POLICY "Allow public insert attendance" ON public.attendance FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update attendance" ON public.attendance FOR UPDATE USING (true);
+CREATE POLICY "Enterprise app access on attendance" ON public.attendance
+    FOR ALL TO anon, authenticated
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
-CREATE POLICY "Allow public read activity_logs" ON public.activity_logs FOR SELECT USING (true);
-CREATE POLICY "Allow public insert activity_logs" ON public.activity_logs FOR INSERT WITH CHECK (true);
+CREATE POLICY "Enterprise app access on activity_logs" ON public.activity_logs
+    FOR ALL TO anon, authenticated
+    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
+    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
