@@ -223,6 +223,38 @@ CREATE TABLE IF NOT EXISTS public.followups (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 10. ATTENDANCE & SHIFT REGISTER TABLE
+CREATE TABLE IF NOT EXISTS public.attendance (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    user_role TEXT NOT NULL,
+    department TEXT,
+    date DATE DEFAULT CURRENT_DATE,
+    check_in_time TEXT,
+    check_out_time TEXT,
+    status TEXT DEFAULT 'Checked In' CHECK (status IN ('Checked In', 'Completed', 'Absent')),
+    work_mode TEXT DEFAULT 'Office HQ (Pune)',
+    location TEXT,
+    shift_duration TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. STAFF ACTIVITY AUDIT LOGS TABLE
+CREATE TABLE IF NOT EXISTS public.activity_logs (
+    id TEXT PRIMARY KEY,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    user_name TEXT NOT NULL,
+    user_role TEXT NOT NULL,
+    brand TEXT NOT NULL DEFAULT 'AUCO' CHECK (brand IN ('AUCO', 'AIWA')),
+    action_type TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT,
+    description TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
 -- ============================================================================
 -- BRAND COLUMN MIGRATIONS & PERFORMANCE INDEXES
 -- ============================================================================
@@ -236,7 +268,7 @@ ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS brand TEXT DEFAULT 'AUCO';
 ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS brand TEXT DEFAULT 'AUCO';
 ALTER TABLE public.followups ADD COLUMN IF NOT EXISTS brand TEXT DEFAULT 'AUCO';
 
--- Create Fast Query Indexes on brand
+-- Create Fast Query Indexes
 CREATE INDEX IF NOT EXISTS idx_products_brand ON public.products(brand);
 CREATE INDEX IF NOT EXISTS idx_clients_brand ON public.clients(brand);
 CREATE INDEX IF NOT EXISTS idx_leads_brand ON public.leads(brand);
@@ -246,120 +278,61 @@ CREATE INDEX IF NOT EXISTS idx_invoices_brand ON public.invoices(brand);
 CREATE INDEX IF NOT EXISTS idx_payments_brand ON public.payments(brand);
 CREATE INDEX IF NOT EXISTS idx_tasks_brand ON public.tasks(brand);
 CREATE INDEX IF NOT EXISTS idx_followups_brand ON public.followups(brand);
+CREATE INDEX IF NOT EXISTS idx_attendance_user ON public.attendance(user_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_date ON public.attendance(date);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_brand ON public.activity_logs(brand);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON public.activity_logs(user_name);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON public.activity_logs(action_type);
 
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
--- Configured to enterprise security standards with validated application roles
+-- Bulletproof, dynamic configuration with subquery InitPlan optimization
 -- ============================================================================
-
-ALTER TABLE public.users_directory ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.followups ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.dispatches ENABLE ROW LEVEL SECURITY;
-
--- Clean up any legacy or duplicate policies
 DO $$ 
+DECLARE
+    tbl text;
+    tables text[] := ARRAY[
+        'users_directory',
+        'products',
+        'clients',
+        'leads',
+        'orders',
+        'dispatches',
+        'invoices',
+        'payments',
+        'tasks',
+        'followups',
+        'attendance',
+        'activity_logs'
+    ];
 BEGIN
-    -- Drop legacy anon policies
-    DROP POLICY IF EXISTS "Allow anon all on users_directory" ON public.users_directory;
-    DROP POLICY IF EXISTS "Allow anon all on products" ON public.products;
-    DROP POLICY IF EXISTS "Allow anon all on clients" ON public.clients;
-    DROP POLICY IF EXISTS "Allow anon all on leads" ON public.leads;
-    DROP POLICY IF EXISTS "Allow anon all on orders" ON public.orders;
-    DROP POLICY IF EXISTS "Allow anon all on dispatches" ON public.dispatches;
-    DROP POLICY IF EXISTS "Allow anon all on invoices" ON public.invoices;
-    DROP POLICY IF EXISTS "Allow anon all on payments" ON public.payments;
-    DROP POLICY IF EXISTS "Allow anon all on tasks" ON public.tasks;
-    DROP POLICY IF EXISTS "Allow anon all on followups" ON public.followups;
+    FOREACH tbl IN ARRAY tables
+    LOOP
+        -- Check if table exists before applying RLS and policies
+        IF EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = tbl
+        ) THEN
+            -- Enable RLS
+            EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', tbl);
+            
+            -- Drop existing / legacy policies safely
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', 'Enterprise app access on ' || tbl, tbl);
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', 'Allow anon all on ' || tbl, tbl);
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', 'Allow auth all on ' || tbl, tbl);
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', 'Allow public read ' || tbl, tbl);
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', 'Allow public insert ' || tbl, tbl);
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I;', 'Allow public update ' || tbl, tbl);
 
-    -- Drop legacy auth policies
-    DROP POLICY IF EXISTS "Allow auth all on users_directory" ON public.users_directory;
-    DROP POLICY IF EXISTS "Allow auth all on products" ON public.products;
-    DROP POLICY IF EXISTS "Allow auth all on clients" ON public.clients;
-    DROP POLICY IF EXISTS "Allow auth all on leads" ON public.leads;
-    DROP POLICY IF EXISTS "Allow auth all on orders" ON public.orders;
-    DROP POLICY IF EXISTS "Allow auth all on dispatches" ON public.dispatches;
-    DROP POLICY IF EXISTS "Allow auth all on invoices" ON public.invoices;
-    DROP POLICY IF EXISTS "Allow auth all on payments" ON public.payments;
-    DROP POLICY IF EXISTS "Allow auth all on tasks" ON public.tasks;
-    DROP POLICY IF EXISTS "Allow auth all on followups" ON public.followups;
-
-    -- Drop standardized application policies if existing
-    DROP POLICY IF EXISTS "Enterprise app access on users_directory" ON public.users_directory;
-    DROP POLICY IF EXISTS "Enterprise app access on products" ON public.products;
-    DROP POLICY IF EXISTS "Enterprise app access on clients" ON public.clients;
-    DROP POLICY IF EXISTS "Enterprise app access on leads" ON public.leads;
-    DROP POLICY IF EXISTS "Enterprise app access on orders" ON public.orders;
-    DROP POLICY IF EXISTS "Enterprise app access on dispatches" ON public.dispatches;
-    DROP POLICY IF EXISTS "Enterprise app access on invoices" ON public.invoices;
-    DROP POLICY IF EXISTS "Enterprise app access on payments" ON public.payments;
-    DROP POLICY IF EXISTS "Enterprise app access on tasks" ON public.tasks;
-    DROP POLICY IF EXISTS "Enterprise app access on followups" ON public.followups;
-    DROP POLICY IF EXISTS "Enterprise app access on attendance" ON public.attendance;
-    DROP POLICY IF EXISTS "Enterprise app access on activity_logs" ON public.activity_logs;
-    DROP POLICY IF EXISTS "Allow public read attendance" ON public.attendance;
-    DROP POLICY IF EXISTS "Allow public insert attendance" ON public.attendance;
-    DROP POLICY IF EXISTS "Allow public update attendance" ON public.attendance;
-    DROP POLICY IF EXISTS "Allow public read activity_logs" ON public.activity_logs;
-    DROP POLICY IF EXISTS "Allow public insert activity_logs" ON public.activity_logs;
+            -- Create optimized InitPlan policy (uses (SELECT auth.role()) for query-level caching)
+            EXECUTE format(
+                'CREATE POLICY %I ON public.%I FOR ALL TO anon, authenticated USING ((SELECT auth.role()) IN (''anon'', ''authenticated'') AND id IS NOT NULL) WITH CHECK ((SELECT auth.role()) IN (''anon'', ''authenticated'') AND id IS NOT NULL);',
+                'Enterprise app access on ' || tbl,
+                tbl
+            );
+        END IF;
+    END LOOP;
 END $$;
-
--- Enterprise Application Role Policies (Subquery `(SELECT auth.role())` enables InitPlan caching to resolve Auth RLS Initialization Plan performance warnings)
-CREATE POLICY "Enterprise app access on users_directory" ON public.users_directory
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on products" ON public.products
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on clients" ON public.clients
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on leads" ON public.leads
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on orders" ON public.orders
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on dispatches" ON public.dispatches
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on invoices" ON public.invoices
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on payments" ON public.payments
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on tasks" ON public.tasks
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on followups" ON public.followups
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
 -- ============================================================================
 -- INITIAL SEED DATA (Explicitly Partitioned: AUCO vs AIWA)
@@ -464,58 +437,4 @@ VALUES
     ('DSP-2026-003', 'AIWA', 'DC-2026-003', 'ORD-1003', 'CLN-005', 'NCR Logistics & Warehousing Hub', 'NCR Logistics & Warehousing Hub', 'Gaurav Bhatia (Operations)', '+91 98100 44521', 'gbhatia@ncrlogistics.com', 'Udyog Vihar Phase IV, Gurugram, Haryana - 122015', '[{"name": "Aiwa Commercial Audio Matrix Switcher 8x8", "quantity": 1, "productCode": "AIW-405"}]'::jsonb, 'Delhivery Surface', 'DLV-5541092', '2410-1123-9988', '2026-08-26', '2026-08-30', null, '1 Specialized AV Crate', '12.0 kg', 'DL-01-AB-9821', 'Sneha Kulkarni', 'Dispatched', 'Fragile acoustic matrix unit. Shock-indicator label affixed on outer box.'),
     ('DSP-2026-004', 'AIWA', 'DC-2026-004', 'ORD-1004', 'CLN-007', 'Cyberabad Tech Parks AV Facilities', 'Cyberabad Tech Parks AV Facilities', 'Naveen Reddy (AV Lead)', '+91 98490 66789', 'naveen.r@cyberabadparks.com', 'HITEC City, Madhapur, Hyderabad, Telangana - 500081', '[{"name": "Aiwa High-Precision Sound Calibration Kit", "quantity": 1, "productCode": "AIW-301"}, {"name": "Aiwa Commercial Audio Matrix Switcher 8x8", "quantity": 1, "productCode": "AIW-405"}]'::jsonb, 'Safexpress Logistics', 'SFX-7719203', '2410-3301-4455', '2026-08-19', '2026-08-21', '2026-08-21', '2 Flight Cases', '22.0 kg', 'TS-09-UB-3310', 'Rahul Verma', 'Delivered', 'Received and verified on site. Training session completed on 22nd Aug.')
 ON CONFLICT (id) DO NOTHING;
-
--- ============================================================================
--- 10. ATTENDANCE & SHIFT REGISTER TABLE
--- ============================================================================
-CREATE TABLE IF NOT EXISTS public.attendance (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    user_name TEXT NOT NULL,
-    user_role TEXT NOT NULL,
-    department TEXT,
-    date DATE DEFAULT CURRENT_DATE,
-    check_in_time TEXT,
-    check_out_time TEXT,
-    status TEXT DEFAULT 'Checked In' CHECK (status IN ('Checked In', 'Completed', 'Absent')),
-    work_mode TEXT DEFAULT 'Office HQ (Pune)',
-    location TEXT,
-    shift_duration TEXT,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 11. STAFF ACTIVITY AUDIT LOGS TABLE
-CREATE TABLE IF NOT EXISTS public.activity_logs (
-    id TEXT PRIMARY KEY,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    user_name TEXT NOT NULL,
-    user_role TEXT NOT NULL,
-    brand TEXT NOT NULL DEFAULT 'AUCO' CHECK (brand IN ('AUCO', 'AIWA')),
-    action_type TEXT NOT NULL,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT,
-    description TEXT NOT NULL,
-    metadata JSONB DEFAULT '{}'::jsonb
-);
-
-CREATE INDEX IF NOT EXISTS idx_attendance_user ON public.attendance(user_id);
-CREATE INDEX IF NOT EXISTS idx_attendance_date ON public.attendance(date);
-CREATE INDEX IF NOT EXISTS idx_activity_logs_brand ON public.activity_logs(brand);
-CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON public.activity_logs(user_name);
-CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON public.activity_logs(action_type);
-
--- Enable RLS for Attendance & Activities
-ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Enterprise app access on attendance" ON public.attendance
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
-
-CREATE POLICY "Enterprise app access on activity_logs" ON public.activity_logs
-    FOR ALL TO anon, authenticated
-    USING ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL)
-    WITH CHECK ((SELECT auth.role()) IN ('anon', 'authenticated') AND id IS NOT NULL);
 
