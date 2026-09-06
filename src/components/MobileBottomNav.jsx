@@ -10,7 +10,8 @@ import {
   CreditCard,
   CheckSquare,
   MapPin,
-  Menu
+  Menu,
+  Wrench
 } from 'lucide-react';
 
 export const MobileBottomNav = ({ currentView, onChangeView, onToggleSidebar }) => {
@@ -37,9 +38,9 @@ export const MobileBottomNav = ({ currentView, onChangeView, onToggleSidebar }) 
     if (currentRole === 'Services') {
       return [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-        { id: 'orders', label: 'Orders', icon: ShoppingCart },
-        { id: 'inventory', label: 'Inventory', icon: Boxes }
+        { id: 'repairs',   label: 'Repairs',   icon: Wrench },
+        { id: 'tasks',     label: 'Tasks',     icon: CheckSquare },
+        { id: 'orders',    label: 'Orders',    icon: ShoppingCart }
       ];
     }
     // Admin default

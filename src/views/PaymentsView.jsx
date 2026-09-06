@@ -6,361 +6,404 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  ArrowUpRight,
-  Filter,
-  DollarSign
+  X,
+  IndianRupee,
+  Building2,
+  Calendar,
+  Banknote
 } from 'lucide-react';
-import { formatCurrency, formatDate, getStatusBadgeClass } from '../utils/formatters';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
-export const PaymentsView = ({ onNavigate }) => {
-  const { payments, recordPayment, selectedCompany, companyBrands, matchesCompany } = useApp();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [recordPaymentModal, setRecordPaymentModal] = useState(null);
-  const [amountInput, setAmountInput] = useState('');
-  const [modeInput, setModeInput] = useState('NEFT');
+// ─── Status config ────────────────────────────────────────────────────────────
+const STATUS_CFG = {
+  'Paid':           { color: '#059669', bg: '#ecfdf5', border: '#a7f3d0', label: '✓ Paid' },
+  'Partially Paid': { color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: '½ Partial' },
+  'Pending':        { color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', label: '⏳ Pending' },
+  'Overdue':        { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: '⚠ Overdue' },
+};
 
-  // Scoped payments by company
-  const scopedPayments = payments.filter(matchesCompany);
+const getStatusCfg = (s) => STATUS_CFG[s] || STATUS_CFG['Pending'];
 
-  // Filter payments
-  const filteredPayments = scopedPayments.filter((p) => {
-    const matchesSearch =
-      p.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.paymentMode && p.paymentMode.toLowerCase().includes(searchQuery.toLowerCase()));
+const PAYMENT_MODES = ['NEFT / RTGS', 'UPI', 'Bank Transfer', 'Cheque', 'Cash'];
 
-    const matchesStatus = statusFilter === 'ALL' || p.paymentStatus === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+// ─── Progress bar helper ──────────────────────────────────────────────────────
+const PaymentProgress = ({ paid, total }) => {
+  const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ flex: 1, height: '6px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', width: `${pct}%`,
+          background: pct === 100 ? '#10b981' : pct > 50 ? '#f59e0b' : '#ef4444',
+          borderRadius: '10px', transition: 'width 0.4s ease'
+        }} />
+      </div>
+      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', minWidth: '32px' }}>{pct}%</span>
+    </div>
+  );
+};
 
-  // Financial aggregates
-  const totalBilled = scopedPayments.reduce((acc, p) => acc + Number(p.invoiceAmount || 0), 0);
-  const totalReceived = scopedPayments.reduce((acc, p) => acc + Number(p.amountPaid || 0), 0);
-  const totalOutstanding = scopedPayments.reduce((acc, p) => acc + Number(p.balance || 0), 0);
-  const overduePayments = scopedPayments.filter((p) => p.paymentStatus === 'Overdue');
-  const overdueBalance = overduePayments.reduce((acc, p) => acc + Number(p.balance || 0), 0);
-
-  const handleRecordPayment = (e) => {
-    e.preventDefault();
-    if (!recordPaymentModal || !amountInput) return;
-    recordPayment(recordPaymentModal.invoiceNumber, amountInput, modeInput);
-    setRecordPaymentModal(null);
-    setAmountInput('');
-  };
+// ─── Payment Card ─────────────────────────────────────────────────────────────
+const PaymentCard = ({ payment, onCollect }) => {
+  const cfg = getStatusCfg(payment.paymentStatus);
+  const isOverdue = payment.paymentStatus === 'Overdue';
+  const isSettled = payment.balance <= 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Header */}
-      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2>Payment Receipts</h2>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Accounts receivable tracking, settled payments, and outstanding balances
-          </p>
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: '14px',
+        border: `1px solid ${isOverdue ? '#fecaca' : '#e2e8f0'}`,
+        padding: '18px 20px',
+        boxShadow: isOverdue ? '0 2px 8px rgba(220,38,38,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
+        display: 'flex', flexDirection: 'column', gap: '14px',
+        transition: 'box-shadow 0.15s'
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.09)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = isOverdue ? '0 2px 8px rgba(220,38,38,0.06)' : '0 2px 8px rgba(0,0,0,0.04)')}
+    >
+      {/* Top: client + status */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.03em', fontFamily: 'monospace' }}>
+              {payment.invoiceNumber}
+            </span>
+          </div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a' }}>{payment.clientName}</div>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={() => onNavigate('invoices')}>
-          View Invoices
-        </button>
+        <span style={{
+          padding: '4px 10px', borderRadius: '20px',
+          background: cfg.bg, border: `1px solid ${cfg.border}`,
+          color: cfg.color, fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap'
+        }}>
+          {cfg.label}
+        </span>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid-4">
-        <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <div className="stat-header">
-            <span className="stat-title">Total Collected</span>
-            <CheckCircle2 size={18} style={{ color: '#10b981' }} />
-          </div>
-          <div className="stat-value">{formatCurrency(totalReceived)}</div>
-          <div className="stat-subtext">Settled payments</div>
+      {/* Amounts */}
+      <div style={{ display: 'flex', gap: '0', borderRadius: '10px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+        <div style={{ flex: 1, padding: '10px 14px', background: '#f8fafc', borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, marginBottom: '2px' }}>Invoice</div>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>{formatCurrency(payment.invoiceAmount)}</div>
         </div>
-
-        <div className="stat-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-          <div className="stat-header">
-            <span className="stat-title">Total Outstanding</span>
-            <Clock size={18} style={{ color: '#f59e0b' }} />
-          </div>
-          <div className="stat-value">{formatCurrency(totalOutstanding)}</div>
-          <div className="stat-subtext">Across active invoices</div>
+        <div style={{ flex: 1, padding: '10px 14px', background: '#f0fdf4', borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 600, marginBottom: '2px' }}>Paid</div>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#059669' }}>{formatCurrency(payment.amountPaid)}</div>
         </div>
-
-        <div className="stat-card" style={{ borderLeft: `4px solid ${overduePayments.length > 0 ? 'var(--danger-text)' : 'var(--success-text)'}` }}>
-          <div className="stat-header">
-            <span className="stat-title">Overdue Amount</span>
-            <AlertTriangle size={18} style={{ color: overduePayments.length > 0 ? 'var(--danger-text)' : 'var(--success-text)' }} />
-          </div>
-          <div className="stat-value" style={{ color: overduePayments.length > 0 ? 'var(--danger-text)' : 'inherit' }}>
-            {formatCurrency(overdueBalance)}
-          </div>
-          <div className="stat-subtext" style={{ color: 'var(--danger-text)', fontWeight: 600 }}>
-            {overduePayments.length} accounts past due date
-          </div>
-        </div>
-
-        <div className="stat-card" style={{ borderLeft: '4px solid var(--primary-600)' }}>
-          <div className="stat-header">
-            <span className="stat-title">Collection Rate</span>
-            <CreditCard size={18} style={{ color: 'var(--primary-600)' }} />
-          </div>
-          <div className="stat-value">
-            {totalBilled > 0 ? Math.round((totalReceived / totalBilled) * 100) : 0}%
-          </div>
-          <div className="stat-subtext">Of {formatCurrency(totalBilled)} total billed</div>
-        </div>
-      </div>
-
-      {/* Search & Filter */}
-      <div className="card" style={{ padding: '14px 18px' }}>
-        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Search invoice #, client, payment mode..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '36px' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Status:</span>
-            <select
-              className="form-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{ width: '160px' }}
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="Overdue">Overdue</option>
-              <option value="Pending">Pending</option>
-              <option value="Partially Paid">Partially Paid</option>
-              <option value="Paid">Paid</option>
-            </select>
+        <div style={{ flex: 1, padding: '10px 14px', background: payment.balance > 0 ? '#fef9f0' : '#f0fdf4', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: payment.balance > 0 ? '#d97706' : '#059669', fontWeight: 600, marginBottom: '2px' }}>Balance</div>
+          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: payment.balance > 0 ? '#dc2626' : '#059669' }}>
+            {formatCurrency(payment.balance)}
           </div>
         </div>
       </div>
 
-      {/* =========================================================================
-          DESKTOP PAYMENTS TABLE
-          ========================================================================= */}
-      <div className="table-container desktop-only">
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>Invoice #</th>
-              <th>Client Name</th>
-              <th>Invoice Amount</th>
-              <th>Amount Paid</th>
-              <th>Balance (Outstanding)</th>
-              <th>Payment Date</th>
-              <th>Due Date</th>
-              <th>Terms (Days)</th>
-              <th>Payment Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPayments.map((p) => {
-              const isOverdue = p.paymentStatus === 'Overdue';
-              return (
-                <tr key={p.id} style={{ background: isOverdue ? 'rgba(254, 242, 242, 0.4)' : 'inherit' }}>
-                  <td>
-                    <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace' }}>{p.invoiceNumber}</strong>
-                  </td>
-                  <td>
-                    <strong>{p.clientName}</strong>
-                  </td>
-                  <td>
-                    {formatCurrency(p.invoiceAmount)}
-                  </td>
-                  <td style={{ color: 'var(--success-text)', fontWeight: 600 }}>
-                    {formatCurrency(p.amountPaid)}
-                  </td>
-                  <td>
-                    <strong style={{ color: p.balance > 0 ? 'var(--danger-text)' : 'var(--text-muted)' }}>
-                      {formatCurrency(p.balance)}
-                    </strong>
-                  </td>
-                  <td style={{ fontSize: '0.8rem' }}>
-                    {p.paymentDate ? formatDate(p.paymentDate) : '—'}
-                  </td>
-                  <td style={{ fontSize: '0.8rem', color: isOverdue ? 'var(--danger-text)' : 'inherit', fontWeight: isOverdue ? 700 : 'normal' }}>
-                    {formatDate(p.paymentDueDate)}
-                  </td>
-                  <td style={{ textAlign: 'center', fontSize: '0.8rem' }}>
-                    {p.paymentDays || 30} days
-                  </td>
-                  <td>
-                    <span className={`badge ${getStatusBadgeClass(p.paymentStatus)}`}>
-                      {p.paymentStatus}
-                    </span>
-                  </td>
-                  <td>
-                    {p.balance > 0 ? (
-                      <button
-                        className="btn btn-success btn-sm"
-                        onClick={() => {
-                          setRecordPaymentModal(p);
-                          setAmountInput(String(p.balance));
-                        }}
-                      >
-                        <CreditCard size={13} /> Collect
-                      </button>
-                    ) : (
-                      <span className="badge badge-success">Settled</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-            {filteredPayments.length === 0 && (
-              <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
-                  <CreditCard size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No payment records found</div>
-                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or status filter.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Progress */}
+      <PaymentProgress paid={payment.amountPaid} total={payment.invoiceAmount} />
 
-      {/* =========================================================================
-          MOBILE PAYMENT CARDS FEED (Phone Screens)
-          ========================================================================= */}
-      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
-        {filteredPayments.map((p) => {
-          const isOverdue = p.paymentStatus === 'Overdue';
-          return (
-            <div key={p.id} className="card" style={{ padding: '14px 16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace', fontSize: '0.9rem' }}>{p.invoiceNumber}</strong>
-                    <span className={`badge ${getStatusBadgeClass(p.paymentStatus)}`} style={{ fontSize: '0.68rem' }}>
-                      {p.paymentStatus}
-                    </span>
-                  </div>
-                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '2px' }}>{p.clientName}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{formatCurrency(p.invoiceAmount)}</div>
-                  {p.balance > 0 ? (
-                    <div style={{ fontSize: '0.72rem', color: 'var(--danger-text)', fontWeight: 700 }}>
-                      Pending: {formatCurrency(p.balance)}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '0.72rem', color: 'var(--success-text)' }}>Settled</div>
-                  )}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', marginBottom: '10px' }}>
-                <span>Paid: <strong style={{ color: 'var(--success-text)' }}>{formatCurrency(p.amountPaid)}</strong></span>
-                <span style={{ color: 'var(--text-muted)' }}>•</span>
-                <span style={{ color: isOverdue ? 'var(--danger-text)' : 'inherit', fontWeight: isOverdue ? 700 : 'normal' }}>
-                  Due: {formatDate(p.paymentDueDate)}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
-                {p.balance > 0 ? (
-                  <button
-                    className="btn btn-success btn-sm"
-                    style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
-                    onClick={() => {
-                      setRecordPaymentModal(p);
-                      setAmountInput(String(p.balance));
-                    }}
-                  >
-                    <CreditCard size={13} />
-                    <span>Collect Payment ({formatCurrency(p.balance)})</span>
-                  </button>
-                ) : (
-                  <span className="badge badge-success" style={{ width: '100%', textAlign: 'center', padding: '8px', fontSize: '0.78rem' }}>
-                    Payment Complete
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {filteredPayments.length === 0 && (
-          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <CreditCard size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
-            <div style={{ fontWeight: 700 }}>No payment records found</div>
+      {/* Due date row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        {payment.paymentDueDate && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', color: isOverdue ? '#dc2626' : '#64748b', fontWeight: isOverdue ? 700 : 400 }}>
+            <Calendar size={13} style={{ color: isOverdue ? '#dc2626' : '#94a3b8' }} />
+            Due: <strong>{formatDate(payment.paymentDueDate)}</strong>
+            {isOverdue && <span style={{ fontSize: '0.72rem', background: '#fef2f2', color: '#dc2626', padding: '1px 6px', borderRadius: '8px', border: '1px solid #fecaca' }}>Past Due</span>}
+          </div>
+        )}
+        {payment.paymentDate && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', color: '#64748b' }}>
+            <CheckCircle2 size={13} style={{ color: '#10b981' }} />
+            Last paid: <strong>{formatDate(payment.paymentDate)}</strong>
+          </div>
+        )}
+        {payment.paymentMode && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', color: '#64748b' }}>
+            <Banknote size={13} style={{ color: '#94a3b8' }} />
+            {payment.paymentMode}
           </div>
         )}
       </div>
 
-      {/* Collect Payment Modal */}
-      {recordPaymentModal && (
-        <div className="modal-backdrop" onClick={() => setRecordPaymentModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleRecordPayment}>
-              <div className="modal-header">
-                <div>
-                  <span className="badge badge-success">Collect Payment</span>
-                  <h3 style={{ marginTop: '4px' }}>Invoice: {recordPaymentModal.invoiceNumber}</h3>
-                </div>
-                <button type="button" className="btn btn-ghost btn-icon" onClick={() => setRecordPaymentModal(null)}>✕</button>
-              </div>
+      {/* Action */}
+      {isSettled ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          padding: '10px', borderRadius: '10px', background: '#ecfdf5',
+          border: '1px solid #a7f3d0', color: '#059669', fontWeight: 700, fontSize: '0.88rem'
+        }}>
+          <CheckCircle2 size={16} /> Payment Complete
+        </div>
+      ) : (
+        <button
+          onClick={() => onCollect(payment)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            padding: '12px', borderRadius: '10px',
+            background: isOverdue ? 'linear-gradient(135deg,#dc2626,#ef4444)' : 'linear-gradient(135deg,#059669,#10b981)',
+            color: '#fff', fontWeight: 700, fontSize: '0.9rem',
+            border: 'none', cursor: 'pointer', width: '100%',
+            boxShadow: isOverdue ? '0 4px 12px rgba(220,38,38,0.25)' : '0 4px 12px rgba(16,185,129,0.25)',
+            transition: 'transform 0.1s, box-shadow 0.1s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+        >
+          <CreditCard size={17} />
+          Collect {formatCurrency(payment.balance)}
+        </button>
+      )}
+    </div>
+  );
+};
 
-              <div className="modal-body">
-                <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', marginBottom: '14px', fontSize: '0.85rem' }}>
-                  <div className="flex-between">
-                    <span>Client:</span>
-                    <strong>{recordPaymentModal.clientName}</strong>
-                  </div>
-                  <div className="flex-between" style={{ marginTop: '4px' }}>
-                    <span>Invoice Amount:</span>
-                    <strong>{formatCurrency(recordPaymentModal.invoiceAmount)}</strong>
-                  </div>
-                  <div className="flex-between" style={{ marginTop: '4px' }}>
-                    <span>Current Balance:</span>
-                    <strong style={{ color: 'var(--danger-text)' }}>{formatCurrency(recordPaymentModal.balance)}</strong>
-                  </div>
-                </div>
+// ─── Collect Modal ────────────────────────────────────────────────────────────
+const CollectModal = ({ payment, onClose, onSubmit }) => {
+  const [amount, setAmount] = useState(String(payment.balance));
+  const [mode, setMode] = useState('NEFT / RTGS');
 
-                <div className="form-group">
-                  <label className="form-label">Payment Amount (INR) *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    max={recordPaymentModal.balance}
-                    className="form-input"
-                    value={amountInput}
-                    onChange={(e) => setAmountInput(e.target.value)}
-                  />
-                </div>
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!amount || Number(amount) <= 0) return;
+    onSubmit(payment.invoiceNumber, amount, mode);
+    onClose();
+  };
 
-                <div className="form-group">
-                  <label className="form-label">Payment Mode</label>
-                  <select
-                    className="form-select"
-                    value={modeInput}
-                    onChange={(e) => setModeInput(e.target.value)}
-                  >
-                    <option value="NEFT">NEFT / RTGS</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Bank Transfer">Bank Transfer (IMPS)</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Cash">Cash</option>
-                  </select>
-                </div>
-              </div>
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '16px' }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: '#fff', borderRadius: '18px', width: '100%', maxWidth: '420px', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em', fontFamily: 'monospace', marginBottom: '2px' }}>{payment.invoiceNumber}</div>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>Collect Payment</h2>
+            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>{payment.clientName}</p>
+          </div>
+          <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#64748b' }}>
+            <X size={18} />
+          </button>
+        </div>
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setRecordPaymentModal(null)}>Cancel</button>
-                <button type="submit" className="btn btn-success">Save Payment Receipt</button>
-              </div>
-            </form>
+        <form onSubmit={handleSubmit} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Summary */}
+          <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#64748b' }}>Total Invoice</span>
+              <strong>{formatCurrency(payment.invoiceAmount)}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#64748b' }}>Already Paid</span>
+              <strong style={{ color: '#059669' }}>{formatCurrency(payment.amountPaid)}</strong>
+            </div>
+            <div style={{ height: '1px', background: '#e2e8f0', margin: '2px 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontWeight: 700 }}>Balance Due</span>
+              <strong style={{ color: '#dc2626', fontSize: '1rem' }}>{formatCurrency(payment.balance)}</strong>
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>Amount Received (₹) <span style={{ color: '#ef4444' }}>*</span></label>
+            <input
+              type="number" required min="1" max={payment.balance}
+              value={amount} onChange={(e) => setAmount(e.target.value)}
+              style={{ padding: '11px 13px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '1rem', fontWeight: 700, color: '#0f172a', outline: 'none', background: '#fff', fontFamily: 'var(--font-sans)' }}
+            />
+          </div>
+
+          {/* Mode */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>Payment Mode</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {PAYMENT_MODES.map((m) => (
+                <button
+                  type="button" key={m} onClick={() => setMode(m)}
+                  style={{
+                    padding: '9px 10px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: mode === m ? 700 : 500,
+                    border: `2px solid ${mode === m ? '#4f46e5' : '#e2e8f0'}`,
+                    background: mode === m ? '#eef2ff' : '#fff',
+                    color: mode === m ? '#4f46e5' : '#64748b', cursor: 'pointer', transition: 'all 0.15s'
+                  }}
+                >{m}</button>
+              ))}
+            </div>
+          </div>
+
+          <button type="submit" style={{
+            marginTop: '4px', padding: '13px', borderRadius: '10px',
+            background: 'linear-gradient(135deg,#059669,#10b981)', color: '#fff',
+            fontWeight: 800, fontSize: '0.95rem', border: 'none', cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(16,185,129,0.3)'
+          }}>
+            ✓ Save Payment
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── Main View ────────────────────────────────────────────────────────────────
+export const PaymentsView = ({ onNavigate }) => {
+  const { payments, recordPayment, matchesCompany } = useApp();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [collectTarget, setCollectTarget] = useState(null);
+
+  const scopedPayments = payments.filter(matchesCompany);
+
+  // Aggregates
+  const totalBilled      = scopedPayments.reduce((a, p) => a + Number(p.invoiceAmount || 0), 0);
+  const totalReceived    = scopedPayments.reduce((a, p) => a + Number(p.amountPaid || 0), 0);
+  const totalOutstanding = scopedPayments.reduce((a, p) => a + Number(p.balance || 0), 0);
+  const overdueCount     = scopedPayments.filter((p) => p.paymentStatus === 'Overdue').length;
+  const overdueBalance   = scopedPayments.filter((p) => p.paymentStatus === 'Overdue').reduce((a, p) => a + Number(p.balance || 0), 0);
+  const collectionRate   = totalBilled > 0 ? Math.round((totalReceived / totalBilled) * 100) : 0;
+
+  const filtered = scopedPayments.filter((p) => {
+    const matchStatus = statusFilter === 'ALL' || p.paymentStatus === statusFilter;
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q ||
+      p.invoiceNumber.toLowerCase().includes(q) ||
+      p.clientName.toLowerCase().includes(q) ||
+      (p.paymentMode || '').toLowerCase().includes(q);
+    return matchStatus && matchSearch;
+  });
+
+  const handleCollect = (invoiceNumber, amount, mode) => {
+    recordPayment(invoiceNumber, amount, mode);
+  };
+
+  const STATUS_TABS = [
+    { key: 'ALL',           label: 'All' },
+    { key: 'Overdue',       label: '⚠ Overdue' },
+    { key: 'Partially Paid',label: '½ Partial' },
+    { key: 'Pending',       label: '⏳ Pending' },
+    { key: 'Paid',          label: '✓ Paid' },
+  ];
+
+  return (
+    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <CreditCard size={26} style={{ color: '#4f46e5' }} /> Payments
+          </h1>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.88rem' }}>
+            {overdueCount > 0
+              ? `${overdueCount} overdue account${overdueCount > 1 ? 's' : ''} — needs attention`
+              : 'All accounts up to date'}
+          </p>
+        </div>
+        <button
+          onClick={() => onNavigate('invoices')}
+          style={{
+            padding: '9px 16px', borderRadius: '9px', background: '#f1f5f9',
+            border: '1.5px solid #e2e8f0', color: '#475569', fontWeight: 600,
+            fontSize: '0.85rem', cursor: 'pointer', flexShrink: 0
+          }}
+        >
+          View Invoices →
+        </button>
+      </div>
+
+      {/* KPI strip */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px' }}>
+        {[
+          { label: 'Collected',    value: formatCurrency(totalReceived),    color: '#10b981', bg: '#ecfdf5', sub: `${collectionRate}% collection rate`, icon: CheckCircle2 },
+          { label: 'Outstanding',  value: formatCurrency(totalOutstanding),  color: '#f59e0b', bg: '#fffbeb', sub: 'Across all invoices',                icon: Clock },
+          { label: 'Overdue',      value: formatCurrency(overdueBalance),    color: '#dc2626', bg: '#fef2f2', sub: `${overdueCount} account(s) past due`, icon: AlertTriangle },
+          { label: 'Collection %', value: `${collectionRate}%`,              color: '#4f46e5', bg: '#eef2ff', sub: `of ${formatCurrency(totalBilled)} billed`, icon: IndianRupee },
+        ].map(({ label, value, color, bg, sub, icon: Icon }) => (
+          <div key={label} style={{ background: bg, border: `1.5px solid ${color}25`, borderRadius: '12px', padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <Icon size={14} style={{ color }} />
+              <span style={{ fontSize: '0.74rem', fontWeight: 600, color }}>{label}</span>
+            </div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1, marginBottom: '3px' }}>{value}</div>
+            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '10px', padding: '0 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+        <Search size={16} style={{ color: '#94a3b8', flexShrink: 0 }} />
+        <input
+          placeholder="Search by client, invoice number…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ flex: 1, border: 'none', outline: 'none', padding: '12px 0', fontSize: '0.88rem', color: '#0f172a', background: 'transparent', fontFamily: 'var(--font-sans)' }}
+        />
+        {searchQuery && (
+          <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '2px', display: 'flex' }}>
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* Status filter tabs */}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {STATUS_TABS.map((tab) => {
+          const isActive = statusFilter === tab.key;
+          const cfg = STATUS_CFG[tab.key];
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setStatusFilter(tab.key)}
+              style={{
+                padding: '7px 14px', borderRadius: '20px', fontSize: '0.83rem', cursor: 'pointer',
+                border: `1.5px solid ${isActive ? (cfg?.color || '#4f46e5') : '#e2e8f0'}`,
+                background: isActive ? (cfg?.bg || '#eef2ff') : '#fff',
+                color: isActive ? (cfg?.color || '#4f46e5') : '#64748b',
+                fontWeight: isActive ? 700 : 500, transition: 'all 0.15s'
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Cards */}
+      {filtered.length === 0 ? (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+          padding: '60px 24px', background: '#f8fafc', borderRadius: '16px',
+          border: '1.5px dashed #e2e8f0', color: '#94a3b8', textAlign: 'center'
+        }}>
+          <CreditCard size={40} style={{ opacity: 0.3 }} />
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#64748b', marginBottom: '4px' }}>No payments found</div>
+            <div style={{ fontSize: '0.84rem' }}>Try changing your filter or search term</div>
           </div>
         </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {filtered.map((p) => (
+            <PaymentCard
+              key={p.id}
+              payment={p}
+              onCollect={(pay) => setCollectTarget(pay)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Collect modal */}
+      {collectTarget && (
+        <CollectModal
+          payment={collectTarget}
+          onClose={() => setCollectTarget(null)}
+          onSubmit={handleCollect}
+        />
       )}
     </div>
   );

@@ -4,21 +4,22 @@ import {
   Users,
   Plus,
   Search,
-  CheckCircle2,
-  XCircle,
   MessageSquare,
   Phone,
   Building2,
   Calendar,
-  DollarSign,
-  ChevronRight,
   Zap,
   Trash2,
   Edit2,
-  Filter,
-  ArrowRight
+  CheckCircle2,
+  X,
+  TrendingUp,
+  MapPin,
+  Clock,
+  ArrowRight,
+  UserCheck
 } from 'lucide-react';
-import { formatCurrency, formatDate, getStatusBadgeClass, getWhatsAppUrl } from '../utils/formatters';
+import { formatCurrency, formatDate, getWhatsAppUrl } from '../utils/formatters';
 
 const PIPELINE_STAGES = [
   'New Lead',
@@ -30,34 +31,330 @@ const PIPELINE_STAGES = [
   'Lost'
 ];
 
+const STAGE_CONFIG = {
+  'New Lead':    { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', label: 'New Lead' },
+  'Contacted':   { color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd', label: 'Contacted' },
+  'Qualified':   { color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe', label: 'Qualified' },
+  'Proposal':    { color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'Proposal' },
+  'Negotiation': { color: '#ea580c', bg: '#fff7ed', border: '#fdba74', label: 'Negotiation' },
+  'Won':         { color: '#059669', bg: '#ecfdf5', border: '#a7f3d0', label: 'Won / Converted' },
+  'Lost':        { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Lost' },
+};
+
+const LeadCard = ({ lead, onMoveStage, onConvert, onEdit, onDelete, onViewDetails }) => {
+  const sCfg = STAGE_CONFIG[lead.stage] || STAGE_CONFIG['New Lead'];
+  const isWon = lead.stage === 'Won';
+  const isLost = lead.stage === 'Lost';
+
+  const nextStageMap = {
+    'New Lead': 'Contacted',
+    'Contacted': 'Qualified',
+    'Qualified': 'Proposal',
+    'Proposal': 'Negotiation',
+    'Negotiation': 'Won',
+  };
+  const nextStage = nextStageMap[lead.stage];
+
+  return (
+    <div
+      style={{
+        background: '#ffffff',
+        borderRadius: '14px',
+        border: `1.5px solid ${isWon ? '#a7f3d0' : (isLost ? '#fecaca' : '#e2e8f0')}`,
+        padding: '18px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'all 0.15s ease'
+      }}
+    >
+      {/* Top row: Company name + Stage badge */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '6px',
+                color: sCfg.color,
+                background: sCfg.bg,
+                border: `1px solid ${sCfg.border}`
+              }}
+            >
+              {sCfg.label}
+            </span>
+            {lead.leadSource && (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  color: '#64748b',
+                  background: '#f1f5f9',
+                  padding: '2px 8px',
+                  borderRadius: '6px'
+                }}
+              >
+                {lead.leadSource}
+              </span>
+            )}
+            {lead.city && (
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  color: '#64748b',
+                  background: '#f8fafc',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+              >
+                <MapPin size={11} /> {lead.city}
+              </span>
+            )}
+          </div>
+
+          <h3
+            style={{
+              margin: '0 0 2px 0',
+              fontSize: '1.05rem',
+              fontWeight: 800,
+              color: '#0f172a',
+              cursor: 'pointer'
+            }}
+            onClick={() => onViewDetails(lead)}
+          >
+            {lead.company}
+          </h3>
+
+          <div style={{ fontSize: '0.82rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontWeight: 600 }}>{lead.client}</span>
+            <span style={{ color: '#cbd5e1' }}>•</span>
+            <span style={{ color: '#64748b' }}>{lead.phone}</span>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700 }}>VALUE</div>
+          <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#2563eb' }}>
+            {formatCurrency(lead.expectedValue)}
+          </div>
+        </div>
+      </div>
+
+      {/* Next Action / Notes */}
+      {lead.nextAction && (
+        <div
+          style={{
+            fontSize: '0.82rem',
+            color: '#334155',
+            background: '#f8fafc',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            borderLeft: '3px solid #3b82f6',
+            lineHeight: 1.4
+          }}
+        >
+          <strong style={{ color: '#1e293b' }}>Next Step: </strong>
+          {lead.nextAction}
+        </div>
+      )}
+
+      {/* Rep & Follow-up Row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '0.78rem', color: '#64748b' }}>
+        <div>
+          <span>Rep: </span>
+          <strong style={{ color: '#1e293b' }}>{lead.assignedSalesperson || 'Unassigned'}</strong>
+        </div>
+
+        {lead.followUpDate && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, color: '#d97706' }}>
+            <Calendar size={13} />
+            <span>Follow-up: {formatDate(lead.followUpDate)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Action Bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          paddingTop: '12px',
+          borderTop: '1px solid #f1f5f9',
+          flexWrap: 'wrap'
+        }}
+      >
+        {/* Quick Contact Buttons */}
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <a
+            href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up from ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: '#f0fdf4',
+              border: '1px solid #86efac',
+              color: '#16a34a',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              textDecoration: 'none'
+            }}
+          >
+            <MessageSquare size={13} /> WhatsApp
+          </a>
+
+          {lead.phone && (
+            <a
+              href={`tel:${lead.phone}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: '#eff6ff',
+                border: '1px solid #93c5fd',
+                color: '#2563eb',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                textDecoration: 'none'
+              }}
+            >
+              <Phone size={13} /> Call
+            </a>
+          )}
+        </div>
+
+        {/* Stage Advancement & Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {nextStage && !isWon && !isLost && (
+            <button
+              onClick={() => onMoveStage(lead.id, nextStage)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: 'none',
+                background: nextStage === 'Won' ? '#059669' : '#2563eb',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              {nextStage === 'Won' ? <Zap size={13} /> : <ArrowRight size={13} />}
+              <span>Move to {nextStage}</span>
+            </button>
+          )}
+
+          {lead.stage !== 'Won' && (
+            <button
+              onClick={() => onConvert(lead.id)}
+              title="Mark Won & Convert to Client"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 10px',
+                borderRadius: '8px',
+                border: '1px solid #a7f3d0',
+                background: '#ecfdf5',
+                color: '#059669',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              <UserCheck size={13} /> Won
+            </button>
+          )}
+
+          <button
+            onClick={() => onEdit(lead)}
+            style={{
+              padding: '6px 8px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              background: '#ffffff',
+              color: '#64748b',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            title="Edit lead"
+          >
+            <Edit2 size={13} />
+          </button>
+
+          <button
+            onClick={() => onDelete(lead)}
+            style={{
+              padding: '6px 8px',
+              borderRadius: '8px',
+              border: '1px solid #fee2e2',
+              background: '#fef2f2',
+              color: '#dc2626',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            title="Delete lead"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const LeadsView = ({ onOpenLeadModal }) => {
-  const { leads, updateLead, deleteLead, convertLeadToClient, selectedCompany, companyBrands, matchesCompany } = useApp();
+  const { leads, updateLead, deleteLead, convertLeadToClient, matchesCompany } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('ALL');
   const [stageFilter, setStageFilter] = useState('ALL');
+  const [sourceFilter, setSourceFilter] = useState('ALL');
   const [selectedLead, setSelectedLead] = useState(null);
   const [editingLead, setEditingLead] = useState(null);
   const [editFormData, setEditFormData] = useState({});
 
-  // Scoped leads by company
+  // Scoped leads by active company
   const scopedLeads = leads.filter(matchesCompany);
+
+  // Aggregates
+  const totalValue = scopedLeads
+    .filter((l) => l.stage !== 'Lost')
+    .reduce((acc, l) => acc + Number(l.expectedValue || 0), 0);
+  const newCount = scopedLeads.filter((l) => l.stage === 'New Lead').length;
+  const inProgressCount = scopedLeads.filter((l) => !['Won', 'Lost', 'New Lead'].includes(l.stage)).length;
+  const wonCount = scopedLeads.filter((l) => l.stage === 'Won').length;
 
   // Filter leads
   const filteredLeads = scopedLeads.filter((lead) => {
     const matchesSearch =
-      lead.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.assignedSalesperson.toLowerCase().includes(searchQuery.toLowerCase());
+      (lead.company || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (lead.client || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (lead.city || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (lead.assignedSalesperson || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesSource = sourceFilter === 'ALL' || lead.leadSource === sourceFilter;
     const matchesStage = stageFilter === 'ALL' || lead.stage === stageFilter;
+
     return matchesSearch && matchesSource && matchesStage;
   });
-
-  const totalExpectedValue = filteredLeads
-    .filter((l) => l.stage !== 'Lost')
-    .reduce((acc, l) => acc + Number(l.expectedValue || 0), 0);
 
   const handleMoveStage = (leadId, newStage) => {
     if (newStage === 'Won') {
@@ -72,11 +369,9 @@ export const LeadsView = ({ onOpenLeadModal }) => {
   };
 
   const handleDeleteLead = (lead) => {
-    if (window.confirm(`Are you sure you want to delete lead "${lead.company}" (${lead.id})?`)) {
+    if (window.confirm(`Delete lead "${lead.company}"?`)) {
       deleteLead(lead.id);
-      if (selectedLead && selectedLead.id === lead.id) {
-        setSelectedLead(null);
-      }
+      if (selectedLead && selectedLead.id === lead.id) setSelectedLead(null);
     }
   };
 
@@ -113,526 +408,530 @@ export const LeadsView = ({ onOpenLeadModal }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2>Sales Pipeline</h2>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Active prospect pipeline and lead conversions
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 4px 0', color: '#0f172a' }}>
+            Sales Pipeline
+          </h2>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+            Simple, clutter-free prospect tracker for sales reps
           </p>
         </div>
-        <button className="btn btn-primary" onClick={onOpenLeadModal} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Plus size={15} /> New Lead
+        <button
+          onClick={onOpenLeadModal}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: 'none',
+            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            color: '#ffffff',
+            fontWeight: 700,
+            fontSize: '0.88rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(37,99,235,0.25)'
+          }}
+        >
+          <Plus size={16} /> Add New Lead
         </button>
       </div>
 
-      {/* Filter & Summary Controls */}
-      <div className="card" style={{ padding: '14px 20px' }}>
-        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', minWidth: '240px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Search by company, client, city..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ paddingLeft: '32px' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Stage:</span>
-              <select
-                className="form-select"
-                value={stageFilter}
-                onChange={(e) => setStageFilter(e.target.value)}
-                style={{ width: '140px' }}
-              >
-                <option value="ALL">All Stages</option>
-                {PIPELINE_STAGES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Source:</span>
-              <select
-                className="form-select"
-                value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value)}
-                style={{ width: '130px' }}
-              >
-                <option value="ALL">All Sources</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Website">Website</option>
-                <option value="Cold Outreach">Cold Outreach</option>
-                <option value="Referral">Referral</option>
-                <option value="Exhibition">Exhibition</option>
-              </select>
-            </div>
+      {/* 4 Clickable Metric Filter Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px'
+        }}
+      >
+        <div
+          onClick={() => setStageFilter('ALL')}
+          style={{
+            background: '#ffffff',
+            padding: '16px 18px',
+            borderRadius: '14px',
+            border: stageFilter === 'ALL' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: stageFilter === 'ALL' ? '0 4px 12px rgba(37,99,235,0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+            transition: 'all 0.15s'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>TOTAL PIPELINE</span>
+            <TrendingUp size={18} color="#2563eb" />
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>PIPELINE TOTAL</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-600)' }}>
-                {formatCurrency(totalExpectedValue)}
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>LEADS SHOWN</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>
-                {filteredLeads.length} Leads
-              </div>
-            </div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#2563eb' }}>
+            {formatCurrency(totalValue)}
           </div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
+            {scopedLeads.length} active leads
+          </div>
+        </div>
+
+        <div
+          onClick={() => setStageFilter('New Lead')}
+          style={{
+            background: '#ffffff',
+            padding: '16px 18px',
+            borderRadius: '14px',
+            border: stageFilter === 'New Lead' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: stageFilter === 'New Lead' ? '0 4px 12px rgba(37,99,235,0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+            transition: 'all 0.15s'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2563eb' }}>NEW LEADS</span>
+            <Users size={18} color="#2563eb" />
+          </div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a' }}>{newCount}</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>Awaiting initial contact</div>
+        </div>
+
+        <div
+          onClick={() => setStageFilter('Proposal')}
+          style={{
+            background: '#ffffff',
+            padding: '16px 18px',
+            borderRadius: '14px',
+            border: stageFilter === 'Proposal' ? '2px solid #d97706' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: stageFilter === 'Proposal' ? '0 4px 12px rgba(217,119,6,0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+            transition: 'all 0.15s'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#d97706' }}>IN PIPELINE</span>
+            <Clock size={18} color="#d97706" />
+          </div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#d97706' }}>{inProgressCount}</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>Discussions & proposals</div>
+        </div>
+
+        <div
+          onClick={() => setStageFilter('Won')}
+          style={{
+            background: '#ffffff',
+            padding: '16px 18px',
+            borderRadius: '14px',
+            border: stageFilter === 'Won' ? '2px solid #059669' : '1px solid #e2e8f0',
+            cursor: 'pointer',
+            boxShadow: stageFilter === 'Won' ? '0 4px 12px rgba(5,150,105,0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+            transition: 'all 0.15s'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#059669' }}>CONVERTED / WON</span>
+            <CheckCircle2 size={18} color="#059669" />
+          </div>
+          <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#059669' }}>{wonCount}</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>Successfully won deals</div>
         </div>
       </div>
 
-      {/* =========================================================================
-          DESKTOP TABLE VIEW
-          ========================================================================= */}
-      <div className="table-container desktop-only">
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>Company / Prospect</th>
-              <th>Contact Person</th>
-              <th>Source</th>
-              <th>Sales Rep</th>
-              <th>Expected Value</th>
-              <th>Pipeline Stage</th>
-              <th>Next Action</th>
-              <th>Follow Up</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredLeads.map((lead) => (
-              <tr key={lead.id} onClick={() => setSelectedLead(lead)} style={{ cursor: 'pointer' }}>
-                <td>
-                  <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{lead.company}</div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lead.city}, {lead.state}</div>
-                </td>
-                <td>
-                  <div style={{ fontWeight: 600 }}>{lead.client}</div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lead.phone}</div>
-                </td>
-                <td>
-                  <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
-                    {lead.leadSource}
-                  </span>
-                </td>
-                <td style={{ fontSize: '0.82rem' }}>{lead.assignedSalesperson}</td>
-                <td>
-                  <strong style={{ color: 'var(--primary-600)', fontSize: '0.88rem' }}>
-                    {formatCurrency(lead.expectedValue)}
-                  </strong>
-                </td>
-                <td onClick={(e) => e.stopPropagation()}>
-                  <select
-                    className="form-select"
-                    style={{
-                      width: '125px',
-                      fontSize: '0.74rem',
-                      padding: '3px 6px',
-                      height: '28px',
-                      fontWeight: 600,
-                      borderColor: lead.stage === 'Won' ? '#10b981' : (lead.stage === 'Lost' ? '#ef4444' : 'var(--border-default)')
-                    }}
-                    value={lead.stage}
-                    onChange={(e) => handleMoveStage(lead.id, e.target.value)}
-                  >
-                    {PIPELINE_STAGES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </td>
-                <td style={{ maxWidth: '200px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  {lead.nextAction || '—'}
-                </td>
-                <td style={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
-                  {formatDate(lead.followUpDate)}
-                </td>
-                <td onClick={(e) => e.stopPropagation()} style={{ textAlign: 'right' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <a
-                      href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="badge badge-whatsapp"
-                      style={{ fontSize: '0.7rem', textDecoration: 'none', padding: '4px 8px' }}
-                      title="Open WhatsApp Chat"
-                    >
-                      <MessageSquare size={12} />
-                    </a>
+      {/* Search & Filter Bar */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '14px',
+          border: '1px solid #e2e8f0',
+          padding: '14px 18px',
+          display: 'flex',
+          gap: '12px',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+        }}
+      >
+        <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+          <Search
+            size={16}
+            style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}
+          />
+          <input
+            type="text"
+            placeholder="Search company, contact person, or city..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '9px 12px 9px 38px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.88rem',
+              outline: 'none',
+              boxSizing: 'border-box'
+            }}
+          />
+        </div>
 
-                    {lead.stage !== 'Won' ? (
-                      <button
-                        className="btn btn-success btn-sm"
-                        style={{ padding: '3px 8px', fontSize: '0.74rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                        onClick={() => convertLeadToClient(lead.id)}
-                        title="Convert Lead to Active Client Directory"
-                      >
-                        <Zap size={12} /> Convert
-                      </button>
-                    ) : (
-                      <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
-                        Converted
-                      </span>
-                    )}
-
-                    <button
-                      className="btn btn-ghost btn-sm btn-icon"
-                      onClick={() => handleStartEdit(lead)}
-                      title="Edit Lead"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    <button
-                      className="btn btn-ghost btn-sm btn-icon"
-                      style={{ color: 'var(--danger-text)' }}
-                      onClick={() => handleDeleteLead(lead)}
-                      title="Delete Lead"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+        {/* Stage Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b' }}>Stage:</span>
+          <select
+            value={stageFilter}
+            onChange={(e) => setStageFilter(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.85rem',
+              background: '#ffffff',
+              color: '#1e293b',
+              fontWeight: 600,
+              outline: 'none'
+            }}
+          >
+            <option value="ALL">All Stages ({scopedLeads.length})</option>
+            {PIPELINE_STAGES.map((s) => (
+              <option key={s} value={s}>{s}</option>
             ))}
-            {filteredLeads.length === 0 && (
-              <tr>
-                <td colSpan="9" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
-                  <Users size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No leads found</div>
-                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query, stage, or rep filter.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          </select>
+        </div>
+
+        {/* Source Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b' }}>Source:</span>
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.85rem',
+              background: '#ffffff',
+              color: '#1e293b',
+              fontWeight: 600,
+              outline: 'none'
+            }}
+          >
+            <option value="ALL">All Sources</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Website">Website</option>
+            <option value="Cold Outreach">Cold Outreach</option>
+            <option value="Referral">Referral</option>
+            <option value="Exhibition">Exhibition</option>
+          </select>
+        </div>
       </div>
 
-      {/* =========================================================================
-          MOBILE CARDS FEED (Phone Screens)
-          ========================================================================= */}
-      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
+      {/* Cards Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+          gap: '16px'
+        }}
+      >
         {filteredLeads.map((lead) => (
-          <div
+          <LeadCard
             key={lead.id}
-            className="card"
-            style={{ padding: '14px 16px', cursor: 'pointer' }}
-            onClick={() => setSelectedLead(lead)}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{lead.company}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{lead.client} • {lead.city}, {lead.state}</div>
-              </div>
-              <span className="badge badge-purple" style={{ fontWeight: 800, fontSize: '0.82rem' }}>
-                {formatCurrency(lead.expectedValue)}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-              <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>{lead.leadSource}</span>
-              <span className="badge badge-info" style={{ fontSize: '0.68rem' }}>Rep: {lead.assignedSalesperson}</span>
-              {lead.followUpDate && (
-                <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>📅 {formatDate(lead.followUpDate)}</span>
-              )}
-            </div>
-
-            {/* Quick Actions Row */}
-            <div
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-default)' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <select
-                className="form-select"
-                style={{
-                  fontSize: '0.76rem',
-                  padding: '4px 8px',
-                  height: '32px',
-                  fontWeight: 700,
-                  flex: 1,
-                  borderColor: lead.stage === 'Won' ? '#10b981' : (lead.stage === 'Lost' ? '#ef4444' : 'var(--border-default)')
-                }}
-                value={lead.stage}
-                onChange={(e) => handleMoveStage(lead.id, e.target.value)}
-              >
-                {PIPELINE_STAGES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-
-              <a
-                href={getWhatsAppUrl(lead.phone, `Hi ${lead.client}, following up on your inquiry with ${lead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-secondary btn-sm"
-                style={{ height: '32px', padding: '0 10px', color: '#16a34a', borderColor: '#86efac', background: '#f0fdf4', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
-              >
-                <MessageSquare size={13} />
-                <span>WhatsApp</span>
-              </a>
-
-              {lead.stage !== 'Won' && (
-                <button
-                  className="btn btn-success btn-sm"
-                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  onClick={() => convertLeadToClient(lead.id)}
-                >
-                  <Zap size={13} />
-                  <span>Won</span>
-                </button>
-              )}
-            </div>
-          </div>
+            lead={lead}
+            onMoveStage={handleMoveStage}
+            onConvert={convertLeadToClient}
+            onEdit={handleStartEdit}
+            onDelete={handleDeleteLead}
+            onViewDetails={setSelectedLead}
+          />
         ))}
+
         {filteredLeads.length === 0 && (
-          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <Users size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
-            <div style={{ fontWeight: 700 }}>No leads found</div>
+          <div
+            style={{
+              gridColumn: '1 / -1',
+              background: '#ffffff',
+              borderRadius: '16px',
+              border: '2px dashed #e2e8f0',
+              padding: '50px 20px',
+              textAlign: 'center',
+              color: '#94a3b8'
+            }}
+          >
+            <Users size={42} style={{ margin: '0 auto 12px', opacity: 0.35, color: '#4f46e5' }} />
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '1.1rem', color: '#334155', fontWeight: 700 }}>
+              No leads found
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.85rem' }}>
+              {stageFilter !== 'ALL'
+                ? `No leads currently in "${stageFilter}" stage.`
+                : 'Click "Add New Lead" to begin building your pipeline.'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* =========================================================================
-          LEAD DETAIL MODAL
-          ========================================================================= */}
+      {/* Quick View / Detail Modal */}
       {selectedLead && (
-        <div className="modal-backdrop" onClick={() => setSelectedLead(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100,
+            padding: '16px'
+          }}
+          onClick={() => setSelectedLead(null)}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '520px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <span className="badge badge-purple">{selectedLead.stage}</span>
-                <h3 style={{ marginTop: '4px' }}>{selectedLead.company}</h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Lead ID: {selectedLead.id}</span>
-              </div>
-              <button className="btn btn-ghost btn-icon" onClick={() => setSelectedLead(null)}>
-                <XCircle size={18} />
-              </button>
-            </div>
-
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.85rem' }}>
-                <div><span style={{ color: 'var(--text-muted)' }}>Contact Person:</span> <strong>{selectedLead.client}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Phone:</span> <strong>{selectedLead.phone}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Email:</span> <strong>{selectedLead.email || '—'}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Location:</span> <strong>{selectedLead.city}, {selectedLead.state}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Expected Value:</span> <strong style={{ color: 'var(--primary-600)' }}>{formatCurrency(selectedLead.expectedValue)}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Sales Rep:</span> <strong>{selectedLead.assignedSalesperson}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Lead Date:</span> <strong>{formatDate(selectedLead.leadDate)}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Follow-up Date:</span> <strong>{formatDate(selectedLead.followUpDate)}</strong></div>
-              </div>
-
-              <div className="card" style={{ background: 'var(--bg-subtle)' }}>
-                <h4 style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Next Action Strategy</h4>
-                <p style={{ fontSize: '0.82rem', margin: 0 }}>{selectedLead.nextAction || 'None specified'}</p>
-              </div>
-
-              {selectedLead.notes && (
-                <div className="card">
-                  <h4 style={{ fontSize: '0.85rem', marginBottom: '4px' }}>Lead Notes</h4>
-                  <p style={{ fontSize: '0.82rem', margin: 0 }}>{selectedLead.notes}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <a
-                href={getWhatsAppUrl(selectedLead.phone, `Hello ${selectedLead.client}, following up on behalf of ${selectedLead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-whatsapp"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <MessageSquare size={14} /> Open WhatsApp Chat
-              </a>
-              {selectedLead.stage !== 'Won' && (
-                <button
-                  className="btn btn-success btn-sm"
-                  onClick={() => {
-                    convertLeadToClient(selectedLead.id);
-                    setSelectedLead(null);
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    color: STAGE_CONFIG[selectedLead.stage]?.color || '#2563eb',
+                    background: STAGE_CONFIG[selectedLead.stage]?.bg || '#eff6ff',
+                    border: `1px solid ${STAGE_CONFIG[selectedLead.stage]?.border || '#bfdbfe'}`
                   }}
                 >
-                  <Zap size={14} /> Convert to Active Client
-                </button>
-              )}
+                  {selectedLead.stage}
+                </span>
+                <h3 style={{ margin: '8px 0 2px 0', fontSize: '1.2rem', fontWeight: 800 }}>
+                  {selectedLead.company}
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>ID: {selectedLead.id}</div>
+              </div>
               <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  const leadToEdit = selectedLead;
-                  setSelectedLead(null);
-                  handleStartEdit(leadToEdit);
+                onClick={() => setSelectedLead(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.85rem' }}>
+              <div><span style={{ color: '#94a3b8' }}>Contact:</span> <strong>{selectedLead.client}</strong></div>
+              <div><span style={{ color: '#94a3b8' }}>Phone:</span> <strong>{selectedLead.phone}</strong></div>
+              <div><span style={{ color: '#94a3b8' }}>Email:</span> <strong>{selectedLead.email || '—'}</strong></div>
+              <div><span style={{ color: '#94a3b8' }}>Location:</span> <strong>{selectedLead.city}, {selectedLead.state}</strong></div>
+              <div><span style={{ color: '#94a3b8' }}>Value:</span> <strong style={{ color: '#2563eb' }}>{formatCurrency(selectedLead.expectedValue)}</strong></div>
+              <div><span style={{ color: '#94a3b8' }}>Rep:</span> <strong>{selectedLead.assignedSalesperson}</strong></div>
+              <div><span style={{ color: '#94a3b8' }}>Follow-up:</span> <strong>{formatDate(selectedLead.followUpDate)}</strong></div>
+            </div>
+
+            {selectedLead.nextAction && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', borderLeft: '3px solid #3b82f6' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>NEXT STRATEGY</div>
+                <div style={{ fontSize: '0.85rem', color: '#1e293b' }}>{selectedLead.nextAction}</div>
+              </div>
+            )}
+
+            {selectedLead.notes && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>NOTES</div>
+                <div style={{ fontSize: '0.85rem', color: '#475569' }}>{selectedLead.notes}</div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+              <a
+                href={getWhatsAppUrl(selectedLead.phone, `Hello ${selectedLead.client}, following up from ${selectedLead.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  background: '#f0fdf4',
+                  border: '1px solid #86efac',
+                  color: '#16a34a',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  textDecoration: 'none'
                 }}
               >
-                <Edit2 size={13} /> Edit Lead
-              </button>
+                <MessageSquare size={14} /> WhatsApp
+              </a>
               <button
-                className="btn btn-danger btn-sm"
-                onClick={() => handleDeleteLead(selectedLead)}
+                onClick={() => {
+                  const toEdit = selectedLead;
+                  setSelectedLead(null);
+                  handleStartEdit(toEdit);
+                }}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer'
+                }}
               >
-                <Trash2 size={13} /> Delete
-              </button>
-              <button className="btn btn-secondary btn-sm" onClick={() => setSelectedLead(null)} style={{ marginLeft: 'auto' }}>
-                Close
+                Edit
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* =========================================================================
-          EDIT LEAD MODAL
-          ========================================================================= */}
+      {/* Edit Modal */}
       {editingLead && (
-        <div className="modal-backdrop" onClick={() => setEditingLead(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px' }}>
-            <div className="modal-header">
-              <div>
-                <span className="badge badge-purple">{editingLead.id}</span>
-                <h3 style={{ marginTop: '4px' }}>Edit Lead Record</h3>
-              </div>
-              <button className="btn btn-ghost btn-icon" onClick={() => setEditingLead(null)}>
-                <XCircle size={18} />
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100,
+            padding: '16px'
+          }}
+          onClick={() => setEditingLead(null)}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '560px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Edit Lead</h3>
+              <button onClick={() => setEditingLead(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit}>
-              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="form-group">
-                  <label className="form-label">Company / Prospect Name *</label>
+            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Company</label>
                   <input
                     type="text"
                     required
-                    className="form-input"
-                    value={editFormData.company || ''}
+                    value={editFormData.company}
                     onChange={(e) => setEditFormData({ ...editFormData, company: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
                   />
                 </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Contact Person *</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-input"
-                      value={editFormData.client || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, client: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Phone Number *</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-input"
-                      value={editFormData.phone || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">City *</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-input"
-                      value={editFormData.city || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">State</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={editFormData.state || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, state: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Pipeline Stage</label>
-                    <select
-                      className="form-select"
-                      value={editFormData.stage || 'New Lead'}
-                      onChange={(e) => setEditFormData({ ...editFormData, stage: e.target.value })}
-                    >
-                      {PIPELINE_STAGES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Expected Deal Value (₹)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="form-input"
-                      value={editFormData.expectedValue || 0}
-                      onChange={(e) => setEditFormData({ ...editFormData, expectedValue: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Next Action / Follow-up Strategy</label>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Contact Person</label>
                   <input
                     type="text"
-                    className="form-input"
-                    value={editFormData.nextAction || ''}
-                    onChange={(e) => setEditFormData({ ...editFormData, nextAction: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Follow-up Date</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={editFormData.followUpDate || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, followUpDate: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Email Address</label>
-                    <input
-                      type="email"
-                      className="form-input"
-                      value={editFormData.email || ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Notes</label>
-                  <textarea
-                    rows={2}
-                    className="form-input"
-                    value={editFormData.notes || ''}
-                    onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                    required
+                    value={editFormData.client}
+                    onChange={(e) => setEditFormData({ ...editFormData, client: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setEditingLead(null)}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Phone</label>
+                  <input
+                    type="tel"
+                    required
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Expected Value (₹)</label>
+                  <input
+                    type="number"
+                    value={editFormData.expectedValue}
+                    onChange={(e) => setEditFormData({ ...editFormData, expectedValue: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Stage</label>
+                  <select
+                    value={editFormData.stage}
+                    onChange={(e) => setEditFormData({ ...editFormData, stage: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box', background: '#fff' }}
+                  >
+                    {PIPELINE_STAGES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Follow-up Date</label>
+                  <input
+                    type="date"
+                    value={editFormData.followUpDate}
+                    onChange={(e) => setEditFormData({ ...editFormData, followUpDate: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Next Action Strategy</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Schedule product demo, send quotation..."
+                  value={editFormData.nextAction}
+                  onChange={(e) => setEditFormData({ ...editFormData, nextAction: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Notes</label>
+                <textarea
+                  rows={3}
+                  value={editFormData.notes}
+                  onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingLead(null)}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
+                >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button
+                  type="submit"
+                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#2563eb', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+                >
                   Save Changes
                 </button>
               </div>

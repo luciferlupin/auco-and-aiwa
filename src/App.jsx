@@ -20,6 +20,7 @@ import { TasksView } from './views/TasksView';
 import { IndiaMapView } from './views/IndiaMapView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
+import { RepairView } from './views/RepairView';
 
 // Modals
 import {
@@ -133,6 +134,7 @@ export const App = () => {
           )}
           {currentView === 'indiamap' && <IndiaMapView />}
           {currentView === 'reports' && <ReportsView />}
+          {currentView === 'repairs' && <RepairView />}
           {currentView === 'settings' && <SettingsView />}
         </main>
       </div>

@@ -23,7 +23,8 @@ import {
   Check,
   Zap,
   Volume2,
-  Globe
+  Globe,
+  Wrench
 } from 'lucide-react';
 
 export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile }) => {
@@ -41,6 +42,7 @@ export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile
     payments,
     tasks,
     followUps,
+    repairs,
     fetchSupabaseData,
     isSyncing
   } = useApp();
@@ -64,6 +66,8 @@ export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile
   const overdueInvoicesCount = scopedInvoices.filter((i) => i.paymentStatus === 'Overdue').length;
   const pendingTasksCount = scopedTasks.filter((t) => t.status !== 'Completed').length;
   const pendingFollowUpsCount = scopedFollowUps.filter((f) => f.status === 'Pending').length;
+  const scopedRepairs = (repairs || []).filter(matchesCompany);
+  const activeRepairsCount = scopedRepairs.filter((r) => r.repairStatus !== 'Delivered').length;
 
   const sections = [
     {
@@ -87,6 +91,7 @@ export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile
         { id: 'inventory', label: 'Inventory Stock', icon: Boxes, badge: lowStockCount > 0 ? lowStockCount : null, badgeType: 'danger', roles: ['Admin', 'Services', 'Sales', 'Accounts'] },
         { id: 'invoices', label: 'Invoices & Tax', icon: FileText, badge: overdueInvoicesCount > 0 ? overdueInvoicesCount : null, badgeType: 'danger', roles: ['Admin', 'Accounts', 'Sales'] },
         { id: 'payments', label: 'Payment Receipts', icon: CreditCard, roles: ['Admin', 'Accounts'] },
+        { id: 'repairs', label: 'Repair Jobs', icon: Wrench, badge: activeRepairsCount > 0 ? activeRepairsCount : null, badgeType: 'warning', roles: ['Admin', 'Services'] },
         { id: 'tasks', label: 'Assigned Tasks', icon: CheckSquare, badge: pendingTasksCount > 0 ? pendingTasksCount : null, roles: ['Admin', 'Services', 'Sales', 'Accounts'] }
       ]
     },

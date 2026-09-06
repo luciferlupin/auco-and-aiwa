@@ -236,6 +236,18 @@ export const AppProvider = ({ children }) => {
     return initialActivities;
   });
 
+  // Repairs state
+  const [repairs, setRepairs] = useState(() => {
+    const data = localStorage.getItem('auco_repairs');
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
+
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
   // Self-healing migration for existing cached browsers
@@ -319,6 +331,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('auco_activities', JSON.stringify(activities));
   }, [activities]);
+
+  useEffect(() => {
+    localStorage.setItem('auco_repairs', JSON.stringify(repairs));
+  }, [repairs]);
 
   // Load from Supabase on start
   const fetchSupabaseData = useCallback(async () => {
@@ -1834,7 +1850,67 @@ export const AppProvider = ({ children }) => {
     setTasks(initialTasks);
     setFollowUps(initialFollowUps);
     setDispatches(initialDispatches);
+    setRepairs([]);
     addToast('Workspace Reset', 'All workspace records have been reset to initial baseline.', 'info');
+  };
+
+  // ── REPAIR MANAGEMENT ────────────────────────────────────────────────────────
+
+  const createRepair = async (repairData) => {
+    const newId = repairData.id || generateId('REP');
+    const newRepair = {
+      id: newId,
+      brand: repairData.brand || selectedCompany || 'AUCO',
+      customerName: repairData.customerName || '',
+      customerPhone: repairData.customerPhone || '',
+      customerEmail: repairData.customerEmail || '',
+      productCode: repairData.productCode || '',
+      productName: repairData.productName || '',
+      serialNumber: repairData.serialNumber || '',
+      issueDescription: repairData.issueDescription || '',
+      receivedDate: repairData.receivedDate || new Date().toISOString().split('T')[0],
+      estimatedCompletion: repairData.estimatedCompletion || '',
+      actualCompletionDate: null,
+      assignedTechnician: repairData.assignedTechnician || currentUser?.name || '',
+      repairStatus: repairData.repairStatus || 'Pending Diagnosis',
+      warrantyStatus: repairData.warrantyStatus || 'Out of Warranty',
+      repairCost: Number(repairData.repairCost || 0),
+      notes: repairData.notes || '',
+      createdBy: currentUser?.name || 'Staff Member',
+      createdAt: new Date().toISOString()
+    };
+    setRepairs((prev) => [newRepair, ...prev]);
+    logActivity('REPAIR_CREATED', 'Repair', newRepair.id, `New repair job #${newRepair.id} created for ${newRepair.customerName} — ${newRepair.productName || newRepair.productCode}`, newRepair.brand);
+    addToast('Repair Job Created', `Job #${newRepair.id} for ${newRepair.customerName} logged successfully.`, 'success');
+    return newRepair;
+  };
+
+  const updateRepair = async (repairId, updates) => {
+    let updatedRepair = null;
+    setRepairs((prev) =>
+      prev.map((r) => {
+        if (r.id === repairId) {
+          updatedRepair = { ...r, ...updates };
+          if (updates.repairStatus === 'Delivered' && !updatedRepair.actualCompletionDate) {
+            updatedRepair.actualCompletionDate = new Date().toISOString().split('T')[0];
+          }
+          return updatedRepair;
+        }
+        return r;
+      })
+    );
+    if (updatedRepair) {
+      logActivity('REPAIR_UPDATED', 'Repair', repairId, `Repair #${repairId} status updated to "${updates.repairStatus || 'Updated'}"`, updatedRepair.brand);
+    }
+    if (updates.repairStatus) {
+      addToast('Repair Updated', `Job #${repairId} marked as "${updates.repairStatus}".`, 'info');
+    }
+  };
+
+  const deleteRepair = async (repairId) => {
+    setRepairs((prev) => prev.filter((r) => r.id !== repairId));
+    logActivity('REPAIR_DELETED', 'Repair', repairId, `Repair job #${repairId} deleted.`, selectedCompany);
+    addToast('Repair Deleted', `Job #${repairId} has been removed.`, 'info');
   };
 
   return (
@@ -1904,6 +1980,10 @@ export const AppProvider = ({ children }) => {
         setIsCheckInModalOpen,
         activities,
         logActivity,
+        repairs,
+        createRepair,
+        updateRepair,
+        deleteRepair,
         resetDemoData
       }}
     >

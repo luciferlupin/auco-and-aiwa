@@ -285,6 +285,41 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON public.activity_logs(user_n
 CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON public.activity_logs(action_type);
 
 -- ============================================================================
+-- REPAIRS TABLE
+-- Tracks products returned by customers for servicing/repair
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.repairs (
+    id                   TEXT PRIMARY KEY,
+    brand                TEXT NOT NULL DEFAULT 'AUCO' CHECK (brand IN ('AUCO', 'AIWA')),
+    customer_name        TEXT NOT NULL,
+    customer_phone       TEXT NOT NULL DEFAULT '',
+    customer_email       TEXT DEFAULT '',
+    product_code         TEXT DEFAULT '',
+    product_name         TEXT DEFAULT '',
+    serial_number        TEXT DEFAULT '',
+    issue_description    TEXT DEFAULT '',
+    received_date        DATE NOT NULL DEFAULT CURRENT_DATE,
+    estimated_completion DATE,
+    actual_completion_date DATE,
+    assigned_technician  TEXT DEFAULT '',
+    repair_status        TEXT NOT NULL DEFAULT 'Pending Diagnosis'
+                         CHECK (repair_status IN ('Pending Diagnosis','In Repair','Ready for Pickup','Delivered','Cancelled')),
+    warranty_status      TEXT NOT NULL DEFAULT 'Out of Warranty'
+                         CHECK (warranty_status IN ('In Warranty','Out of Warranty')),
+    repair_cost          NUMERIC(12,2) DEFAULT 0,
+    notes                TEXT DEFAULT '',
+    created_by           TEXT DEFAULT '',
+    created_at           TIMESTAMPTZ DEFAULT NOW(),
+    updated_at           TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_repairs_brand       ON public.repairs(brand);
+CREATE INDEX IF NOT EXISTS idx_repairs_status      ON public.repairs(repair_status);
+CREATE INDEX IF NOT EXISTS idx_repairs_received    ON public.repairs(received_date);
+CREATE INDEX IF NOT EXISTS idx_repairs_customer    ON public.repairs(customer_name);
+
+
+-- ============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- Bulletproof, dynamic configuration with subquery InitPlan optimization
 -- ============================================================================
@@ -303,7 +338,8 @@ DECLARE
         'tasks',
         'followups',
         'attendance',
-        'activity_logs'
+        'activity_logs',
+        'repairs'
     ];
 BEGIN
     FOREACH tbl IN ARRAY tables

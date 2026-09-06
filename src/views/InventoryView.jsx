@@ -7,687 +7,526 @@ import {
   AlertTriangle,
   ArrowUp,
   ArrowDown,
-  RefreshCw,
-  Sliders,
-  CheckCircle2,
   Package,
   Layers,
   Edit2,
   Trash2,
-  X
+  X,
+  CheckCircle2,
+  Tag,
+  Building2
 } from 'lucide-react';
-import { formatCurrency, getStatusBadgeClass } from '../utils/formatters';
+import { formatCurrency } from '../utils/formatters';
 
-export const InventoryView = () => {
-  const { inventory, addProduct, updateProduct, deleteProduct, adjustProductStock, selectedCompany, companyBrands, matchesCompany } = useApp();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('ALL');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showAdjustModal, setShowAdjustModal] = useState(null); // Product object
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [editProductData, setEditProductData] = useState({});
-  const [adjustAmount, setAdjustAmount] = useState(10);
-  const [adjustType, setAdjustType] = useState('ADD'); // 'ADD' | 'REMOVE'
+// ─── Stock level bar ──────────────────────────────────────────────────────────
+const StockBar = ({ available, max, min }) => {
+  const pct = max > 0 ? Math.min(100, Math.round((available / max) * 100)) : 0;
+  const isLow = available <= min;
+  const color = isLow ? '#ef4444' : pct > 50 ? '#10b981' : '#f59e0b';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ flex: 1, height: '6px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '10px', transition: 'width 0.4s' }} />
+      </div>
+      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', minWidth: '32px' }}>{pct}%</span>
+    </div>
+  );
+};
 
-  // New product form state
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    brand: selectedCompany || 'AUCO',
-    productCode: '',
-    sku: '',
-    category: 'Automation Hardware',
-    currentStock: 20,
-    minStockLevel: 5,
-    supplier: 'Auco Main Works',
-    price: 35000
-  });
+// ─── Product Card ─────────────────────────────────────────────────────────────
+const ProductCard = ({ p, onAdjust, onEdit, onDelete }) => {
+  const isLow = p.availableStock <= p.minStockLevel;
+  const maxStock = Math.max(p.currentStock, p.availableStock, p.minStockLevel * 3, 1);
 
-  // Scoped inventory
-  const scopedInventory = inventory.filter(matchesCompany);
+  return (
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: '14px',
+        border: `1px solid ${isLow ? '#fecaca' : '#e2e8f0'}`,
+        padding: '18px 20px',
+        boxShadow: isLow ? '0 2px 8px rgba(220,38,38,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
+        display: 'flex', flexDirection: 'column', gap: '14px',
+        transition: 'box-shadow 0.15s'
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.09)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = isLow ? '0 2px 8px rgba(220,38,38,0.06)' : '0 2px 8px rgba(0,0,0,0.04)')}
+    >
+      {/* Top */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#4f46e5', fontFamily: 'monospace', letterSpacing: '0.03em' }}>
+              {p.productCode}
+            </span>
+            <span style={{
+              fontSize: '0.68rem', padding: '2px 8px', borderRadius: '10px', fontWeight: 600,
+              background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0'
+            }}>
+              {p.category}
+            </span>
+          </div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a', lineHeight: 1.3 }}>{p.name}</div>
+          {p.sku && (
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '1px' }}>SKU: {p.sku}</div>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{
+            padding: '4px 10px', borderRadius: '20px', fontWeight: 700, fontSize: '0.75rem',
+            background: isLow ? '#fef2f2' : '#ecfdf5',
+            border: `1px solid ${isLow ? '#fecaca' : '#a7f3d0'}`,
+            color: isLow ? '#dc2626' : '#059669'
+          }}>
+            {isLow ? '⚠ Low Stock' : '✓ In Stock'}
+          </span>
+          <button
+            onClick={() => onDelete(p)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#cbd5e1', padding: '2px', display: 'flex', borderRadius: '6px', transition: 'color 0.15s' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#cbd5e1')}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      </div>
 
-  // Extract categories from scoped inventory
-  const categories = Array.from(new Set(scopedInventory.map((p) => p.category).filter(Boolean)));
+      {/* Stock numbers */}
+      <div style={{ display: 'flex', gap: '0', borderRadius: '10px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+        <div style={{ flex: 1, padding: '10px 12px', background: '#f8fafc', borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600, marginBottom: '2px' }}>Available</div>
+          <div style={{ fontWeight: 800, fontSize: '1.3rem', color: isLow ? '#dc2626' : '#0f172a', lineHeight: 1 }}>{p.availableStock}</div>
+          <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '1px' }}>units</div>
+        </div>
+        <div style={{ flex: 1, padding: '10px 12px', background: '#f0fdf4', borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, marginBottom: '2px' }}>In</div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#059669', lineHeight: 1 }}>+{p.stockIn}</div>
+          <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '1px' }}>received</div>
+        </div>
+        <div style={{ flex: 1, padding: '10px 12px', background: '#fef9f0', borderRight: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.7rem', color: '#d97706', fontWeight: 600, marginBottom: '2px' }}>Out</div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#d97706', lineHeight: 1 }}>-{p.stockOut}</div>
+          <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '1px' }}>dispatched</div>
+        </div>
+        <div style={{ flex: 1, padding: '10px 12px', background: '#f8fafc', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600, marginBottom: '2px' }}>Price</div>
+          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', lineHeight: 1 }}>{formatCurrency(p.price)}</div>
+          <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '1px' }}>per unit</div>
+        </div>
+      </div>
 
-  // Filter inventory
-  const filteredProducts = scopedInventory.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.productCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.supplier.toLowerCase().includes(searchQuery.toLowerCase());
+      {/* Stock bar */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            Min threshold: <strong style={{ color: isLow ? '#dc2626' : '#64748b' }}>{p.minStockLevel} units</strong>
+          </span>
+          {p.supplier && (
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Building2 size={11} style={{ color: '#cbd5e1' }} /> {p.supplier}
+            </span>
+          )}
+        </div>
+        <StockBar available={p.availableStock} max={maxStock} min={p.minStockLevel} />
+      </div>
 
-    const matchesCategory = categoryFilter === 'ALL' || p.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+      {/* Actions */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => onAdjust(p)}
+          style={{
+            flex: 2,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+            padding: '11px', borderRadius: '10px',
+            background: isLow ? 'linear-gradient(135deg,#4f46e5,#6366f1)' : 'linear-gradient(135deg,#0f172a,#1e293b)',
+            color: '#fff', fontWeight: 700, fontSize: '0.9rem',
+            border: 'none', cursor: 'pointer',
+            boxShadow: isLow ? '0 4px 12px rgba(79,70,229,0.3)' : '0 4px 12px rgba(0,0,0,0.12)',
+            transition: 'transform 0.1s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+        >
+          <ArrowUp size={15} style={{ opacity: 0.8 }} />
+          Adjust Stock
+        </button>
+        <button
+          onClick={() => onEdit(p)}
+          style={{
+            flex: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            padding: '11px', borderRadius: '10px',
+            background: '#f8fafc', border: '1.5px solid #e2e8f0',
+            color: '#475569', fontWeight: 600, fontSize: '0.86rem',
+            cursor: 'pointer', transition: 'all 0.15s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+        >
+          <Edit2 size={14} /> Edit
+        </button>
+      </div>
+    </div>
+  );
+};
 
-  // Aggregates
-  const totalSKUs = scopedInventory.length;
-  const totalStockUnits = scopedInventory.reduce((acc, p) => acc + Number(p.currentStock || 0), 0);
-  const totalInventoryValuation = scopedInventory.reduce((acc, p) => acc + (Number(p.currentStock || 0) * Number(p.price || 0)), 0);
-  const lowStockItems = scopedInventory.filter((p) => p.availableStock <= p.minStockLevel);
+// ─── Adjust Stock Modal ───────────────────────────────────────────────────────
+const AdjustModal = ({ p, onClose, onSubmit }) => {
+  const [type, setType] = useState('ADD');
+  const [amount, setAmount] = useState('10');
 
-  const handleCreateProduct = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newProduct.name || !newProduct.productCode) return;
-    addProduct(newProduct);
-    setShowAddModal(false);
-    setNewProduct({
-      name: '',
-      brand: selectedCompany || 'AUCO',
-      productCode: '',
-      sku: '',
-      category: selectedCompany === 'AIWA' ? 'Commercial AV' : 'Automation Hardware',
-      currentStock: 20,
-      minStockLevel: 5,
-      supplier: selectedCompany === 'AIWA' ? 'Aiwa Precision Labs' : 'Auco Main Works',
-      price: 35000
-    });
-  };
-
-  const handleStockAdjustment = (e) => {
-    e.preventDefault();
-    if (!showAdjustModal) return;
-    const delta = adjustType === 'ADD' ? Number(adjustAmount) : -Math.abs(Number(adjustAmount));
-    adjustProductStock(showAdjustModal.productCode, delta, `Manual ${adjustType}`);
-    setShowAdjustModal(null);
-  };
-
-  const handleStartEditProduct = (p) => {
-    setEditingProduct(p);
-    setEditProductData({
-      name: p.name,
-      price: p.price,
-      minStockLevel: p.minStockLevel,
-      supplier: p.supplier,
-      category: p.category
-    });
-  };
-
-  const handleSaveProductEdit = (e) => {
-    e.preventDefault();
-    if (!editingProduct) return;
-    updateProduct(editingProduct.id || editingProduct.productCode, editProductData);
-    setEditingProduct(null);
-  };
-
-  const handleDeleteProduct = (p) => {
-    if (window.confirm(`Are you sure you want to delete SKU [${p.productCode}] "${p.name}"?`)) {
-      deleteProduct(p.id || p.productCode);
-    }
+    if (!amount || Number(amount) <= 0) return;
+    const delta = type === 'ADD' ? Number(amount) : -Math.abs(Number(amount));
+    onSubmit(p.productCode, delta, `Manual ${type}`);
+    onClose();
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Header */}
-      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2>Inventory Catalog</h2>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Real-time stock monitoring, SKU availability, and safety thresholds
-          </p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Plus size={15} /> Add SKU
-        </button>
-      </div>
-
-      {/* Metric Cards */}
-      <div className="grid-4">
-        <div className="stat-card" style={{ borderLeft: '4px solid var(--primary-600)' }}>
-          <div className="stat-header">
-            <span className="stat-title">Catalog SKUs</span>
-            <Boxes size={18} style={{ color: 'var(--primary-600)' }} />
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '16px' }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#fff', borderRadius: '18px', width: '100%', maxWidth: '400px', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
+          <div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#4f46e5', fontFamily: 'monospace', marginBottom: '2px' }}>{p.productCode}</div>
+            <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>{p.name}</h2>
           </div>
-          <div className="stat-value">{totalSKUs}</div>
-          <div className="stat-subtext">Active equipment models</div>
+          <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', display: 'flex', color: '#64748b' }}>
+            <X size={18} />
+          </button>
         </div>
 
-        <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <div className="stat-header">
-            <span className="stat-title">Total Units in Stock</span>
-            <Package size={18} style={{ color: '#10b981' }} />
-          </div>
-          <div className="stat-value">{totalStockUnits.toLocaleString('en-IN')}</div>
-          <div className="stat-subtext">Across warehouses</div>
-        </div>
-
-        <div className="stat-card" style={{ borderLeft: '4px solid #8b5cf6' }}>
-          <div className="stat-header">
-            <span className="stat-title">Total Inventory Valuation</span>
-            <Layers size={18} style={{ color: '#8b5cf6' }} />
-          </div>
-          <div className="stat-value">{formatCurrency(totalInventoryValuation)}</div>
-          <div className="stat-subtext">Asset replacement value</div>
-        </div>
-
-        <div className="stat-card" style={{ borderLeft: `4px solid ${lowStockItems.length > 0 ? 'var(--danger-text)' : 'var(--success-text)'}` }}>
-          <div className="stat-header">
-            <span className="stat-title">Low Stock Alert</span>
-            <AlertTriangle size={18} style={{ color: lowStockItems.length > 0 ? 'var(--danger-text)' : 'var(--success-text)' }} />
-          </div>
-          <div className="stat-value" style={{ color: lowStockItems.length > 0 ? 'var(--danger-text)' : 'inherit' }}>
-            {lowStockItems.length} SKUs
-          </div>
-          <div className="stat-subtext">Below minimum safety threshold</div>
-        </div>
-      </div>
-
-      {/* Low Stock Warning Banner if any */}
-      {lowStockItems.length > 0 && (
-        <div
-          style={{
-            background: 'var(--warning-bg)',
-            border: '1px solid var(--warning-border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '14px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <AlertTriangle size={20} style={{ color: 'var(--warning-text)' }} />
-            <div>
-              <strong style={{ color: 'var(--warning-text)', fontSize: '0.88rem' }}>Attention: Low Inventory Levels Detected</strong>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                {lowStockItems.map((p) => `${p.name} (${p.productCode}: ${p.availableStock} left)`).join(' • ')}
-              </div>
+        <form onSubmit={handleSubmit} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Current stock */}
+          <div style={{ display: 'flex', borderRadius: '10px', overflow: 'hidden', border: '1px solid #f1f5f9' }}>
+            <div style={{ flex: 1, padding: '12px', background: '#f8fafc', textAlign: 'center', borderRight: '1px solid #f1f5f9' }}>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, marginBottom: '2px' }}>CURRENT</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: p.availableStock <= p.minStockLevel ? '#dc2626' : '#0f172a' }}>{p.availableStock}</div>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>available</div>
+            </div>
+            <div style={{ flex: 1, padding: '12px', background: '#fffbeb', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.72rem', color: '#d97706', fontWeight: 600, marginBottom: '2px' }}>MINIMUM</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#d97706' }}>{p.minStockLevel}</div>
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>threshold</div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Search & Filter */}
-      <div className="card" style={{ padding: '14px 18px' }}>
-        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          {/* Type toggle */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <button type="button" onClick={() => setType('ADD')} style={{
+              padding: '12px', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
+              border: `2px solid ${type === 'ADD' ? '#10b981' : '#e2e8f0'}`,
+              background: type === 'ADD' ? '#ecfdf5' : '#fff',
+              color: type === 'ADD' ? '#059669' : '#64748b', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.15s'
+            }}>
+              <ArrowUp size={16} /> Stock In
+            </button>
+            <button type="button" onClick={() => setType('REMOVE')} style={{
+              padding: '12px', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
+              border: `2px solid ${type === 'REMOVE' ? '#ef4444' : '#e2e8f0'}`,
+              background: type === 'REMOVE' ? '#fef2f2' : '#fff',
+              color: type === 'REMOVE' ? '#dc2626' : '#64748b', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.15s'
+            }}>
+              <ArrowDown size={16} /> Stock Out
+            </button>
+          </div>
+
+          {/* Amount */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>Number of Units <span style={{ color: '#ef4444' }}>*</span></label>
             <input
-              type="text"
-              className="form-input"
-              placeholder="Search product code (e.g. AUC-101), name, SKU, supplier..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '36px' }}
+              type="number" required min="1"
+              value={amount} onChange={(e) => setAmount(e.target.value)}
+              style={{ padding: '12px 14px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', outline: 'none', background: '#fff', textAlign: 'center' }}
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Category:</span>
-            <select
-              className="form-select"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              style={{ width: '180px' }}
-            >
-              <option value="ALL">All Categories</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+          <button type="submit" style={{
+            marginTop: '4px', padding: '13px', borderRadius: '10px',
+            background: type === 'ADD' ? 'linear-gradient(135deg,#059669,#10b981)' : 'linear-gradient(135deg,#dc2626,#ef4444)',
+            color: '#fff', fontWeight: 800, fontSize: '0.95rem', border: 'none', cursor: 'pointer',
+            boxShadow: type === 'ADD' ? '0 4px 14px rgba(16,185,129,0.3)' : '0 4px 14px rgba(220,38,38,0.25)'
+          }}>
+            {type === 'ADD' ? `+ Add ${amount || 0} Units` : `- Remove ${amount || 0} Units`}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── Add/Edit Product Modal ───────────────────────────────────────────────────
+const ProductModal = ({ title, data, setData, onClose, onSubmit, selectedCompany }) => {
+  const CATEGORIES = ['Automation Hardware', 'Sensors & IOT', 'Commercial AV', 'Acoustics & Testing', 'Edge Computing', 'Services'];
+
+  const inp = { padding: '10px 13px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '0.88rem', outline: 'none', background: '#fff', color: '#0f172a', fontFamily: 'var(--font-sans)', width: '100%', boxSizing: 'border-box' };
+
+  const Field = ({ label, required, children }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>
+        {label}{required && <span style={{ color: '#ef4444' }}> *</span>}
+      </label>
+      {children}
+    </div>
+  );
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '16px' }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#fff', borderRadius: '18px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{title}</h2>
+          <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', display: 'flex', color: '#64748b' }}>
+            <X size={18} />
+          </button>
         </div>
+
+        <form onSubmit={onSubmit} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <Field label="Product Name" required>
+            <input style={inp} required placeholder="e.g. Auco Servo Drive Controller" value={data.name || ''} onChange={(e) => setData({ ...data, name: e.target.value })} />
+          </Field>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Field label="Product Code" required>
+              <input style={inp} required placeholder="AUC-600" value={data.productCode || ''} onChange={(e) => setData({ ...data, productCode: e.target.value.toUpperCase() })} />
+            </Field>
+            <Field label="SKU">
+              <input style={inp} placeholder="AUC-SD-600-PRO" value={data.sku || ''} onChange={(e) => setData({ ...data, sku: e.target.value.toUpperCase() })} />
+            </Field>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Field label="Category">
+              <select style={inp} value={data.category || 'Automation Hardware'} onChange={(e) => setData({ ...data, category: e.target.value })}>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </Field>
+            <Field label="Unit Price (₹)" required>
+              <input type="number" style={inp} required min="0" value={data.price || ''} onChange={(e) => setData({ ...data, price: Number(e.target.value) })} />
+            </Field>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Field label="Initial Stock">
+              <input type="number" style={inp} min="0" value={data.currentStock ?? 20} onChange={(e) => setData({ ...data, currentStock: Number(e.target.value) })} />
+            </Field>
+            <Field label="Min Alert Level">
+              <input type="number" style={inp} min="1" value={data.minStockLevel ?? 5} onChange={(e) => setData({ ...data, minStockLevel: Number(e.target.value) })} />
+            </Field>
+          </div>
+
+          <Field label="Supplier">
+            <input style={inp} placeholder="e.g. Auco Dynamics, Pune" value={data.supplier || ''} onChange={(e) => setData({ ...data, supplier: e.target.value })} />
+          </Field>
+
+          <button type="submit" style={{
+            marginTop: '4px', padding: '13px', borderRadius: '10px',
+            background: 'linear-gradient(135deg,#4f46e5,#6366f1)', color: '#fff',
+            fontWeight: 800, fontSize: '0.95rem', border: 'none', cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(79,70,229,0.3)'
+          }}>
+            Save Product
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── Main View ────────────────────────────────────────────────────────────────
+export const InventoryView = () => {
+  const { inventory, addProduct, updateProduct, deleteProduct, adjustProductStock, selectedCompany, matchesCompany } = useApp();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [stockFilter, setStockFilter] = useState('ALL'); // ALL | LOW | OK
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [adjustTarget, setAdjustTarget] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
+
+  const defaultNew = { name: '', productCode: '', sku: '', category: 'Automation Hardware', currentStock: 20, minStockLevel: 5, supplier: '', price: 0, brand: selectedCompany || 'AUCO' };
+  const [newData, setNewData] = useState(defaultNew);
+  const [editData, setEditData] = useState({});
+
+  const scopedInventory = inventory.filter(matchesCompany);
+  const categories = Array.from(new Set(scopedInventory.map((p) => p.category).filter(Boolean)));
+
+  const totalSKUs = scopedInventory.length;
+  const totalUnits = scopedInventory.reduce((a, p) => a + Number(p.currentStock || 0), 0);
+  const totalValuation = scopedInventory.reduce((a, p) => a + Number(p.currentStock || 0) * Number(p.price || 0), 0);
+  const lowStockItems = scopedInventory.filter((p) => p.availableStock <= p.minStockLevel);
+
+  const filtered = scopedInventory.filter((p) => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.productCode.toLowerCase().includes(q) ||
+      (p.sku || '').toLowerCase().includes(q) ||
+      (p.supplier || '').toLowerCase().includes(q);
+    const matchCat = categoryFilter === 'ALL' || p.category === categoryFilter;
+    const matchStock = stockFilter === 'ALL' || (stockFilter === 'LOW' ? p.availableStock <= p.minStockLevel : p.availableStock > p.minStockLevel);
+    return matchSearch && matchCat && matchStock;
+  });
+
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (!newData.name || !newData.productCode) return;
+    addProduct({ ...newData, brand: selectedCompany || 'AUCO' });
+    setShowAddModal(false);
+    setNewData(defaultNew);
+  };
+
+  const handleEdit = (e) => {
+    e.preventDefault();
+    updateProduct(editTarget.id || editTarget.productCode, editData);
+    setEditTarget(null);
+  };
+
+  const handleDelete = (p) => {
+    if (window.confirm(`Delete [${p.productCode}] "${p.name}"?`)) deleteProduct(p.id || p.productCode);
+  };
+
+  const startEdit = (p) => {
+    setEditTarget(p);
+    setEditData({ name: p.name, price: p.price, minStockLevel: p.minStockLevel, supplier: p.supplier, category: p.category });
+  };
+
+  return (
+    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Boxes size={26} style={{ color: '#4f46e5' }} /> Inventory
+          </h1>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.88rem' }}>
+            {lowStockItems.length > 0
+              ? `⚠ ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} below minimum stock`
+              : `${totalSKUs} products · all stock levels healthy`}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 20px', borderRadius: '10px',
+            background: 'linear-gradient(135deg,#4f46e5,#6366f1)', color: '#fff', fontWeight: 700,
+            fontSize: '0.9rem', border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(79,70,229,0.3)', flexShrink: 0
+          }}
+        >
+          <Plus size={18} /> Add SKU
+        </button>
       </div>
 
-      {/* =========================================================================
-          DESKTOP INVENTORY TABLE
-          ========================================================================= */}
-      <div className="table-container desktop-only">
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>Product Code (Unique)</th>
-              <th>Product Name & SKU</th>
-              <th>Category</th>
-              <th>Unit Price</th>
-              <th>Stock In / Out</th>
-              <th>Reserved</th>
-              <th>Available Stock</th>
-              <th>Min Threshold</th>
-              <th>Supplier</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((p) => {
-              const isLow = p.availableStock <= p.minStockLevel;
-              return (
-                <tr key={p.id}>
-                  <td>
-                    <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                      {p.productCode}
-                    </strong>
-                  </td>
-                  <td>
-                    <div>
-                      <strong>{p.name}</strong>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>SKU: {p.sku}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
-                      {p.category}
-                    </span>
-                  </td>
-                  <td>
-                    <strong>{formatCurrency(p.price)}</strong>
-                  </td>
-                  <td style={{ fontSize: '0.78rem' }}>
-                    <span style={{ color: 'var(--success-text)' }}>+{p.stockIn} in</span> / <span style={{ color: 'var(--danger-text)' }}>-{p.stockOut} out</span>
-                  </td>
-                  <td style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    {p.reservedStock || 0}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <strong style={{ fontSize: '1rem', color: isLow ? 'var(--danger-text)' : 'var(--text-primary)' }}>
-                        {p.availableStock}
-                      </strong>
-                      {isLow ? (
-                        <span className="badge badge-danger" style={{ fontSize: '0.68rem' }}>Low</span>
-                      ) : (
-                        <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>OK</span>
-                      )}
-                    </div>
-                  </td>
-                  <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                    {p.minStockLevel}
-                  </td>
-                  <td style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    {p.supplier}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => setShowAdjustModal(p)}
-                        title="Adjust Stock In / Out"
-                        style={{ padding: '4px 8px' }}
-                      >
-                        <Sliders size={13} /> Stock
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => handleStartEditProduct(p)}
-                        title="Edit SKU"
-                        style={{ padding: '4px 8px' }}
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => handleDeleteProduct(p)}
-                        title="Delete SKU"
-                        style={{ padding: '4px 8px', color: 'var(--danger-text)' }}
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {filteredProducts.length === 0 && (
-              <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--text-muted)' }}>
-                  <Boxes size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>No products found</div>
-                  <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Try adjusting your search query or category filter.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* =========================================================================
-          MOBILE PRODUCT CARDS FEED (Phone Screens)
-          ========================================================================= */}
-      <div className="mobile-only" style={{ flexDirection: 'column', gap: '12px' }}>
-        {filteredProducts.map((p) => {
-          const isLow = p.availableStock <= p.minStockLevel;
-          return (
-            <div key={p.id} className="card" style={{ padding: '14px 16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <strong style={{ color: 'var(--primary-600)', fontFamily: 'monospace', fontSize: '0.95rem' }}>[{p.productCode}]</strong>
-                    {isLow ? (
-                      <span className="badge badge-danger" style={{ fontSize: '0.68rem', fontWeight: 700 }}>Low Stock</span>
-                    ) : (
-                      <span className="badge badge-success" style={{ fontSize: '0.68rem' }}>In Stock</span>
-                    )}
-                  </div>
-                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginTop: '2px' }}>{p.name}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>{formatCurrency(p.price)}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>per unit</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-subtle)', padding: '8px 10px', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem', marginBottom: '10px' }}>
-                <span className="badge badge-neutral" style={{ fontSize: '0.68rem' }}>{p.category}</span>
-                <span style={{ color: 'var(--text-muted)' }}>•</span>
-                <span>Available: <strong style={{ color: isLow ? 'var(--danger-text)' : 'inherit', fontSize: '0.85rem' }}>{p.availableStock}</strong> units</span>
-                <span style={{ color: 'var(--text-muted)' }}>(Min: {p.minStockLevel})</span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-default)' }}>
-                <button
-                  className="btn btn-primary btn-sm"
-                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}
-                  onClick={() => setShowAdjustModal(p)}
-                >
-                  <Sliders size={13} />
-                  <span>Adjust Stock</span>
-                </button>
-
-                <button
-                  className="btn btn-secondary btn-sm"
-                  style={{ height: '32px', padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  onClick={() => handleStartEditProduct(p)}
-                >
-                  <Edit2 size={13} />
-                  <span>Edit</span>
-                </button>
-              </div>
+      {/* KPI strip */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px' }}>
+        {[
+          { label: 'Total SKUs',   value: totalSKUs,                          color: '#4f46e5', bg: '#eef2ff', icon: Boxes,         fmt: (v) => v },
+          { label: 'Total Units',  value: totalUnits,                         color: '#10b981', bg: '#ecfdf5', icon: Package,        fmt: (v) => v.toLocaleString('en-IN') },
+          { label: 'Valuation',    value: formatCurrency(totalValuation),     color: '#8b5cf6', bg: '#faf5ff', icon: Layers,         fmt: (v) => v },
+          { label: 'Low Stock',    value: lowStockItems.length,               color: lowStockItems.length > 0 ? '#dc2626' : '#059669', bg: lowStockItems.length > 0 ? '#fef2f2' : '#ecfdf5', icon: AlertTriangle, fmt: (v) => `${v} SKU${v !== 1 ? 's' : ''}` },
+        ].map(({ label, value, color, bg, icon: Icon, fmt }) => (
+          <div key={label} style={{ background: bg, border: `1.5px solid ${color}25`, borderRadius: '12px', padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <Icon size={14} style={{ color }} />
+              <span style={{ fontSize: '0.74rem', fontWeight: 600, color }}>{label}</span>
             </div>
-          );
-        })}
-        {filteredProducts.length === 0 && (
-          <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <Boxes size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
-            <div style={{ fontWeight: 700 }}>No products found</div>
+            <div style={{ fontSize: typeof value === 'string' ? '1rem' : '1.6rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
+              {fmt(value)}
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* =========================================================================
-          ADD PRODUCT MODAL
-          ========================================================================= */}
+      {/* Low stock banner */}
+      {lowStockItems.length > 0 && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <AlertTriangle size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: '1px' }} />
+          <div>
+            <div style={{ fontWeight: 700, color: '#92400e', fontSize: '0.88rem', marginBottom: '3px' }}>Low Inventory — Restock Needed</div>
+            <div style={{ fontSize: '0.8rem', color: '#78350f', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {lowStockItems.map((p) => (
+                <span key={p.id} style={{ background: '#fef3c7', padding: '2px 8px', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                  {p.productCode}: {p.availableStock} left (min {p.minStockLevel})
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search + filters */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '10px', padding: '0 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+          <Search size={16} style={{ color: '#94a3b8', flexShrink: 0 }} />
+          <input
+            placeholder="Search by product name, code, SKU, or supplier…"
+            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: 1, border: 'none', outline: 'none', padding: '12px 0', fontSize: '0.88rem', color: '#0f172a', background: 'transparent', fontFamily: 'var(--font-sans)' }}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '2px', display: 'flex' }}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Filter pills */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {[{ key: 'ALL', label: 'All Stock' }, { key: 'LOW', label: '⚠ Low Stock' }, { key: 'OK', label: '✓ Healthy' }].map((f) => (
+            <button key={f.key} onClick={() => setStockFilter(f.key)} style={{
+              padding: '7px 14px', borderRadius: '20px', fontSize: '0.83rem', cursor: 'pointer',
+              border: `1.5px solid ${stockFilter === f.key ? (f.key === 'LOW' ? '#dc2626' : f.key === 'OK' ? '#059669' : '#4f46e5') : '#e2e8f0'}`,
+              background: stockFilter === f.key ? (f.key === 'LOW' ? '#fef2f2' : f.key === 'OK' ? '#ecfdf5' : '#eef2ff') : '#fff',
+              color: stockFilter === f.key ? (f.key === 'LOW' ? '#dc2626' : f.key === 'OK' ? '#059669' : '#4f46e5') : '#64748b',
+              fontWeight: stockFilter === f.key ? 700 : 500, transition: 'all 0.15s'
+            }}>{f.label}</button>
+          ))}
+          <div style={{ width: '1px', background: '#e2e8f0', margin: '0 2px' }} />
+          {['ALL', ...categories].map((cat) => {
+            const isActive = categoryFilter === cat;
+            return (
+              <button key={cat} onClick={() => setCategoryFilter(cat)} style={{
+                padding: '7px 14px', borderRadius: '20px', fontSize: '0.83rem', cursor: 'pointer',
+                border: `1.5px solid ${isActive ? '#64748b' : '#e2e8f0'}`,
+                background: isActive ? '#f1f5f9' : '#fff',
+                color: isActive ? '#0f172a' : '#94a3b8',
+                fontWeight: isActive ? 700 : 500, transition: 'all 0.15s'
+              }}>{cat === 'ALL' ? 'All Categories' : cat}</button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Cards grid */}
+      {filtered.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '60px 24px', background: '#f8fafc', borderRadius: '16px', border: '1.5px dashed #e2e8f0', color: '#94a3b8', textAlign: 'center' }}>
+          <Boxes size={40} style={{ opacity: 0.3 }} />
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#64748b', marginBottom: '4px' }}>No products found</div>
+            <div style={{ fontSize: '0.84rem' }}>Try clearing your filters or add a new product</div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '12px' }}>
+          {filtered.map((p) => (
+            <ProductCard key={p.id || p.productCode} p={p} onAdjust={setAdjustTarget} onEdit={startEdit} onDelete={handleDelete} />
+          ))}
+        </div>
+      )}
+
+      {/* Modals */}
+      {adjustTarget && (
+        <AdjustModal p={adjustTarget} onClose={() => setAdjustTarget(null)} onSubmit={adjustProductStock} />
+      )}
       {showAddModal && (
-        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleCreateProduct}>
-              <div className="modal-header">
-                <h3>Add New Inventory Product</h3>
-                <button type="button" className="btn btn-ghost btn-icon" onClick={() => setShowAddModal(false)}>✕</button>
-              </div>
-
-              <div className="modal-body">
-                <div className="form-group">
-                  <label className="form-label">Product Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="form-input"
-                    placeholder="e.g. Auco Servo Drive Controller Pro"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Unique Product Code *</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-input"
-                      placeholder="e.g. AUC-600"
-                      value={newProduct.productCode}
-                      onChange={(e) => setNewProduct({ ...newProduct, productCode: e.target.value.toUpperCase() })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">SKU Number</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g. AUC-SD-600-PRO"
-                      value={newProduct.sku}
-                      onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value.toUpperCase() })}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Category</label>
-                    <select
-                      className="form-select"
-                      value={newProduct.category}
-                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    >
-                      <option value="Automation Hardware">Automation Hardware</option>
-                      <option value="Sensors & IOT">Sensors & IOT</option>
-                      <option value="Commercial AV">Commercial AV</option>
-                      <option value="Acoustics & Testing">Acoustics & Testing</option>
-                      <option value="Edge Computing">Edge Computing</option>
-                      <option value="Services">Services</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Product Unit Price (INR) *</label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      className="form-input"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Initial Stock Units</label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="form-input"
-                      value={newProduct.currentStock}
-                      onChange={(e) => setNewProduct({ ...newProduct, currentStock: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Minimum Stock Alert Level</label>
-                    <input
-                      type="number"
-                      min="1"
-                      className="form-input"
-                      value={newProduct.minStockLevel}
-                      onChange={(e) => setNewProduct({ ...newProduct, minStockLevel: Number(e.target.value) })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Supplier / Factory Origin</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Auco Dynamics Pune / Aiwa Labs"
-                    value={newProduct.supplier}
-                    onChange={(e) => setNewProduct({ ...newProduct, supplier: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save Product</button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ProductModal title="Add New Product" data={newData} setData={setNewData} onClose={() => setShowAddModal(false)} onSubmit={handleAdd} selectedCompany={selectedCompany} />
       )}
-
-      {/* =========================================================================
-          ADJUST STOCK MODAL
-          ========================================================================= */}
-      {showAdjustModal && (
-        <div className="modal-backdrop" onClick={() => setShowAdjustModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleStockAdjustment}>
-              <div className="modal-header">
-                <div>
-                  <span className="badge badge-purple">Stock Adjustment</span>
-                  <h3 style={{ marginTop: '4px' }}>[{showAdjustModal.productCode}] {showAdjustModal.name}</h3>
-                </div>
-                <button type="button" className="btn btn-ghost btn-icon" onClick={() => setShowAdjustModal(null)}>✕</button>
-              </div>
-
-              <div className="modal-body">
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', marginBottom: '16px' }}>
-                  <div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>CURRENT AVAILABLE</div>
-                    <strong style={{ fontSize: '1.2rem' }}>{showAdjustModal.availableStock} Units</strong>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>MINIMUM LEVEL</div>
-                    <strong style={{ fontSize: '1.2rem', color: 'var(--warning-text)' }}>{showAdjustModal.minStockLevel} Units</strong>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Adjustment Type</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <button
-                      type="button"
-                      className={`btn ${adjustType === 'ADD' ? 'btn-success' : 'btn-secondary'}`}
-                      onClick={() => setAdjustType('ADD')}
-                    >
-                      <ArrowUp size={16} /> Stock In (Add Units)
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn ${adjustType === 'REMOVE' ? 'btn-danger' : 'btn-secondary'}`}
-                      onClick={() => setAdjustType('REMOVE')}
-                    >
-                      <ArrowDown size={16} /> Stock Out (Deduct Units)
-                    </button>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Number of Units *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    className="form-input"
-                    value={adjustAmount}
-                    onChange={(e) => setAdjustAmount(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(null)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Apply Stock Update</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          EDIT PRODUCT MODAL
-          ========================================================================= */}
-      {editingProduct && (
-        <div className="modal-backdrop" onClick={() => setEditingProduct(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
-            <form onSubmit={handleSaveProductEdit}>
-              <div className="modal-header">
-                <div>
-                  <span className="badge badge-purple">{editingProduct.productCode}</span>
-                  <h3 style={{ marginTop: '4px' }}>Edit Product SKU</h3>
-                </div>
-                <button type="button" className="btn btn-ghost btn-icon" onClick={() => setEditingProduct(null)}>
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="form-group">
-                  <label className="form-label">Product Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="form-input"
-                    value={editProductData.name || ''}
-                    onChange={(e) => setEditProductData({ ...editProductData, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Unit Price (₹) *</label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      className="form-input"
-                      value={editProductData.price || 0}
-                      onChange={(e) => setEditProductData({ ...editProductData, price: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Min Safety Stock Level *</label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      className="form-input"
-                      value={editProductData.minStockLevel || 5}
-                      onChange={(e) => setEditProductData({ ...editProductData, minStockLevel: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Category</label>
-                    <select
-                      className="form-select"
-                      value={editProductData.category || 'Automation Hardware'}
-                      onChange={(e) => setEditProductData({ ...editProductData, category: e.target.value })}
-                    >
-                      <option value="Automation Hardware">Automation Hardware</option>
-                      <option value="Sensors & IOT">Sensors & IOT</option>
-                      <option value="Commercial AV">Commercial AV</option>
-                      <option value="Acoustics & Testing">Acoustics & Testing</option>
-                      <option value="Edge Computing">Edge Computing</option>
-                      <option value="Services">Services</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Supplier Hub</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={editProductData.supplier || ''}
-                      onChange={(e) => setEditProductData({ ...editProductData, supplier: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setEditingProduct(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {editTarget && (
+        <ProductModal title={`Edit — ${editTarget.productCode}`} data={editData} setData={setEditData} onClose={() => setEditTarget(null)} onSubmit={handleEdit} selectedCompany={selectedCompany} />
       )}
     </div>
   );

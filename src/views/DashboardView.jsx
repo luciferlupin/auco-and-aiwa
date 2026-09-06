@@ -356,46 +356,42 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              {/* Desktop Table */}
-              <div className="table-container desktop-only">
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Order ID</th>
-                      <th>Client</th>
-                      <th>Items</th>
-                      <th>Value</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scopedOrders.slice(0, 4).map((o) => (
-                      <tr key={o.id}>
-                        <td><strong>{o.id}</strong></td>
-                        <td>{o.clientName}</td>
-                        <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{o.productCode}</td>
-                        <td><strong>{formatCurrency(o.orderValue)}</strong></td>
-                        <td><span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`}>{o.deliveryStatus}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {scopedOrders.slice(0, 4).map((o) => (
-                  <div key={o.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    key={o.id}
+                    onClick={() => onNavigate('orders')}
+                    style={{
+                      padding: '12px 14px',
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#93c5fd')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                  >
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.85rem' }}>{o.id}</strong>
-                        <span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`} style={{ fontSize: '0.65rem' }}>{o.deliveryStatus}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700, color: '#2563eb' }}>
+                          {o.id}
+                        </span>
+                        <span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`} style={{ fontSize: '0.68rem' }}>
+                          {o.deliveryStatus}
+                        </span>
                       </div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', marginTop: '2px' }}>{o.clientName}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{o.productCode}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{o.clientName}</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{o.productCode} • {o.productName}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{formatCurrency(o.orderValue)}</strong>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                        {formatCurrency(o.orderValue)}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{o.quantity} units</div>
                     </div>
                   </div>
                 ))}
@@ -672,61 +668,52 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              {/* Desktop Table */}
-              <div className="table-container desktop-only">
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Company</th>
-                      <th>Contact</th>
-                      <th>Expected Value</th>
-                      <th>Stage</th>
-                      <th>WhatsApp</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myLeads.slice(0, 5).map((l) => (
-                      <tr key={l.id}>
-                        <td>
-                          <strong>{l.company}</strong>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{l.city}, {l.state}</div>
-                        </td>
-                        <td>{l.client}</td>
-                        <td><strong>{formatCurrency(l.expectedValue)}</strong></td>
-                        <td><span className={`badge ${getStatusBadgeClass(l.stage)}`}>{l.stage}</span></td>
-                        <td>
-                          <a
-                            href={getWhatsAppUrl(l.phone, `Hi ${l.client}, following up on your inquiry with ${l.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="badge badge-whatsapp"
-                          >
-                            <MessageSquare size={12} /> Chat
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {myLeads.slice(0, 5).map((l) => (
-                  <div key={l.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    key={l.id}
+                    style={{
+                      padding: '12px 14px',
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '10px'
+                    }}
+                  >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{l.company}</div>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{l.client} • {l.city}</div>
-                      <span className={`badge ${getStatusBadgeClass(l.stage)}`} style={{ fontSize: '0.65rem', marginTop: '3px' }}>{l.stage}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <span className={`badge ${getStatusBadgeClass(l.stage)}`} style={{ fontSize: '0.68rem' }}>
+                          {l.stage}
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{l.city}</span>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{l.company}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{l.client} • {l.phone}</div>
                     </div>
                     <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                      <strong style={{ color: 'var(--primary-600)', fontSize: '0.95rem' }}>{formatCurrency(l.expectedValue)}</strong>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#2563eb' }}>
+                        {formatCurrency(l.expectedValue)}
+                      </div>
                       <a
-                        href={getWhatsAppUrl(l.phone, `Hi ${l.client}, following up on your inquiry with ${l.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
+                        href={getWhatsAppUrl(l.phone, `Hi ${l.client}, following up from ${l.brand === 'AIWA' ? 'Aiwa Commercial AV' : 'Auco Automation'}.`)}
                         target="_blank"
                         rel="noreferrer"
-                        className="badge badge-whatsapp"
-                        style={{ fontSize: '0.68rem', padding: '3px 8px' }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          background: '#f0fdf4',
+                          border: '1px solid #86efac',
+                          color: '#16a34a',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          textDecoration: 'none'
+                        }}
                       >
                         <MessageSquare size={11} /> WhatsApp
                       </a>
@@ -832,46 +819,39 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              {/* Desktop Table */}
-              <div className="table-container desktop-only">
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Invoice #</th>
-                      <th>Client</th>
-                      <th>Due Date</th>
-                      <th>Balance Due</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingInvoices.map((inv) => (
-                      <tr key={inv.id}>
-                        <td><strong>{inv.invoiceNumber}</strong></td>
-                        <td>{inv.clientName}</td>
-                        <td style={{ fontSize: '0.8rem' }}>{formatDate(inv.paymentDueDate)}</td>
-                        <td><strong style={{ color: 'var(--danger-text)' }}>{formatCurrency(inv.balance)}</strong></td>
-                        <td><span className={`badge ${getStatusBadgeClass(inv.paymentStatus)}`}>{inv.paymentStatus}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {pendingInvoices.map((inv) => (
-                  <div key={inv.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    key={inv.id}
+                    onClick={() => onNavigate('invoices')}
+                    style={{
+                      padding: '12px 14px',
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.85rem' }}>{inv.invoiceNumber}</strong>
-                        <span className={`badge ${getStatusBadgeClass(inv.paymentStatus)}`} style={{ fontSize: '0.65rem' }}>{inv.paymentStatus}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700, color: '#2563eb' }}>
+                          {inv.invoiceNumber}
+                        </span>
+                        <span className={`badge ${getStatusBadgeClass(inv.paymentStatus)}`} style={{ fontSize: '0.68rem' }}>
+                          {inv.paymentStatus}
+                        </span>
                       </div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', marginTop: '2px' }}>{inv.clientName}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Due: {formatDate(inv.paymentDueDate)}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{inv.clientName}</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Due: {formatDate(inv.paymentDueDate)}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <strong style={{ color: 'var(--danger-text)', fontSize: '0.95rem' }}>{formatCurrency(inv.balance)}</strong>
+                      <div style={{ fontWeight: 800, fontSize: '1rem', color: '#dc2626' }}>
+                        {formatCurrency(inv.balance)}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Balance Due</div>
                     </div>
                   </div>
                 ))}
@@ -977,43 +957,35 @@ export const DashboardView = ({ onNavigate, onOpenLeadModal, onOpenOrderModal, o
                 </button>
               </div>
 
-              {/* Desktop Table */}
-              <div className="table-container desktop-only">
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>Order ID</th>
-                      <th>Client</th>
-                      <th>Products / Services</th>
-                      <th>Assigned Tech</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scopedOrders.map((o) => (
-                      <tr key={o.id}>
-                        <td><strong>{o.id}</strong></td>
-                        <td>{o.clientName}</td>
-                        <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{o.productCode}</td>
-                        <td>{o.assignedTeamMember}</td>
-                        <td><span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`}>{o.deliveryStatus}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="mobile-only" style={{ flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {scopedOrders.map((o) => (
-                  <div key={o.id} style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    key={o.id}
+                    onClick={() => onNavigate('orders')}
+                    style={{
+                      padding: '12px 14px',
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <strong style={{ color: 'var(--primary-600)', fontSize: '0.85rem' }}>{o.id}</strong>
-                        <span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`} style={{ fontSize: '0.65rem' }}>{o.deliveryStatus}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700, color: '#2563eb' }}>
+                          {o.id}
+                        </span>
+                        <span className={`badge ${getStatusBadgeClass(o.deliveryStatus)}`} style={{ fontSize: '0.68rem' }}>
+                          {o.deliveryStatus}
+                        </span>
                       </div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', marginTop: '2px' }}>{o.clientName}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{o.productCode} • Tech: {o.assignedTeamMember}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{o.clientName}</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {o.productCode} • Tech: {o.assignedTeamMember}
+                      </div>
                     </div>
                   </div>
                 ))}
