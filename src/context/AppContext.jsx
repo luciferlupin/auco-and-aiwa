@@ -579,6 +579,36 @@ export const AppProvider = ({ children }) => {
         setFollowUps(mappedFollowups);
         setIsCloudSynced(true);
       }
+
+      // Check repairs
+      try {
+        const { data: dbRepairs, error: repErr } = await supabase.from('repairs').select('*');
+        if (!repErr && dbRepairs && dbRepairs.length > 0) {
+          const mappedRepairs = dbRepairs.map(r => ({
+            id: r.id,
+            brand: r.brand || 'AUCO',
+            customerName: r.customer_name,
+            customerPhone: r.customer_phone,
+            customerEmail: r.customer_email,
+            productCode: r.product_code,
+            productName: r.product_name,
+            serialNumber: r.serial_number,
+            issueDescription: r.issue_description,
+            receivedDate: r.received_date,
+            estimatedCompletion: r.estimated_completion,
+            actualCompletionDate: r.actual_completion_date,
+            assignedTechnician: r.assigned_technician,
+            repairStatus: r.repair_status,
+            warrantyStatus: r.warranty_status,
+            repairCost: Number(r.repair_cost || 0),
+            notes: r.notes,
+            createdBy: r.created_by,
+            createdAt: r.created_at
+          }));
+          setRepairs(mappedRepairs);
+          setIsCloudSynced(true);
+        }
+      } catch (e) {}
     } catch (err) {
       console.warn('Supabase fetch notice:', err.message);
     } finally {
@@ -1880,6 +1910,30 @@ export const AppProvider = ({ children }) => {
       createdAt: new Date().toISOString()
     };
     setRepairs((prev) => [newRepair, ...prev]);
+
+    // Sync to Supabase
+    try {
+      await supabase.from('repairs').insert({
+        id: newRepair.id,
+        brand: newRepair.brand,
+        customer_name: newRepair.customerName,
+        customer_phone: newRepair.customerPhone,
+        customer_email: newRepair.customerEmail,
+        product_code: newRepair.productCode,
+        product_name: newRepair.productName,
+        serial_number: newRepair.serialNumber,
+        issue_description: newRepair.issueDescription,
+        received_date: newRepair.receivedDate,
+        estimated_completion: newRepair.estimatedCompletion || null,
+        assigned_technician: newRepair.assignedTechnician,
+        repair_status: newRepair.repairStatus,
+        warranty_status: newRepair.warrantyStatus,
+        repair_cost: newRepair.repairCost,
+        notes: newRepair.notes,
+        created_by: newRepair.createdBy
+      });
+    } catch (e) {}
+
     logActivity('REPAIR_CREATED', 'Repair', newRepair.id, `New repair job #${newRepair.id} created for ${newRepair.customerName} — ${newRepair.productName || newRepair.productCode}`, newRepair.brand);
     addToast('Repair Job Created', `Job #${newRepair.id} for ${newRepair.customerName} logged successfully.`, 'success');
     return newRepair;
@@ -1899,6 +1953,20 @@ export const AppProvider = ({ children }) => {
         return r;
       })
     );
+
+    // Sync to Supabase
+    try {
+      const dbUpdates = {};
+      if (updates.repairStatus) dbUpdates.repair_status = updates.repairStatus;
+      if (updates.warrantyStatus) dbUpdates.warranty_status = updates.warrantyStatus;
+      if (updates.repairCost !== undefined) dbUpdates.repair_cost = Number(updates.repairCost);
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if (updates.assignedTechnician) dbUpdates.assigned_technician = updates.assignedTechnician;
+      if (updates.estimatedCompletion) dbUpdates.estimated_completion = updates.estimatedCompletion;
+      if (updates.repairStatus === 'Delivered') dbUpdates.actual_completion_date = new Date().toISOString().split('T')[0];
+      await supabase.from('repairs').update(dbUpdates).eq('id', repairId);
+    } catch (e) {}
+
     if (updatedRepair) {
       logActivity('REPAIR_UPDATED', 'Repair', repairId, `Repair #${repairId} status updated to "${updates.repairStatus || 'Updated'}"`, updatedRepair.brand);
     }
@@ -1909,6 +1977,12 @@ export const AppProvider = ({ children }) => {
 
   const deleteRepair = async (repairId) => {
     setRepairs((prev) => prev.filter((r) => r.id !== repairId));
+
+    // Sync to Supabase
+    try {
+      await supabase.from('repairs').delete().eq('id', repairId);
+    } catch (e) {}
+
     logActivity('REPAIR_DELETED', 'Repair', repairId, `Repair job #${repairId} deleted.`, selectedCompany);
     addToast('Repair Deleted', `Job #${repairId} has been removed.`, 'info');
   };
