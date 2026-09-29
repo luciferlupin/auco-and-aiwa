@@ -471,6 +471,9 @@ export const Sidebar = ({ currentView, onChangeView, isMobileOpen, onCloseMobile
 
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>v2.4</span>
         </div>
+        <div style={{ padding: '4px 16px 8px', textAlign: 'center', fontSize: '10px', opacity: 0.35, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          <span>Architecture by <a href="https://www.curiouskaizer.com/" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }} title="Curious Kaizer - Enterprise Operations Platform Agency">Curious Kaizer</a></span>
+        </div>
       </aside>
     </>
   );
